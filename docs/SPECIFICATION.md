@@ -40,11 +40,24 @@ Au démarrage, l'hôte affiche un **QR code de connexion** contenant l'adresse d
 
 **Chaque scan compte** : si deux smartphones scannent le même QR en même temps, l'action est appliquée deux fois. Pas de dédoublonnage automatique.
 
-## 4. Scan multi-QR (caméra)
 
-- Utilisation de la caméra avec détection de plusieurs QR codes simultanés (ex. `mobile_scanner` avec `DetectionSpeed`/multi-détection, basé sur ML Kit).
-- Dès que l'ensemble des QR visibles forme une combinaison reconnue par le JSON, l'action est déclenchée automatiquement.
+
+- Utilisation de la caméra avec détection de plusieurs QR codes simultanés (ex. `mobile_scanner` avec multi-détection, basé sur ML Kit).
+- Dès que l'ensemble des QR visibles forme une combinaison reconnue par le JSON, l'appli passe en **mode confirmation** (voir §4.1). L'action n'est jamais appliquée automatiquement.
 - Les QR non reconnus ou les combinaisons inconnues sont remontés à l'écran (mode debug) sans effet de jeu.
+
+### 4.1 Confirmation avant action
+
+1. Le joueur scanne les cartes (plusieurs QR simultanés).
+2. L'appli affiche un **aperçu de l'action** qui sera réalisée, en langage naturel issu du JSON, par ex. : *« Le Dr House utilise le Stéthoscope pour diagnostiquer M. Dupont. »*
+3. Deux boutons : **Confirmer** ou **Annuler**.
+   - **Confirmer** : l'action est appliquée (effet du JSON sur l'état des patients) et le résultat est diffusé à tous les clients connectés.
+   - **Annuler** : rien n'est appliqué, retour au scan.
+4. La confirmation est faite sur le smartphone qui a détecté la combinaison (hôte ou client) ; le résultat est ensuite synchronisé sur tous les écrans via le serveur.
+
+### 4.2 Règle de dédoublonnage
+
+**Chaque scan compte** : si deux smartphones scannent le même QR en même temps, deux demandes de confirmation sont proposées et chaque confirmation applique son action. Pas de dédoublonnage automatique.
 
 ## 5. Fichier de configuration JSON
 
@@ -53,7 +66,7 @@ Au démarrage, l'hôte affiche un **QR code de connexion** contenant l'adresse d
 Le JSON embarqué contient :
 
 - la **table de correspondance QR → carte** (type de carte + identifiant) ;
-- les **effets des combinaisons** (quelle combinaison de types de cartes déclenche quelle action) ;
+- les **effets des combinaisons** (quelle combinaison de types de cartes déclenche quelle action, avec la **phrase d'aperçu** affichée avant confirmation, ex. *« Le {medecin} utilise {objet} sur {patient}. »*) ;
 - la **gestion des patients** : points de vie, états, évolution (empirer / soigner).
 
 Il ne contient **pas** : réputation de l'hôpital, points de victoire, conditions de victoire, gestion des tours (hors appli).
@@ -80,6 +93,7 @@ Il ne contient **pas** : réputation de l'hôpital, points de victoire, conditio
       "effet": {
         "action": "diagnostiquer",
         "cible": "patient",
+        "phrase": "Le {medecin} diagnostique {patient}.",
         "resultat": "Le médecin pose le diagnostic de la maladie du patient."
       }
     },
