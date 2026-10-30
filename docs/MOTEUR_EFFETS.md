@@ -91,7 +91,7 @@ Les noms de personnages ou de marques existants (personnages de séries, marques
 }
 ```
 
-`attente_max`, `poids` (défaut 1), `traitement.partiel` et `recompenses` sont facultatifs. Toute clé de `recompenses` absente reprend la valeur de `parametres.recompenses`.
+`attente_max`, `poids` (entier ≥ 1, défaut 1), `traitement.partiel` et `recompenses` sont facultatifs. Un poids nul est interdit : une maladie qui ne peut jamais être tirée n'a pas sa place dans le paquet, il suffit de la retirer. Toute clé de `recompenses` absente reprend la valeur de `parametres.recompenses`.
 
 ## 3. Motifs
 
@@ -229,9 +229,10 @@ Un paquet est **refusé** s'il comporte au moins une erreur ; les avertissements
 5. variable de phrase incompatible avec le motif de l'action (ex. `{salle}` dans une action d'admission) ;
 6. spécialité-type sans aucune maladie ;
 7. maladie dont le traitement adapté n'est **réalisable par aucune combinaison standard** des cartes du catalogue (vérification exhaustive : environ 3 500 combinaisons pour le catalogue cible) ;
-8. identifiants en double.
+8. identifiants en double ;
+9. `poids` d'une maladie inférieur à 1 (déjà refusé par le JSON Schema, et revérifié par le validateur sémantique, qui donne un message explicite : `maladies[12].poids : une maladie doit avoir un poids d'au moins 1 ; pour l'écarter, retirez-la du paquet`).
 
-**Avertissements** : dossier `images/` non vide, maladie sans traitement partiel, spécialité portée par aucune carte, `poids` nul.
+**Avertissements** : dossier `images/` non vide, maladie sans traitement partiel, spécialité portée par aucune carte.
 
 ## 8. Versionnement
 

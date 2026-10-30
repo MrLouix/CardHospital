@@ -183,7 +183,7 @@
           "items": { "$ref": "#/$defs/entier_positif_ou_nul" }
         },
         "attente_max": { "$ref": "#/$defs/entier_positif" },
-        "poids": { "$ref": "#/$defs/entier_positif_ou_nul" },
+        "poids": { "$ref": "#/$defs/entier_positif" },
         "traitement": {
           "type": "object",
           "additionalProperties": false,

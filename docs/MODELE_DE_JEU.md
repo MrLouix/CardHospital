@@ -51,7 +51,7 @@ Chaque maladie définit :
 | `pv_initial` | PV à l'admission (entier > 0) | `10` |
 | `aggravation` | PV perdus par action non curative, selon le temps du patient (la dernière valeur se répète) | `[1, 1, 2, 3]` |
 | `attente_max` | Seuil de temps au-delà duquel chaque action coûte de la réputation | `5` |
-| `poids` | Probabilité relative d'être tirée à l'admission | `1` |
+| `poids` | Probabilité relative d'être tirée à l'admission : entier **≥ 1** (défaut 1). Une maladie présente dans le paquet doit pouvoir sortir ; pour l'écarter, on la retire du paquet | `1` |
 | `traitement.adapte` | Prédicat sur la combinaison : traitement qui **soigne** | voir §6 |
 | `traitement.partiel` | Prédicat facultatif : traitement qui **stabilise** (gain de PV sans guérison) | voir §6 |
 | `recompenses` | Pièces et réputation propres à la maladie (sinon valeurs globales) | voir §7 |

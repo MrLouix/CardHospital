@@ -1,6 +1,6 @@
 # CardHospital — Feuille de route
 
-Principe : **traiter les risques en premier**. Chaque phase se termine par des critères de sortie vérifiables ; une phase qui échoue remet en cause les suivantes avant que du code inutile soit écrit.
+Principe : **traiter les risques en premier**. Le démarrage concret (organisation du dépôt, tâches des phases 0 et 1) est détaillé dans le [plan de codage](PLAN_DE_CODAGE.md). Chaque phase se termine par des critères de sortie vérifiables ; une phase qui échoue remet en cause les suivantes avant que du code inutile soit écrit.
 
 | Phase | Objet | Risque principal levé |
 |---|---|---|

@@ -24,7 +24,7 @@ Le suivi global de la partie (tours, points de victoire, cumul des pièces et de
 - [Spécification de l'application](docs/SPECIFICATION.md)
 - [Modèle de jeu](docs/MODELE_DE_JEU.md)
 - [Paquets de jeu et moteur d'effets](docs/MOTEUR_EFFETS.md), avec le [JSON Schema](docs/schema/jeu.schema.json) et un [exemple](docs/exemples/jeu.exemple.json)
-- [Feuille de route](docs/FEUILLE_DE_ROUTE.md)
+- [Feuille de route](docs/FEUILLE_DE_ROUTE.md) et [plan de codage](docs/PLAN_DE_CODAGE.md)
 - [Glossaire](docs/GLOSSAIRE.md)
 
 ## Licence
