@@ -2,27 +2,28 @@
 
 ## 1. Vision
 
-CardHospital est un jeu de société physique simulant la vie d'un hôpital. Les joueurs incarnent des médecins, des patients arrivent, et les médecins doivent poser le bon diagnostic et soigner les patients avant que leur état n'empire.
+CardHospital est un jeu de société physique simulant la vie d'un hôpital. Les joueurs incarnent des médecins, des patients arrivent, et les médecins doivent poser le bon diagnostic et les soigner avant que leur état n'empire.
 
 L'application Android (extensible iOS) sert de **moteur d'actions** : elle lit les QR codes imprimés sur les cartes (médecins, objets/diplômes, patients) et exécute l'effet correspondant à la combinaison scannée.
 
-**Hors périmètre de l'appli** : le suivi global de la partie (points de victoire, tour de jeu, réputation de l'hôpital, conditions de victoire) est géré manuellement par les joueurs, hors application.
+**Hors périmètre de l'appli** : le suivi global de la partie (points de victoire, tour de jeu, réputation de l'hôpital, conditions de victoire) est géré manuellement par les joueurs, hors application. Il n'y a pas de « joueur maître du jeu » dans l'appli.
 
 ## 2. Principes directeurs
 
 1. **Scan multi-QR simultané** : plusieurs QR codes visibles à la caméra sont lus en même temps et combinés.
 2. **Contenu du jeu externalisé** : la correspondance QR → effet in-game, ainsi que la gestion des patients (PV, état), vivent dans un fichier JSON chargeable et modifiable, permettant de modifier le jeu et de créer des extensions sans toucher au code.
-3. **Architecture hôte/clients** : un smartphone héberge un serveur web local ; les autres smartphones du même réseau Wi-Fi s'y connectent comme scanners.
+3. **Architecture hôte/clients** : un seul smartphone hôte par partie héberge un serveur web local ; les autres smartphones du même réseau Wi-Fi s'y connectent comme scanners.
 4. **Pas de dépendance Internet** : tout fonctionne en réseau local.
+5. **Aucune identité de joueur dans l'appli** : un même smartphone peut être utilisé par plusieurs joueurs successivement ; rien n'est lié à un joueur en particulier.
 
 ## 3. Architecture réseau
 
 ### 3.1 Rôles
 
-- **Smartphone hôte (maître)** : démarre le serveur web embarqué, centralise tous les scans, applique les effets du JSON, affiche le résultat à l'écran.
-- **Smartphones clients (scanners)** : se connectent au serveur de l'hôte et lui transmettent les QR codes qu'ils lisent.
+- **Smartphone hôte** (unique par partie) : démarre le serveur web embarqué, centralise tous les scans, applique les effets du JSON, conserve l'état des patients.
+- **Smartphones clients (scanners)** : se connectent au serveur de l'hôte, scannent les QR codes et transmettent les combinaisons lues à l'hôte pour traitement.
 
-Le smartphone hôte doit pouvoir se connecter à son propre serveur comme un client classique (via `localhost` / loopback), afin de ne pas dupliquer le code d'affichage et de traitement.
+Le smartphone hôte peut aussi scanner directement : il se connecte à son propre serveur via loopback, afin de ne pas dupliquer le code de scan et d'affichage.
 
 ### 3.2 Connexion des clients
 
@@ -31,47 +32,44 @@ Au démarrage, l'hôte affiche un **QR code de connexion** contenant l'adresse d
 ### 3.3 Protocole
 
 - Serveur HTTP embarqué dans l'appli hôte (Dart pur, ex. `shelf`), écoutant sur le réseau local Wi-Fi.
-- **WebSocket** (`web_socket_channel`) pour la communication temps réel bidirectionnelle :
-  - client → hôte : envoi d'un QR lu (`{ "qr": "PATIENT-012" }`)
-  - hôte → client : accusé de réception, et **uniquement** le résultat d'une action que le joueur a choisi de révéler (voir §4.2).
-- Le traitement et l'état du jeu restent centralisés côté hôte ; les clients servent de scanners et d'affichage du résultat révélé.
+- **WebSocket** pour la communication temps réel bidirectionnelle :
+  - client → hôte : envoi des QR lus / de la combinaison détectée (`{ "qrs": ["MED-001", "OBJ-004", "PAT-012"] }`)
+  - hôte → client : accusé de réception et **résultat de l'action**, affiché uniquement sur le smartphone du joueur qui a réalisé l'action.
+- Le traitement et l'état du jeu restent centralisés côté hôte.
 
 ### 3.4 Règle de dédoublonnage
 
-**Chaque scan compte** : si deux smartphones scannent le même QR en même temps, l'action est appliquée deux fois. Pas de dédoublonnage automatique.
-
-
-
-- Utilisation de la caméra avec détection de plusieurs QR codes simultanés (ex. `mobile_scanner` avec multi-détection, basé sur ML Kit).
-- Dès que l'ensemble des QR visibles forme une combinaison reconnue par le JSON, l'appli passe en **mode confirmation** (voir §4.1). L'action n'est jamais appliquée automatiquement.
-- Les QR non reconnus ou les combinaisons inconnues sont remontés à l'écran (mode debug) sans effet de jeu.
-
-### 4.1 Confirmation avant action
-
-1. Le joueur scanne les cartes (plusieurs QR simultanés).
-2. L'appli affiche un **écran visuel de la combinaison** : l'**image de chaque carte scannée** côte à côte, accompagnée d'un **texte explicatif** de l'action qui sera réalisée (phrase issue du JSON), par ex. *« Le Dr House utilise le Stéthoscope pour diagnostiquer M. Dupont. »*
-3. Deux boutons : **Confirmer** ou **Annuler**.
-   - **Confirmer** : l'action est appliquée (effet du JSON sur l'état des patients).
-   - **Annuler** : rien n'est appliqué, retour au scan.
-4. La confirmation est faite sur le smartphone qui a détecté la combinaison (hôte ou client).
-
-### 4.2 Visibilité du résultat
-
-- **Seul le smartphone qui a réalisé l'action voit le résultat** à l'écran.
-- Le joueur peut ensuite choisir de **révéler ou non le résultat aux autres joueurs** (bouton « Révéler » sur son téléphone) : la révélation envoie le résultat aux autres smartphones connectés via le serveur. Sans révélation, les autres joueurs ne voient rien du résultat.
-- L'état interne des patients (PV, diagnostic) reste centralisé côté hôte ; il n'est jamais diffusé automatiquement aux clients.
-
-### 4.2 Règle de dédoublonnage
-
 **Chaque scan compte** : si deux smartphones scannent le même QR en même temps, deux demandes de confirmation sont proposées et chaque confirmation applique son action. Pas de dédoublonnage automatique.
+
+## 4. Déroulement d'une action (scan → résultat)
+
+### 4.1 Scan multi-QR (caméra)
+
+- Caméra avec détection de **plusieurs QR codes simultanés** (ex. `mobile_scanner`, basé sur ML Kit).
+- Dès que les QR visibles forment une combinaison reconnue par le JSON, l'appli passe en **mode confirmation**. L'action n'est jamais appliquée automatiquement.
+- Les QR non reconnus ou combinaisons inconnues sont remontés à l'écran (debug) sans effet de jeu.
+
+### 4.2 Écran de confirmation
+
+1. Le joueur scanne les cartes sur **son propre téléphone**.
+2. L'appli affiche un **écran visuel de la combinaison** : l'**image de chaque carte scannée** (les images sont celles imprimées sur les cartes physiques, embarquées dans l'appli) côte à côte, accompagnée d'un **texte explicatif** de l'action qui sera réalisée (phrase issue du JSON), ex. *« Le Dr House utilise le Stéthoscope pour diagnostiquer M. Dupont. »*
+3. Deux boutons : **Confirmer** ou **Annuler**.
+   - **Confirmer** : l'action est appliquée côté hôte (effet du JSON sur l'état des patients).
+   - **Annuler** : rien n'est appliqué, retour au scan.
+
+### 4.3 Écran de résultat
+
+- Le **résultat n'apparaît que sur le smartphone du joueur qui a confirmé l'action**.
+- Le joueur communique le résultat aux autres **de vive voix ou en montrant son écran** : aucun bouton « révéler », aucun envoi automatique aux autres smartphones.
+- Un bouton **« OK » / « Fin de l'action »** ferme l'écran de résultat et ramène à l'écran d'accueil (prêt pour un nouveau scan).
 
 ## 5. Fichier de configuration JSON
 
 ### 5.1 Contenu
 
-Le JSON embarqué contient :
+Le JSON contient :
 
-- la **table de correspondance QR → carte** (type de carte, identifiant, nom, **visuel/image de la carte** pour l'affichage de la combinaison) ;
+- la **table de correspondance QR → carte** (type de carte, identifiant, nom, **image de la carte** embarquée dans l'appli — les extensions réutilisent ces mêmes images) ;
 - les **effets des combinaisons** (quelle combinaison de types de cartes déclenche quelle action, avec la **phrase d'aperçu** affichée avant confirmation, ex. *« Le {medecin} utilise {objet} sur {patient}. »*) ;
 - la **gestion des patients** : points de vie, états, évolution (empirer / soigner).
 
@@ -80,7 +78,7 @@ Il ne contient **pas** : réputation de l'hôpital, points de victoire, conditio
 ### 5.2 Distribution
 
 - Un JSON **par défaut embarqué** dans l'application (assets).
-- Possibilité de **charger un JSON externe** (import via le système de fichiers / partage Android) pour les extensions et variantes de règles. Le JSON actif est sélectionnable dans l'écran admin.
+- Possibilité de **charger un JSON externe** (import via le système de fichiers / partage Android) pour les extensions. Les extensions réutilisent les images des cartes embarquées. Le JSON actif est sélectionnable dans l'écran admin.
 
 ### 5.3 Schéma (exemple)
 
@@ -128,13 +126,14 @@ Il ne contient **pas** : réputation de l'hôpital, points de victoire, conditio
 
 Le schéma exact (champs, conditions, effets chaînés) sera affiné lors de la conception du moteur d'effets.
 
-## 6. Écran admin (hôte)
+## 6. Écran admin (hôte, debug uniquement)
 
-L'application hôte propose un écran d'administration permettant de :
+L'hôte peut ouvrir une page admin (hors jeu, pur debug) permettant de :
 
-- **annuler un scan** (révoquer la dernière action appliquée) ;
+- voir l'**état des patients** (PV, diagnostic, état) ;
+- voir la **liste des 5 derniers scans** et pouvoir les **annuler un par un** ;
 - **enregistrer / charger une partie** (sauvegarde de l'état des patients) ;
-- **debug** : voir les QR lus, les combinaisons déclenchées, les requêtes reçues des clients, les logs serveur.
+- voir les QR lus, combinaisons déclenchées, requêtes reçues des clients, logs serveur.
 
 ## 7. Stack technique
 
@@ -152,10 +151,14 @@ Version Android minimale cible : **Android 8.0 (API 26)**.
 
 - Suivi des points de victoire, réputation de l'hôpital, conditions de victoire : géré manuellement.
 - Gestion du tour de chaque joueur : manuelle.
+- Identité de joueur dans l'appli : aucune.
 - Fonctionnement hors réseau local / via Internet : non prévu.
 
 ## 9. Décisions entérinées
 
 1. **Version Android minimale** : Android 8.0 (API 26).
 2. **Clients scanners simultanés** : illimité côté serveur, testé jusqu'à ~8 clients.
-3. **Partie rejouable** : non. L'écran admin se limite à la sauvegarde/restauration de l'état des patients, sans log rejouable des scans.
+3. **Partie rejouable** : non. L'écran admin se limite à la sauvegarde/restauration de l'état des patients et à l'annulation des 5 derniers scans, sans log rejouable.
+4. **Confirmation obligatoire** : aucune action n'est appliquée sans confirmation (Confirmer/Annuler).
+5. **Résultat privé** : affiché uniquement sur le smartphone de l'acteur, communiqué aux autres de vive voix ou en montrant l'écran.
+6. **Un seul hôte par partie** ; les clients ne font que scanner et renvoyer le résultat.
