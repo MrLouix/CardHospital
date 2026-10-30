@@ -126,7 +126,7 @@ L'application hôte propose un écran d'administration permettant de :
 | JSON | `dart:convert` + modèles générés (`json_serializable`) | Typé, validable |
 | Stockage local | `shared_preferences` / `path_provider` + fichiers JSON | Sauvegardes de partie, import d'extensions |
 
-Version Android minimale cible : à définir (proposition : Android 8.0 / API 26, couvrant la majorité du parc).
+Version Android minimale cible : **Android 8.0 (API 26)**.
 
 ## 8. Hors périmètre (rappel)
 
@@ -134,8 +134,8 @@ Version Android minimale cible : à définir (proposition : Android 8.0 / API 26
 - Gestion du tour de chaque joueur : manuelle.
 - Fonctionnement hors réseau local / via Internet : non prévu.
 
-## 9. Questions ouvertes
+## 9. Décisions entérinées
 
-1. Version Android minimale exacte (proposition : API 26).
-2. Nombre maximal de clients scanners simultanés (proposition : illimité côté serveur, testé jusqu'à ~8).
-3. Faut-il un mode « partie enregistrée » rejouable (log des scans) au-delà de la sauvegarde d'état ?
+1. **Version Android minimale** : Android 8.0 (API 26).
+2. **Clients scanners simultanés** : illimité côté serveur, testé jusqu'à ~8 clients.
+3. **Partie rejouable** : non. L'écran admin se limite à la sauvegarde/restauration de l'état des patients, sans log rejouable des scans.
