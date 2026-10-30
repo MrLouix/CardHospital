@@ -33,8 +33,8 @@ Au démarrage, l'hôte affiche un **QR code de connexion** contenant l'adresse d
 - Serveur HTTP embarqué dans l'appli hôte (Dart pur, ex. `shelf`), écoutant sur le réseau local Wi-Fi.
 - **WebSocket** (`web_socket_channel`) pour la communication temps réel bidirectionnelle :
   - client → hôte : envoi d'un QR lu (`{ "qr": "PATIENT-012" }`)
-  - hôte → clients : accusé de réception, résultat de la combinaison, état des patients mis à jour.
-- Le client affiche le résultat de l'action sur son propre écran (résolution envoyée par le serveur), le traitement restant centralisé côté hôte.
+  - hôte → client : accusé de réception, et **uniquement** le résultat d'une action que le joueur a choisi de révéler (voir §4.2).
+- Le traitement et l'état du jeu restent centralisés côté hôte ; les clients servent de scanners et d'affichage du résultat révélé.
 
 ### 3.4 Règle de dédoublonnage
 
@@ -49,11 +49,17 @@ Au démarrage, l'hôte affiche un **QR code de connexion** contenant l'adresse d
 ### 4.1 Confirmation avant action
 
 1. Le joueur scanne les cartes (plusieurs QR simultanés).
-2. L'appli affiche un **aperçu de l'action** qui sera réalisée, en langage naturel issu du JSON, par ex. : *« Le Dr House utilise le Stéthoscope pour diagnostiquer M. Dupont. »*
+2. L'appli affiche un **écran visuel de la combinaison** : l'**image de chaque carte scannée** côte à côte, accompagnée d'un **texte explicatif** de l'action qui sera réalisée (phrase issue du JSON), par ex. *« Le Dr House utilise le Stéthoscope pour diagnostiquer M. Dupont. »*
 3. Deux boutons : **Confirmer** ou **Annuler**.
-   - **Confirmer** : l'action est appliquée (effet du JSON sur l'état des patients) et le résultat est diffusé à tous les clients connectés.
+   - **Confirmer** : l'action est appliquée (effet du JSON sur l'état des patients).
    - **Annuler** : rien n'est appliqué, retour au scan.
-4. La confirmation est faite sur le smartphone qui a détecté la combinaison (hôte ou client) ; le résultat est ensuite synchronisé sur tous les écrans via le serveur.
+4. La confirmation est faite sur le smartphone qui a détecté la combinaison (hôte ou client).
+
+### 4.2 Visibilité du résultat
+
+- **Seul le smartphone qui a réalisé l'action voit le résultat** à l'écran.
+- Le joueur peut ensuite choisir de **révéler ou non le résultat aux autres joueurs** (bouton « Révéler » sur son téléphone) : la révélation envoie le résultat aux autres smartphones connectés via le serveur. Sans révélation, les autres joueurs ne voient rien du résultat.
+- L'état interne des patients (PV, diagnostic) reste centralisé côté hôte ; il n'est jamais diffusé automatiquement aux clients.
 
 ### 4.2 Règle de dédoublonnage
 
@@ -65,7 +71,7 @@ Au démarrage, l'hôte affiche un **QR code de connexion** contenant l'adresse d
 
 Le JSON embarqué contient :
 
-- la **table de correspondance QR → carte** (type de carte + identifiant) ;
+- la **table de correspondance QR → carte** (type de carte, identifiant, nom, **visuel/image de la carte** pour l'affichage de la combinaison) ;
 - les **effets des combinaisons** (quelle combinaison de types de cartes déclenche quelle action, avec la **phrase d'aperçu** affichée avant confirmation, ex. *« Le {medecin} utilise {objet} sur {patient}. »*) ;
 - la **gestion des patients** : points de vie, états, évolution (empirer / soigner).
 
@@ -82,9 +88,9 @@ Il ne contient **pas** : réputation de l'hôpital, points de victoire, conditio
 {
   "version": "1.0",
   "cards": {
-    "MED-001": { "type": "medecin", "nom": "Dr House", "specialite": "diagnostiqueur" },
-    "PAT-012": { "type": "patient", "nom": "M. Dupont", "maladie": "grippe", "pv": 10, "pv_max": 10 },
-    "OBJ-004": { "type": "objet", "nom": "Stéthoscope", "diplome_requis": null }
+    "MED-001": { "type": "medecin", "nom": "Dr House", "specialite": "diagnostiqueur", "image": "assets/cartes/MED-001.png" },
+    "PAT-012": { "type": "patient", "nom": "M. Dupont", "maladie": "grippe", "pv": 10, "pv_max": 10, "image": "assets/cartes/PAT-012.png" },
+    "OBJ-004": { "type": "objet", "nom": "Stéthoscope", "diplome_requis": null, "image": "assets/cartes/OBJ-004.png" }
   },
   "combinations": [
     {
