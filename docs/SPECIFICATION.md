@@ -67,14 +67,23 @@ Le QR code de connexion reste accessible **à tout moment** depuis la page admin
 
 ### 4.4 Contenu du résultat d'une action
 
-Après chaque action (diagnostic ou tentative de traitement), l'appli affiche le résultat :
+Après chaque action (diagnostic ou tentative de traitement), l'appli affiche le résultat. **Tous les montants sont des chiffres entiers** (PV, pièces, réputation) :
 
 - **État du patient** : soit il **perd des PV** (détérioration par temps passé sans traitement, ou traitement non adapté), soit il **en gagne** (traitement efficace) ;
 - **Issue du patient** : est-il **soigné** (traitement adapté — ne correspond pas nécessairement à ses PV max) ou **mort** (0 PV) ;
-- **Paiement** : combien de **pièces** gagne le médecin/joueur auteur de l'action (paiement du patient pour le diagnostic ou le traitement) ;
-- **Réputation de l'hôpital** : impact **positif** si le traitement est concluant, **négatif** si le traitement n'est pas concluant ou si le patient a trop attendu (trop longue succession de diagnostics / tentatives de traitement).
+- **Paiement** : combien de **pièces** (entier) gagne le médecin/joueur auteur de l'action (paiement du patient pour le diagnostic ou le traitement) ;
+- **Réputation de l'hôpital** : impact **positif** (entier) si le traitement est concluant, **négatif** (entier) si le traitement n'est pas concluant ou si le patient a trop attendu (trop longue succession de diagnostics / tentatives de traitement).
 
 Note : pièces et réputation sont affichées à titre informatif dans l'appli ; leur cumul global reste géré manuellement hors appli.
+
+### 4.5 Diagnostic probabiliste et salles
+
+Le plateau de jeu est constitué de **salles** (cartes salle, scannables comme les autres cartes et pouvant faire partie d'une combinaison QR).
+
+- **Diagnostic en salle généraliste** : le résultat présente une **probabilité sur le type de maladie** du patient (spécialités proposées : psychologie, chirurgie, pharmacie, et autres spécialités extensibles via le JSON).
+- **Spécialisation concordante** : si le médecin ou l'objet utilisé dans la même combinaison de QR possède une spécialisation qui concorde avec la maladie du patient, une **probabilité plus précise sur le nom exact de la maladie** peut s'afficher.
+- **Diagnostic en salle spécialisée correspondante** : si la salle scannée correspond à la spécialité de la maladie, une probabilité plus précise sur le nom de la maladie s'affiche également.
+- **Capacités** : dans les deux cas, les effets sont **améliorés par les capacités du médecin ou de l'objet utilisé** (diplôme, livre, équipement médical, autres extensibles via le JSON).
 
 ## 5. Fichier de configuration JSON
 
@@ -181,7 +190,10 @@ Version Android minimale cible : **Android 8.0 (API 26)**.
 - Identité de joueur dans l'appli : aucune.
 - Fonctionnement hors réseau local / via Internet : non prévu.
 
-## 9. Décisions entérinées
+9. **Montants entiers** : PV, pièces et réputation sont toujours des entiers.
+10. **Diagnostic probabiliste** : salle généraliste → probabilité sur le type de maladie ; spécialité concordante (médecin/objet) ou salle spécialisée correspondante → probabilité plus précise sur le nom de la maladie ; capacités des cartes améliorent les effets.
+
+## 10. Décisions entérinées
 
 1. **Version Android minimale** : Android 8.0 (API 26).
 2. **Clients scanners simultanés** : illimité côté serveur, testé jusqu'à ~8 clients.
