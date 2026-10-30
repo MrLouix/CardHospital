@@ -9,7 +9,7 @@ Toutes les valeurs numériques citées ici sont des **valeurs par défaut du paq
 | Géré par l'appli (hôte) | Géré par les joueurs, hors appli |
 |---|---|
 | Maladie cachée de chaque patient, PV, temps du patient | Tour de jeu, ordre des joueurs |
-| Diagnostic probabiliste, issue des traitements | Points de victoire, conditions de victoire |
+| Diagnostic probabiliste, issue des traitements | Points de victoire, conditions de victoire et de défaite (dont la **fermeture de l'hôpital**, §7.1) |
 | Calcul des pièces gagnées et de l'impact sur la réputation, **par action** | Cumul des pièces et de la réputation |
 | | Partage des pièces entre le médecin et l'hôpital, achats (salles, objets, diplômes) |
 | | Pioche des cartes patient, retour des cartes sorties dans la pioche |
@@ -148,6 +148,18 @@ Tous les montants sont des **entiers**. Après application des modificateurs de 
 | Mort du patient | — | `reputation_mort` (défaut −3) |
 
 Chaque maladie peut surcharger ces valeurs (les maladies graves paient plus). Le résultat rappelle que l'acteur choisit, hors appli, la part qu'il garde (achat d'objets et de diplômes) et la part qu'il cède à l'hôpital (achat de salles).
+
+### 7.1 Réputation et fermeture de l'hôpital
+
+La réputation de l'hôpital est une **jauge collective** tenue à la main par les joueurs (piste sur le plateau) :
+
+- elle démarre à une **valeur de départ** fixée par les règles du jeu physique ;
+- chaque résultat d'action indique l'impact à reporter sur la piste ;
+- si elle tombe **sous le seuil de fermeture**, l'hôpital ferme : la partie s'arrête et **tous les joueurs ont perdu**.
+
+C'est le seul enjeu coopératif du jeu : chaque médecin joue pour ses pièces, mais un patient négligé, mal traité ou qui meurt pénalise tout le monde.
+
+L'appli ne connaît ni la valeur de départ, ni le seuil, ni le total : elle n'annonce donc pas la fermeture. Ces deux valeurs sont des règles de table, à fixer avec le simulateur de la [feuille de route](FEUILLE_DE_ROUTE.md) (phase 1) selon les montants de réputation du paquet et le niveau de difficulté.
 
 ## 8. Diagnostic probabiliste
 

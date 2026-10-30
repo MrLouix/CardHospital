@@ -18,7 +18,7 @@ L'application Android (transposable iOS) sert de **moteur d'actions**. Elle lit 
 **Hors périmètre de l'appli** (géré à la table par les joueurs) :
 
 - tour de jeu et ordre des joueurs ;
-- points de victoire et conditions de victoire ;
+- points de victoire et conditions de victoire ou de défaite, dont la **fermeture de l'hôpital** quand la réputation passe sous un seuil (tous les joueurs perdent, [MODELE_DE_JEU.md §7.1](MODELE_DE_JEU.md#71-réputation-et-fermeture-de-lhôpital)) ;
 - cumul des pièces et de la réputation, partage des pièces entre médecin et hôpital, achats ;
 - identité des joueurs : l'appli n'en connaît aucune ;
 - fonctionnement via Internet : tout se passe en réseau local.
@@ -137,7 +137,7 @@ L'aperçu ne révèle **aucune information cachée** (maladie, PV).
 
 - Visible **uniquement** sur le téléphone de l'acteur. Il n'existe ni bouton « révéler », ni envoi aux autres téléphones.
 - Contenu : PV avant → après, temps du patient et éventuelle attente dépassée, diagnostic (distribution sur le type, voire sur les noms), issue (en jeu, soigné ou mort, avec la maladie révélée à la sortie), pièces gagnées, impact sur la réputation. Le détail figure dans [MODELE_DE_JEU.md §11](MODELE_DE_JEU.md#11-contenu-dun-résultat).
-- Un rappel : « Pièces : à garder ou à céder en partie à l'hôpital ».
+- Deux rappels : « Pièces : à garder ou à céder en partie à l'hôpital » et, si l'impact n'est pas nul, « Réputation : reportez −2 sur la piste de l'hôpital ».
 - Un bouton **« OK / Fin de l'action »** ramène à l'écran de sélection.
 
 ## 6. Écrans et cas d'erreur
@@ -187,7 +187,7 @@ En jeu normal, la page admin ne sert **qu'au démarrage** et pour **connecter de
 - **Informations cachées masquées par défaut** : l'hôte est un joueur. L'affichage de la maladie des patients demande une confirmation explicite (« Vous allez voir les maladies des patients ») et se remasque en quittant la page.
 - État des patients : en jeu ou sorti, PV, temps (et maladie si elle est démasquée).
 - **5 dernières actions** : résumé de chaque résultat.
-- **Annuler la dernière action** : annulation strictement dans l'ordre inverse (LIFO), jusqu'à 5 actions, par restauration de l'instantané pris avant chacune. Annuler une action plus ancienne sans annuler les suivantes n'est pas possible, car cela casserait la cohérence de l'état.
+- **Annuler la dernière action** : annulation strictement dans l'ordre inverse (LIFO), jusqu'à 5 actions, par restauration de l'instantané pris avant chacune. Annuler une action plus ancienne sans annuler les suivantes n'est pas possible, car cela casserait la cohérence de l'état. L'appli affiche alors les pièces et la réputation de l'action annulée, que les joueurs doivent **reporter en sens inverse** à la main.
 - Sauvegarder ou charger une partie dans un emplacement nommé (en plus de la sauvegarde automatique).
 - Journal : sélections reçues, aperçus, refus, confirmations, connexions et déconnexions, erreurs serveur.
 - Graine aléatoire fixable, pour reproduire un comportement (tests).
@@ -261,6 +261,7 @@ Permissions Android : `CAMERA`, `INTERNET`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK
 | D19 | Les extensions n'ajoutent pas de cartes en v1 | [Moteur §1.2](MOTEUR_EFFETS.md#12-ce-quune-extension-peut-faire-en-v1) |
 | D20 | Catalogue cible : 10 médecins, 30 patients, 30 objets/diplômes, 10 salles, 100 maladies | §8 |
 | D21 | La page admin sert au démarrage et à la connexion ; le reste est du debug | §7 |
+| D22 | Réputation tenue à la main ; sous un seuil, l'hôpital ferme et tous les joueurs perdent (règle de table, l'appli ne tient pas le total) | [Modèle §7.1](MODELE_DE_JEU.md#71-réputation-et-fermeture-de-lhôpital) |
 
 ## 12. Questions ouvertes
 
@@ -271,6 +272,6 @@ Les choix ci-dessous ont été pris par défaut dans cette version et restent à
 3. **Choix de l'action** : une combinaison standard propose « Diagnostiquer » et « Traiter » sur l'écran de confirmation.
 4. **Révélation de la maladie** à la sortie du patient (soigné ou mort) : choix actuel, oui.
 5. **PV affichés à l'acteur** après chaque action : choix actuel, oui (les PV ne sont pas une information cachée).
-6. **Réputation** : a-t-elle un effet mécanique à la table (seuils, bonus) ? Elle reste informative dans l'appli.
+6. **Valeur de départ et seuil de fermeture** de la réputation : à fixer par simulation (phase 1), éventuellement différents selon le niveau de difficulté.
 7. **Traitement partiel** (stabilisation sans guérison) : niveau intermédiaire introduit pour conserver « gagne des PV sans être soigné ». À garder ou à supprimer.
 8. **Fin de partie** : comment sont comptés les patients encore en jeu ? C'est une règle de table, mais elle peut influencer l'équilibrage.

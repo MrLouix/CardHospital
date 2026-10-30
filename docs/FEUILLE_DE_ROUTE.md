@@ -37,7 +37,7 @@ Principe : **traiter les risques en premier**. Chaque phase se termine par des c
 - Validateur : JSON Schema ([schema/jeu.schema.json](schema/jeu.schema.json)) et contrôles sémantiques ([MOTEUR_EFFETS.md §7](MOTEUR_EFFETS.md#7-validation-à-limport)), messages en français.
 - Moteur : reconnaissance des motifs, préconditions, évaluation des prédicats, effets, invariants, arrondis, diagnostic probabiliste, avec une graine aléatoire injectable.
 - Instantanés de l'état (sérialisation et restauration).
-- **Simulateur en ligne de commande** : joue des milliers de parties automatiques selon des stratégies simples (diagnostiquer jusqu'à X % de confiance puis traiter, traiter au hasard…). Il mesure le taux de guérison, la durée moyenne et les pièces par action, ce qui permet de régler les paramètres du diagnostic et des récompenses. Il **remplace en partie le prototype papier**.
+- **Simulateur en ligne de commande** : joue des milliers de parties automatiques selon des stratégies simples (diagnostiquer jusqu'à X % de confiance puis traiter, traiter au hasard…). Il mesure le taux de guérison, la durée moyenne, les pièces par action et l'**évolution de la réputation**, ce qui permet de régler les paramètres du diagnostic et des récompenses, ainsi que la **valeur de départ et le seuil de fermeture de l'hôpital** pour chaque niveau de difficulté. Il **remplace en partie le prototype papier**.
 - Rédaction d'un paquet de base intermédiaire (environ 20 maladies) pour les tests.
 
 **Critères de sortie**

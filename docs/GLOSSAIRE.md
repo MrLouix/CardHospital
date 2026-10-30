@@ -25,7 +25,8 @@ Termes utilisés dans l'ensemble de la documentation. En cas de doute, ce glossa
 | **Traitement adapté / partiel / inadapté** | Issue d'une action `traiter`, déterminée par les prédicats de traitement de la maladie. Adapté → patient soigné ; partiel → gain de PV ; inadapté → perte de PV et réputation. |
 | **Soigné / mort / sorti** | Issues finales d'un patient. *Sorti* regroupe soigné et mort : la carte retourne dans la pioche et pourra être réadmise avec une nouvelle maladie. |
 | **Pièces** | Monnaie gagnée par l'acteur. Il décide, hors appli, de la garder (achat d'objets/diplômes) ou d'en céder une partie à l'hôpital (achat de salles). |
-| **Réputation** | Impact entier, positif ou négatif, sur la réputation de l'hôpital. Affiché par action ; le cumul est manuel. |
+| **Réputation** | Jauge collective de l'hôpital, tenue à la main par les joueurs. L'appli affiche l'impact entier (positif ou négatif) de chaque action ; le cumul est manuel. |
+| **Fermeture de l'hôpital** | Défaite collective : si la réputation passe sous le seuil de fermeture, la partie s'arrête et tous les joueurs ont perdu. Règle de table, non gérée par l'appli. |
 | **Hôte** | Smartphone unique par partie, qui héberge le serveur et l'état du jeu. C'est aussi le téléphone d'un joueur. |
 | **Client** | Smartphone connecté à l'hôte, qui sert de scanner et affiche les résultats de ses propres actions. L'hôte est lui-même client via loopback. |
 | **Paquet** | Archive `.zip` contenant un `jeu.json` (règles et contenu) et un dossier `images/` réservé. Le paquet de base est embarqué ; les extensions sont importées. |
