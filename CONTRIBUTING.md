@@ -15,12 +15,12 @@ Ouvrez une [issue](../../issues/new/choose) en choisissant le modèle adapté (b
 ## Règles de code
 
 - Projet en **Flutter / Dart** : suivre les conventions `dart format` et `flutter analyze` (zéro warning visé).
-- Le contenu du jeu (cartes, combinaisons, règles patients) va dans le **fichier JSON de configuration**, pas dans le code Dart.
+- Le contenu du jeu (cartes, maladies, traitements, récompenses, actions) va dans le **paquet de jeu** (`jeu.json`), pas dans le code Dart.
 - Pas de secrets ni de données personnelles dans le code ou les commits.
 
 ## Modifier le jeu sans coder
 
-Les extensions se font via un fichier JSON chargeable depuis l'application (voir [docs/SPECIFICATION.md](docs/SPECIFICATION.md)). Un JSON d'exemple sera fourni dans `assets/`.
+Les extensions sont des paquets `.zip` contenant un `jeu.json`, importables depuis l'application. Le format, le mini-langage d'effets et les règles de validation sont décrits dans [docs/MOTEUR_EFFETS.md](docs/MOTEUR_EFFETS.md) ; le fichier peut être vérifié avec le [JSON Schema](docs/schema/jeu.schema.json), et un [exemple valide](docs/exemples/jeu.exemple.json) est fourni.
 
 ## Licence
 

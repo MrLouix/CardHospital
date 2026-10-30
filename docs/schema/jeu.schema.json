@@ -1,0 +1,344 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/MrLouix/CardHospital/docs/schema/jeu.schema.json",
+  "title": "Paquet de jeu CardHospital (jeu.json)",
+  "description": "Contenu et règles d'un paquet CardHospital. Voir docs/MOTEUR_EFFETS.md. Les contrôles sémantiques (références croisées, réalisabilité des traitements) sont faits par le validateur de l'application, pas par ce schéma.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "schema_version", "id", "nom", "version", "parametres", "difficultes", "specialites", "capacites", "cartes", "maladies", "motifs", "actions"],
+  "properties": {
+    "$schema": { "type": "string" },
+    "format": { "const": "cardhospital" },
+    "schema_version": { "const": 1 },
+    "id": { "$ref": "#/$defs/identifiant" },
+    "nom": { "$ref": "#/$defs/texte" },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "description": { "type": "string" },
+    "parametres": { "$ref": "#/$defs/parametres" },
+    "difficultes": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "items": { "$ref": "#/$defs/difficulte" }
+    },
+    "specialites": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/specialite" }
+    },
+    "capacites": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/capacite" }
+    },
+    "cartes": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/identifiant_carte" },
+      "additionalProperties": { "$ref": "#/$defs/carte" }
+    },
+    "maladies": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/maladie" }
+    },
+    "motifs": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "$ref": "#/$defs/identifiant" },
+      "additionalProperties": { "$ref": "#/$defs/motif" }
+    },
+    "actions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/action" }
+    }
+  },
+  "$defs": {
+    "identifiant": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+    "identifiant_carte": { "type": "string", "pattern": "^[A-Z]{3}-[0-9]{3}$" },
+    "texte": { "type": "string", "minLength": 1 },
+    "entier_positif": { "type": "integer", "minimum": 1 },
+    "entier_positif_ou_nul": { "type": "integer", "minimum": 0 },
+    "type_carte": { "enum": ["medecin", "patient", "salle", "objet", "diplome"] },
+
+    "parametres": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["diagnostic", "recompenses", "attente_max_defaut"],
+      "properties": {
+        "attente_max_defaut": { "$ref": "#/$defs/entier_positif" },
+        "diagnostic": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["precision_max", "verite", "par_niveau", "bonus_specialite", "exclusion", "seuil_affichage", "verite_nom", "par_niveau_nom", "nb_noms"],
+          "properties": {
+            "precision_max": { "$ref": "#/$defs/entier_positif_ou_nul" },
+            "verite": { "type": "number", "minimum": 0 },
+            "par_niveau": { "type": "number", "minimum": 0 },
+            "bonus_specialite": { "type": "number", "minimum": 0 },
+            "exclusion": { "type": "number", "minimum": 0, "maximum": 1 },
+            "seuil_affichage": { "type": "integer", "minimum": 0, "maximum": 100 },
+            "verite_nom": { "type": "number", "minimum": 0 },
+            "par_niveau_nom": { "type": "number", "minimum": 0 },
+            "nb_noms": { "$ref": "#/$defs/entier_positif" }
+          }
+        },
+        "recompenses": {
+          "allOf": [
+            { "$ref": "#/$defs/recompenses" },
+            { "required": ["pieces_diagnostic", "pieces_traitement", "pieces_partiel", "reputation_soin", "reputation_echec", "reputation_attente", "reputation_mort", "soin_partiel", "pv_echec"] }
+          ]
+        }
+      }
+    },
+
+    "recompenses": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pieces_diagnostic": { "$ref": "#/$defs/entier_positif_ou_nul" },
+        "pieces_traitement": { "$ref": "#/$defs/entier_positif_ou_nul" },
+        "pieces_partiel": { "$ref": "#/$defs/entier_positif_ou_nul" },
+        "reputation_soin": { "type": "integer" },
+        "reputation_echec": { "type": "integer" },
+        "reputation_attente": { "type": "integer" },
+        "reputation_mort": { "type": "integer" },
+        "soin_partiel": { "$ref": "#/$defs/entier_positif_ou_nul" },
+        "pv_echec": { "$ref": "#/$defs/entier_positif_ou_nul" }
+      }
+    },
+
+    "difficulte": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "nom", "modificateurs"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifiant" },
+        "nom": { "$ref": "#/$defs/texte" },
+        "modificateurs": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["pv_perdus", "pieces", "reputation"],
+          "properties": {
+            "pv_perdus": { "type": "number", "exclusiveMinimum": 0 },
+            "pieces": { "type": "number", "exclusiveMinimum": 0 },
+            "reputation": { "type": "number", "exclusiveMinimum": 0 }
+          }
+        }
+      }
+    },
+
+    "specialite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "nom"],
+      "properties": {
+        "id": { "allOf": [{ "$ref": "#/$defs/identifiant" }, { "not": { "const": "generaliste" } }] },
+        "nom": { "$ref": "#/$defs/texte" }
+      }
+    },
+
+    "capacite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "nom"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifiant" },
+        "nom": { "$ref": "#/$defs/texte" },
+        "description": { "type": "string" }
+      }
+    },
+
+    "carte": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "nom"],
+      "properties": {
+        "type": { "$ref": "#/$defs/type_carte" },
+        "nom": { "$ref": "#/$defs/texte" },
+        "nom_phrase": { "$ref": "#/$defs/texte" },
+        "specialite": { "$ref": "#/$defs/identifiant" },
+        "capacites": {
+          "type": "object",
+          "propertyNames": { "$ref": "#/$defs/identifiant" },
+          "additionalProperties": { "type": "integer" }
+        }
+      },
+      "if": { "properties": { "type": { "const": "patient" } } },
+      "then": { "not": { "anyOf": [{ "required": ["specialite"] }, { "required": ["capacites"] }] } }
+    },
+
+    "maladie": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "nom", "type", "pv_initial", "aggravation", "traitement"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifiant" },
+        "nom": { "$ref": "#/$defs/texte" },
+        "type": { "$ref": "#/$defs/identifiant" },
+        "pv_initial": { "$ref": "#/$defs/entier_positif" },
+        "aggravation": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/entier_positif_ou_nul" }
+        },
+        "attente_max": { "$ref": "#/$defs/entier_positif" },
+        "poids": { "$ref": "#/$defs/entier_positif_ou_nul" },
+        "traitement": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["adapte"],
+          "properties": {
+            "adapte": { "$ref": "#/$defs/predicat" },
+            "partiel": { "$ref": "#/$defs/predicat" }
+          }
+        },
+        "recompenses": { "$ref": "#/$defs/recompenses" }
+      }
+    },
+
+    "intervalle": {
+      "type": "array",
+      "prefixItems": [
+        { "$ref": "#/$defs/entier_positif_ou_nul" },
+        { "$ref": "#/$defs/entier_positif_ou_nul" }
+      ],
+      "minItems": 2,
+      "maxItems": 2
+    },
+
+    "motif": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": { "pattern": "^(total|(medecin|patient|salle|objet|diplome)(\\|(medecin|patient|salle|objet|diplome))*)$" },
+      "additionalProperties": { "$ref": "#/$defs/intervalle" }
+    },
+
+    "filtre": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "type": {
+          "oneOf": [
+            { "$ref": "#/$defs/type_carte" },
+            { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/type_carte" } }
+          ]
+        },
+        "specialite": {
+          "oneOf": [
+            { "$ref": "#/$defs/identifiant" },
+            { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/identifiant" } }
+          ]
+        },
+        "id": {
+          "oneOf": [
+            { "$ref": "#/$defs/identifiant_carte" },
+            { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/identifiant_carte" } }
+          ]
+        }
+      }
+    },
+
+    "predicat": {
+      "oneOf": [
+        {
+          "type": "object", "additionalProperties": false, "required": ["carte"],
+          "properties": { "carte": { "$ref": "#/$defs/identifiant_carte" } }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["compte"],
+          "properties": {
+            "compte": { "$ref": "#/$defs/filtre" },
+            "min": { "$ref": "#/$defs/entier_positif_ou_nul" },
+            "max": { "$ref": "#/$defs/entier_positif_ou_nul" }
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["tous"],
+          "properties": { "tous": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/predicat" } } }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["un_de"],
+          "properties": { "un_de": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/predicat" } } }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["non"],
+          "properties": { "non": { "$ref": "#/$defs/predicat" } }
+        }
+      ]
+    },
+
+    "condition": {
+      "oneOf": [
+        { "enum": ["traitement_adapte", "traitement_partiel", "attente_depassee", "soigne", "patient_en_jeu", "patient_hors_jeu"] },
+        {
+          "type": "object", "additionalProperties": false, "required": ["et"],
+          "properties": { "et": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/condition" } } }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["ou"],
+          "properties": { "ou": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/condition" } } }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["non"],
+          "properties": { "non": { "$ref": "#/$defs/condition" } }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["combinaison"],
+          "properties": { "combinaison": { "$ref": "#/$defs/predicat" } }
+        }
+      ]
+    },
+
+    "valeur": {
+      "oneOf": [
+        { "type": "integer" },
+        { "type": "string", "pattern": "^\\$(recompenses|capacite)\\.[a-z0-9_]+$" },
+        {
+          "type": "object", "additionalProperties": false, "required": ["somme"],
+          "properties": { "somme": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/valeur" } } }
+        }
+      ]
+    },
+
+    "effet": {
+      "oneOf": [
+        {
+          "type": "object", "additionalProperties": false, "required": ["effet"],
+          "properties": { "effet": { "enum": ["admettre", "avancer_temps", "diagnostiquer", "aggraver", "soigner"] } }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["effet", "valeur"],
+          "properties": {
+            "effet": { "enum": ["gagner_pv", "perdre_pv", "payer", "reputation"] },
+            "valeur": { "$ref": "#/$defs/valeur" }
+          }
+        },
+        {
+          "type": "object", "additionalProperties": false, "required": ["effet", "condition", "alors"],
+          "properties": {
+            "effet": { "const": "si" },
+            "condition": { "$ref": "#/$defs/condition" },
+            "alors": { "type": "array", "items": { "$ref": "#/$defs/effet" } },
+            "sinon": { "type": "array", "items": { "$ref": "#/$defs/effet" } }
+          }
+        }
+      ]
+    },
+
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "libelle", "motif", "phrase", "effets"],
+      "properties": {
+        "id": { "$ref": "#/$defs/identifiant" },
+        "libelle": { "$ref": "#/$defs/texte" },
+        "motif": { "$ref": "#/$defs/identifiant" },
+        "precondition": { "$ref": "#/$defs/condition" },
+        "phrase": { "$ref": "#/$defs/texte" },
+        "effets": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/effet" } }
+      }
+    }
+  }
+}
