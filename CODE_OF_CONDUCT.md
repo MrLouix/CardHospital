@@ -20,6 +20,10 @@ Exemples de comportements inacceptables :
 - publication d'informations privées sans autorisation explicite ;
 - toute conduite raisonnablement considérée comme inappropriée dans un cadre professionnel.
 
+## Contenu du jeu
+
+CardHospital est un divertissement qui peut contenir de **l'humour noir et de l'humour médical**, potentiellement choquant (mort, maladie, etc.). Le jeu n'a **aucun sens ou message politique**, n'a pas vocation à provoquer, ni à dénigrer les acteurs du milieu médical, ni à s'amuser du malheur des malades. Les mécaniques restent ludiques et ne reflètent en rien la réalité des soins de santé.
+
 ## Application
 
 Les comportements inacceptables peuvent être signalés en ouvrant une issue privée ou en contactant les mainteneurs du dépôt. Toutes les plaintes seront examinées et traitées de manière équitable.
