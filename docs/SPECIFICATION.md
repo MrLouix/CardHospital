@@ -7,6 +7,7 @@
 | [MOTEUR_EFFETS.md](MOTEUR_EFFETS.md) | Format des paquets (`.zip` + `jeu.json`), mini-langage d'effets, validation |
 | [schema/jeu.schema.json](schema/jeu.schema.json) | JSON Schema du fichier `jeu.json` |
 | [FEUILLE_DE_ROUTE.md](FEUILLE_DE_ROUTE.md) | Phases de développement, risques en premier |
+| [PLAN_DE_CODAGE.md](PLAN_DE_CODAGE.md) | État de préparation, points à trancher, organisation du dépôt, démarrage des phases 0 et 1 |
 | [GLOSSAIRE.md](GLOSSAIRE.md) | Définition des termes |
 
 ## 1. Objet et périmètre
