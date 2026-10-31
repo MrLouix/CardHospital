@@ -1,0 +1,22 @@
+name: moteur
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  moteur:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/moteur
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+      - run: dart pub get
+      - run: dart format --set-exit-if-changed lib test
+      - run: dart analyze --fatal-infos
+      - run: dart test
+      - name: Valide l'exemple contre le schéma (test du validateur)
+        run: dart test test/exemple_test.dart
