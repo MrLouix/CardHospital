@@ -21,3 +21,6 @@ android/.idea/
 # OS
 .DS_Store
 Thumbs.db
+
+# Paquet moteur (pubspec.lock versionn\xc3\xa9 pour une lib est optionnel ; exclu ici)
+packages/moteur/.dart_tool/package_config*.json
