@@ -24,3 +24,6 @@ Thumbs.db
 
 # Paquet moteur (pubspec.lock versionn\xc3\xa9 pour une lib est optionnel ; exclu ici)
 packages/moteur/.dart_tool/package_config*.json
+
+# Planche de QR de test generee par outils/planche_qr
+planche_qr.pdf
