@@ -99,7 +99,7 @@ Scanner seul un patient déjà en jeu ne déclenche rien (« M. Dupont est déj�
 
 ### 4.2 Sortie
 
-Un patient soigné ou mort passe à l'état **sorti** : sa maladie est révélée dans le résultat (« M. Dupont est guéri de sa péritonite »). La carte retourne dans la pioche ; si elle est de nouveau piochée et scannée seule, elle est **réadmise avec une nouvelle maladie**. Une combinaison standard contenant un patient hors jeu ou sorti est refusée (« M. Dupont n'est pas admis »).
+Un patient soigné ou mort passe à l'état **sorti** : sa maladie est révélée dans le résultat (« M. Dupont est guéri de sa péritonite »). La carte retourne dans la pioche ; si elle est de nouveau piochée et scannée seule, elle est **réadmise avec une nouvelle maladie**. Une combinaison standard contenant un patient hors jeu ou sorti est refusée (« M. Dupont n'est pas en jeu »). Les messages évitent tout accord (« n'est pas en jeu » plutôt que « n'est pas admis », qui deviendrait fautif pour Mme Garnier).
 
 ## 5. Temps et aggravation
 
@@ -254,3 +254,25 @@ L'arrondi (§7) s'applique **après** le modificateur.
 | Maladie révélée | — | si mort | si soigné ou mort |
 | Pièces gagnées | — | oui | oui |
 | Impact réputation | — | oui | oui |
+
+### 11.1 Format du résultat
+
+Le moteur renvoie le résultat sous la forme d'un objet JSON, qui est aussi le contenu du message `resultat` du protocole ([SPECIFICATION.md §3.3](SPECIFICATION.md#33-protocole)). Code : `packages/moteur/lib/moteur/resultat.dart`.
+
+| Clé | Type | Contenu |
+|---|---|---|
+| `numero` | entier | Numéro d'ordre de l'action dans la partie (à partir de 1) |
+| `action`, `libelle` | texte | Identifiant et libellé de l'action appliquée |
+| `phrase` | texte | Phrase de l'aperçu |
+| `cartes` | liste de textes | Cartes de la combinaison, dans l'ordre de sélection |
+| `patient`, `patient_nom` | texte | Carte patient et son nom affiché |
+| `pv_avant` | entier ou `null` | PV avant l'action ; `null` pour une admission |
+| `pv_apres` | entier | PV après l'action (PV initiaux pour une admission) |
+| `temps` | entier | Temps du patient après l'action |
+| `attente_depassee` | booléen | `temps > attente_max` |
+| `issue` | `en_jeu`, `soigne` ou `mort` | Issue pour le patient |
+| `diagnostic` | objet ou `null` | `niveau` (N), `types` et `noms` (`null` sans spécialité concordante) : listes de `{id, nom, pourcentage}` triées par pourcentage décroissant, la ligne « Autres » ayant un `id` nul et venant en dernier |
+| `maladie_revelee` | `{id, nom}` ou `null` | Maladie, si le patient est sorti |
+| `pieces` | entier | Pièces gagnées par l'acteur, après difficulté et arrondi |
+| `reputation` | entier signé | Impact total sur la réputation (soin, échec, attente et mort cumulés) |
+

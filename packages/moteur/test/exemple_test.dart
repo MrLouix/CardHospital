@@ -142,4 +142,18 @@ void main() {
     });
     expect(relu['actions'][2]['effets'][1]['condition'], 'traitement_adapte');
   });
+
+  test('un identifiant en double est refusé', () {
+    final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
+    (copie['maladies'] as List)[1]['id'] = 'appendicite';
+    (copie['actions'] as List)[2]['id'] = 'diagnostiquer';
+    final rapport = Validateur().validerJson(copie, jeu: Jeu.fromJson(copie));
+    expect(
+      rapport.erreurs,
+      containsAll([
+        'maladies[1].id : l\'identifiant « appendicite » est déjà utilisé',
+        'actions[2].id : l\'identifiant « diagnostiquer » est déjà utilisé',
+      ]),
+    );
+  });
 }

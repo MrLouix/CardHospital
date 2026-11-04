@@ -106,7 +106,7 @@ Un motif décrit une forme de sélection par des **intervalles `[min, max]`** de
 
 Un type absent d'un motif est interdit (`[0, 0]`). Le motif standard encode « 1 médecin + 1 patient + 1 salle + au plus une carte parmi {objet, diplôme, second médecin} », la limite `total ≤ 4` excluant d'avoir à la fois un second médecin et un accessoire.
 
-Quand une sélection ne correspond à aucun motif, l'hôte renvoie le **premier écart** constaté par rapport au motif le plus proche (« Il faut une carte salle »).
+Quand une sélection ne correspond à aucun motif, l'hôte renvoie le **premier écart** constaté par rapport au motif le plus proche (« Il faut une carte salle »). Le motif le plus proche est celui qui a le moins d'écarts de cardinalité (somme des cartes manquantes ou en trop par groupe, plus les cartes d'un type absent du motif) ; à égalité, celui qui a le plus de groupes satisfaits. Le premier écart est cherché dans l'ordre patient, médecin, salle, accessoire, total.
 
 ## 4. Valeurs
 

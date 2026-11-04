@@ -55,6 +55,7 @@ class Validateur {
         'schema_version : ce paquet nécessite une version plus récente de l\'application',
       );
     }
+    erreurs.addAll(_verifierDoublons(j));
     erreurs.addAll(_verifierReferences(j));
     erreurs.addAll(_verifierPhrases(j));
     erreurs.addAll(_verifierRealisabilite(j));
@@ -110,6 +111,30 @@ class Validateur {
         );
       }
     }
+    return erreurs;
+  }
+
+  /// Règle 8 : identifiants en double dans les listes. Les cartes et les
+  /// motifs sont des objets JSON, dont les clés sont uniques par
+  /// construction.
+  List<String> _verifierDoublons(Jeu j) {
+    final erreurs = <String>[];
+    void verifier(String liste, List<String> ids) {
+      final vus = <String>{};
+      for (var i = 0; i < ids.length; i++) {
+        if (!vus.add(ids[i])) {
+          erreurs.add(
+            '$liste[$i].id : l\'identifiant « ${ids[i]} » est déjà utilisé',
+          );
+        }
+      }
+    }
+
+    verifier('difficultes', [for (final d in j.difficultes) d.id]);
+    verifier('specialites', [for (final x in j.specialites) x.id]);
+    verifier('capacites', [for (final c in j.capacites) c.id]);
+    verifier('maladies', [for (final m in j.maladies) m.id]);
+    verifier('actions', [for (final a in j.actions) a.id]);
     return erreurs;
   }
 
