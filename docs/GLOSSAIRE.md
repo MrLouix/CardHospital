@@ -12,7 +12,7 @@ Termes utilisés dans l'ensemble de la documentation. En cas de doute, ce glossa
 | **Sélection** | Ensemble des cartes détectées par la caméra et retenues à l'écran, avant appui sur « Valider la sélection ». |
 | **Combinaison** | Sélection validée et reconnue comme conforme à un **motif** d'action. |
 | **Combinaison standard** | 1 médecin + 1 patient + 1 salle + (0 ou 1 accessoire **ou** 1 second médecin). Soit 3 ou 4 cartes. |
-| **Action** | Opération de jeu appliquée à un patient : `admettre`, `diagnostiquer`, `traiter`. Une action n'existe qu'après **confirmation**. |
+| **Action** | Opération de jeu appliquée à un patient : `admettre`, `diagnostiquer`, `traiter`, `analyser`. Une action n'existe qu'après **confirmation**. |
 | **Aperçu** | Phrase et images présentées avant confirmation, calculées par l'hôte. |
 | **Confirmation** | Appui sur « Confirmer » : l'hôte applique l'action. Sans confirmation, rien n'est appliqué. |
 | **Résultat** | Conséquences d'une action confirmée (PV, issue, pièces, réputation, diagnostic), affichées uniquement sur le téléphone de l'acteur. |
@@ -23,6 +23,10 @@ Termes utilisés dans l'ensemble de la documentation. En cas de doute, ce glossa
 | **Diagnostic** | Résultat probabiliste sur le **type** de maladie, et éventuellement sur son **nom**. Il peut être faux ; il est retiré à chaque diagnostic. |
 | **Niveau de précision** | Entier calculé pour un diagnostic à partir de la salle et des capacités des cartes ; plus il est élevé, plus le diagnostic penche vers la vérité. |
 | **Traitement adapté / partiel / inadapté** | Issue d'une action `traiter`, déterminée par les prédicats de traitement de la maladie. Adapté → patient soigné ; partiel → gain de PV ; inadapté → perte de PV et réputation. |
+| **Laboratoire de recherche** | Salle de spécialité `recherche` (réservée aux salles, jamais type de maladie). Permet l'action `analyser`. |
+| **Maladies suspectées** | Maladies dont le nom a été affiché lors des diagnostics d'un patient. Mémorisées par l'hôte, remises à zéro à chaque admission. |
+| **Analyse / passage** | Action `analyser` (motif recherche) : un passage en laboratoire sur une maladie suspectée choisie par le joueur. Certaines maladies exigent plusieurs passages. |
+| **Recette** | Description des cartes requises par le traitement adapté d'une maladie, révélée quand les passages de l'analyse sont terminés. |
 | **Soigné / mort / sorti** | Issues finales d'un patient. *Sorti* regroupe soigné et mort : la carte retourne dans la pioche et pourra être réadmise avec une nouvelle maladie. |
 | **Pièces** | Monnaie gagnée par l'acteur. Il décide, hors appli, de la garder (achat d'objets/diplômes) ou d'en céder une partie à l'hôpital (achat de salles). |
 | **Réputation** | Jauge collective de l'hôpital, tenue à la main par les joueurs. L'appli affiche l'impact entier (positif ou négatif) de chaque action ; le cumul est manuel. |
