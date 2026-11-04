@@ -188,8 +188,13 @@ class Partie {
               ),
         ];
         if (possibles.isEmpty) {
+          final causeCartes = actions.any(
+            (a) => _preconditionEtat(a, combinaison),
+          );
           return SelectionRefusee(
-            _messageEtat(combinaison, confirmation: false),
+            causeCartes
+                ? 'Aucune action possible avec ces cartes.'
+                : _messageEtat(combinaison, confirmation: false),
           );
         }
         return SelectionAcceptee(
@@ -212,7 +217,12 @@ class Partie {
     }
     final combinaison = Combinaison(jeu, qrs);
     if (!_precondition(action, combinaison)) {
-      return ActionRefusee(_messageEtat(combinaison, confirmation: true));
+      return ActionRefusee(
+        _preconditionEtat(action, combinaison)
+            ? 'Cette action n\'est pas possible avec ces cartes — action non '
+                  'appliquée.'
+            : _messageEtat(combinaison, confirmation: true),
+      );
     }
 
     final avant = _etat.copie();
@@ -243,6 +253,20 @@ class Partie {
     final condition = action.precondition;
     if (condition == null) return true;
     return _Execution(this, action, combinaison).evaluer(condition);
+  }
+
+  /// Précondition évaluée sur l'état seul, les conditions `combinaison`
+  /// étant tenues pour favorables : si elle est vraie alors que la
+  /// précondition complète est fausse, ce sont les cartes qui sont en cause,
+  /// pas l'état du patient.
+  bool _preconditionEtat(ActionJeu action, Combinaison combinaison) {
+    final condition = action.precondition;
+    if (condition == null) return true;
+    return _Execution(
+      this,
+      action,
+      combinaison,
+    ).evaluer(condition, combinaisonNeutre: true);
   }
 
   String _messageEtat(Combinaison combinaison, {required bool confirmation}) {
@@ -417,7 +441,12 @@ class _Execution {
       p.temps > (m.attenteMax ?? jeu.parametres.attenteMaxDefaut);
 
   /// Évalue une condition (MOTEUR_EFFETS.md §6) sur l'état courant.
-  bool evaluer(Condition c) {
+  ///
+  /// Si [combinaisonNeutre] est fourni, les conditions `combinaison` ne sont
+  /// pas évaluées : elles valent [combinaisonNeutre] (inversé sous un `non`),
+  /// ce qui isole la part de la condition qui dépend de l'état.
+  bool evaluer(Condition c, {bool? combinaisonNeutre}) {
+    bool sous(Condition x) => evaluer(x, combinaisonNeutre: combinaisonNeutre);
     if (c.constante != null) {
       switch (c.constante) {
         case 'traitement_adapte':
@@ -440,10 +469,17 @@ class _Execution {
           throw StateError('condition inconnue « ${c.constante} »');
       }
     }
-    if (c.et != null) return c.et!.every(evaluer);
-    if (c.ou != null) return c.ou!.any(evaluer);
-    if (c.non != null) return !evaluer(c.non!);
-    return combinaison.satisfait(c.combinaison!);
+    if (c.et != null) return c.et!.every(sous);
+    if (c.ou != null) return c.ou!.any(sous);
+    if (c.non != null) {
+      return !evaluer(
+        c.non!,
+        combinaisonNeutre: combinaisonNeutre == null
+            ? null
+            : !combinaisonNeutre,
+      );
+    }
+    return combinaisonNeutre ?? combinaison.satisfait(c.combinaison!);
   }
 
   int _valeur(Valeur v) {

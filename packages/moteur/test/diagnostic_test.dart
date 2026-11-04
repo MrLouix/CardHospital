@@ -70,7 +70,11 @@ void main() {
             lessThanOrEqualTo(r.types[k - 1].pourcentage),
           );
         }
-        expect(r.noms, isNull, reason: 'aucune spécialité concordante');
+        expect(
+          r.noms != null,
+          r.types.first.id == 'chirurgie',
+          reason: 'noms si et seulement si le vrai type est en tête',
+        );
       }
     });
 
@@ -100,13 +104,18 @@ void main() {
       expect(vuAutres, isTrue);
     });
 
-    test('noms : présents si le vrai type est dans S(C)', () {
-      final d = Diagnostiqueur(jeu, Alea(5));
-      final r = d.diagnostiquer(
-        appendicite,
-        Combinaison(jeu, ['MED-002', 'SAL-001']),
-      );
-      expect(r.noms, isNotNull);
+    ResultatDiagnostic avecNoms(Jeu j, List<String> ids) {
+      final d = Diagnostiqueur(j, Alea(5));
+      for (var i = 0; i < 100; i++) {
+        final r = d.diagnostiquer(appendicite, Combinaison(j, ids));
+        if (r.noms != null) return r;
+      }
+      fail('aucune liste de noms en 100 diagnostics');
+    }
+
+    test('noms : maladies du vrai type, de somme 100', () {
+      final r = avecNoms(jeu, ['MED-002', 'SAL-001']);
+      expect(r.types.first.id, 'chirurgie');
       expect(
         r.noms!.map((l) => l.id),
         unorderedEquals(['appendicite', 'fracture_ouverte']),
@@ -118,20 +127,26 @@ void main() {
       final j = _jeuDiagnostic(
         (brut) => (brut['parametres'] as Map)['diagnostic']['nb_noms'] = 1,
       );
-      final r = Diagnostiqueur(
-        j,
-        Alea(5),
-      ).diagnostiquer(appendicite, Combinaison(j, ['MED-002', 'SAL-001']));
+      final r = avecNoms(j, ['MED-002', 'SAL-001']);
       expect(r.noms, hasLength(2));
       expect(r.noms!.last.estAutres, isTrue);
     });
 
-    test('noms absents avec une spécialité discordante seule', () {
-      final r = Diagnostiqueur(
-        jeu,
-        Alea(5),
-      ).diagnostiquer(appendicite, Combinaison(jeu, ['MED-004', 'SAL-001']));
-      expect(r.noms, isNull);
+    test('noms : possibles sans spécialité, jamais si le vrai type n\'est pas '
+        'en tête', () {
+      final d = Diagnostiqueur(jeu, Alea(12));
+      var avec = 0;
+      for (var i = 0; i < 500; i++) {
+        for (final ids in [
+          ['MED-001', 'SAL-001'],
+          ['MED-004', 'SAL-001'],
+        ]) {
+          final r = d.diagnostiquer(appendicite, Combinaison(jeu, ids));
+          expect(r.noms != null, r.types.first.id == 'chirurgie');
+          if (r.noms != null) avec++;
+        }
+      }
+      expect(avec, greaterThan(0));
     });
 
     test('sérialisation aller-retour', () {
@@ -169,6 +184,7 @@ void main() {
         int pct(String id) =>
             r.types.where((l) => l.id == id).firstOrNull?.pourcentage ?? 0;
         if (r.types.first.id == 'chirurgie') enTete++;
+        expect(r.noms != null, r.types.first.id == 'chirurgie');
         somme += pct('chirurgie');
         psy += pct('psychologie');
       }

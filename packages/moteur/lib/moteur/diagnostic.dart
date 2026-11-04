@@ -59,7 +59,7 @@ class ResultatDiagnostic {
   final List<LigneDistribution> types;
 
   /// Distribution sur les noms des maladies du vrai type, présente seulement
-  /// si le vrai type est une spécialité de la combinaison.
+  /// si le vrai type est en tête de la distribution sur le type (§8.4).
   final List<LigneDistribution>? noms;
 
   Map<String, dynamic> toJson() => {
@@ -109,7 +109,7 @@ class Diagnostiqueur {
     final lignesTypes = _lignesTriees([
       for (var i = 0; i < types.length; i++)
         (id: types[i].id, nom: types[i].nom),
-    ], pourcentagesPlusFortReste(poidsTypes));
+    ], poidsTypes);
     final affichees = <LigneDistribution>[];
     var autres = 0;
     var regroupees = 0;
@@ -123,9 +123,18 @@ class Diagnostiqueur {
     }
     if (regroupees > 0 && autres > 0) affichees.add(_autres(autres));
 
-    // §8.4 : distribution sur le nom, si le vrai type est dans S(C).
+    // §8.4 : distribution sur le nom, si le vrai type a le poids le plus
+    // élevé (type affiché en tête). Comparaison sur les poids bruts, avant
+    // arrondi : en cas d'égalité, le vrai type n'est pas considéré en tête.
     List<LigneDistribution>? noms;
-    if (sc.contains(vraie.type)) {
+    final iVrai = types.indexWhere((t) => t.id == vraie.type);
+    final vraiEnTete =
+        iVrai >= 0 &&
+        [
+          for (var i = 0; i < types.length; i++)
+            if (i != iVrai) poidsTypes[i],
+        ].every((w) => w < poidsTypes[iVrai]);
+    if (vraiEnTete) {
       final maladies = jeu.maladies.where((m) => m.type == vraie.type).toList();
       final poids = [
         for (final m in maladies)
@@ -134,7 +143,7 @@ class Diagnostiqueur {
       ];
       final lignes = _lignesTriees([
         for (final m in maladies) (id: m.id, nom: m.nom),
-      ], pourcentagesPlusFortReste(poids));
+      ], poids);
       noms = lignes.take(_p.nbNoms).toList();
       final reste = lignes
           .skip(_p.nbNoms)
@@ -151,12 +160,14 @@ class Diagnostiqueur {
     pourcentage: pourcentage,
   );
 
-  /// Lignes triées par pourcentage décroissant (ordre de déclaration en cas
-  /// d'égalité).
+  /// Lignes triées par pourcentage décroissant ; une égalité d'arrondi est
+  /// départagée par le poids brut, pour que la ligne en tête soit toujours
+  /// celle de poids le plus élevé (§8.4), puis par l'ordre de déclaration.
   static List<LigneDistribution> _lignesTriees(
     List<({String id, String nom})> entrees,
-    List<int> pourcentages,
+    List<double> poids,
   ) {
+    final pourcentages = pourcentagesPlusFortReste(poids);
     final lignes = [
       for (var i = 0; i < entrees.length; i++)
         (
@@ -169,7 +180,8 @@ class Diagnostiqueur {
         ),
     ];
     lignes.sort((a, b) {
-      final c = b.$2.pourcentage.compareTo(a.$2.pourcentage);
+      var c = b.$2.pourcentage.compareTo(a.$2.pourcentage);
+      if (c == 0) c = poids[b.$1].compareTo(poids[a.$1]);
       return c != 0 ? c : a.$1.compareTo(b.$1);
     });
     return [for (final l in lignes) l.$2];

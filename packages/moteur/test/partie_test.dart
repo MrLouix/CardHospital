@@ -498,6 +498,96 @@ void main() {
     });
   });
 
+  group('précondition de combinaison', () {
+    test('l\'aperçu ne propose que les actions dont la précondition de '
+        'combinaison est satisfaite', () {
+      final jeu = jeuExemple((brut) {
+        (brut['actions'] as List).add({
+          'id': 'consulter',
+          'libelle': 'Consulter',
+          'motif': 'standard',
+          'precondition': {
+            'et': [
+              'patient_en_jeu',
+              {
+                'combinaison': {
+                  'compte': {'type': 'salle', 'specialite': 'psychologie'},
+                  'min': 1,
+                },
+              },
+            ],
+          },
+          'phrase': 'Consultation de {patient}.',
+          'effets': [
+            {'effet': 'avancer_temps'},
+          ],
+        });
+      });
+      final partie = Partie.nouvelle(
+        jeu: jeu,
+        paquet: _paquet,
+        difficulte: 'interne',
+        alea: Alea(1),
+      );
+      _appliquer(partie, ['PAT-001'], 'admettre');
+      List<String> actions(List<String> qrs) => [
+        for (final a in (partie.valider(qrs) as SelectionAcceptee).actions)
+          a.id,
+      ];
+      expect(actions(_diag), ['diagnostiquer', 'traiter']);
+      expect(actions(['MED-004', 'PAT-001', 'SAL-003']), [
+        'diagnostiquer',
+        'traiter',
+        'consulter',
+      ]);
+      final refus = partie.confirmer(_diag, 'consulter') as ActionRefusee;
+      expect(
+        refus.message,
+        'Cette action n\'est pas possible avec ces cartes — action non '
+        'appliquée.',
+        reason: 'les cartes sont en cause, pas l\'état du patient',
+      );
+    });
+
+    test(
+      'aucune action possible à cause des cartes : message sur les cartes',
+      () {
+        final jeu = jeuExemple((brut) {
+          for (final a in brut['actions'] as List) {
+            if ((a as Map)['motif'] != 'standard') continue;
+            a['precondition'] = {
+              'et': [
+                'patient_en_jeu',
+                {
+                  'non': {
+                    'combinaison': {'carte': 'SAL-001'},
+                  },
+                },
+              ],
+            };
+          }
+        });
+        final partie = Partie.nouvelle(
+          jeu: jeu,
+          paquet: _paquet,
+          difficulte: 'interne',
+          alea: Alea(1),
+        );
+        expect(
+          _refus(partie.valider(_diag)),
+          'Mme Garnier n\'est pas en jeu.',
+          reason: 'patient hors jeu : l\'état est en cause',
+        );
+        _appliquer(partie, ['PAT-001'], 'admettre');
+        expect(
+          _refus(partie.valider(_diag)),
+          'Aucune action possible avec ces cartes.',
+        );
+        expect(partie.valider(_chirSeul), isA<SelectionAcceptee>());
+      },
+    );
+  });
+
   group('robustesse face à un paquet mal conçu', () {
     test('effets sur un patient hors jeu sans précondition : sans effet', () {
       final jeu = jeuExemple((brut) {

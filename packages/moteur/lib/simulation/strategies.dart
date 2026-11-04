@@ -190,16 +190,16 @@ class StrategieSeuil extends Strategie {
   }
 }
 
-/// Se fier à la spécialité : diagnostiquer avec une seule spécialité à la
-/// fois. La liste des noms n'apparaît que si le vrai type est une spécialité
-/// de la combinaison : son absence exclut la spécialité testée, sa présence
-/// confirme le type. On traite alors la maladie la plus probable non encore
-/// essayée.
+/// Se fier à la spécialité : diagnostiquer avec la spécialité du type le
+/// plus probable non exclu, ce qui rend la liste des noms plus fréquente.
+/// La liste des noms n'apparaît que si le vrai type est en tête (§8.4) : sa
+/// présence donne le type (ce sont des maladies de ce type), son absence
+/// exclut le type affiché en tête. On traite alors la maladie la plus
+/// probable non encore essayée.
 class StrategieSpecialite extends Strategie {
   final _exclues = <String>{};
   final _essayees = <String>{};
   String? _type;
-  String? _testee;
 
   @override
   String get nom => 'specialite';
@@ -209,7 +209,6 @@ class StrategieSpecialite extends Strategie {
     _exclues.clear();
     _essayees.clear();
     _type = null;
-    _testee = null;
   }
 
   @override
@@ -219,11 +218,14 @@ class StrategieSpecialite extends Strategie {
     SourceAleatoire alea,
   ) {
     final diagnostic = historique.lastOrNull?.diagnostic;
-    if (diagnostic != null && _type == null && _testee != null) {
-      if (diagnostic.noms != null) {
-        _type = _testee;
-      } else {
-        _exclues.add(_testee!);
+    if (diagnostic != null && _type == null) {
+      final noms = diagnostic.noms;
+      final tete = diagnostic.types.firstOrNull;
+      if (noms != null) {
+        final id = noms.firstWhere((l) => !l.estAutres).id;
+        _type = catalogue.jeu.maladies.firstWhere((m) => m.id == id).type;
+      } else if (tete != null && !tete.estAutres) {
+        _exclues.add(tete.id!);
       }
     }
 
@@ -254,7 +256,7 @@ class StrategieSpecialite extends Strategie {
         if (restants.contains(l.id)) l.id!,
       ...restants,
     ];
-    final testee = _testee = ordre.first;
+    final testee = ordre.first;
     return (
       action: actionDiagnostiquer,
       cartes: catalogue.tirer(catalogue.meilleursDiagnostics({testee}), alea),

@@ -101,6 +101,7 @@ Ordre de réalisation, chaque étape étant livrée avec ses tests :
 8. [x] **Simulateur** (`bin/simuler.dart`) : stratégies simples (traiter au hasard, diagnostiquer jusqu'à X % puis traiter, se fier à la spécialité). Il mesure le taux de guérison, la durée de vie des patients, les pièces et la réputation par action, et produit un rapport reproductible.
 9. [ ] **Paquet de base intermédiaire** : environ 20 maladies, à rédiger avec l'équipe (voir §3).
 10. [ ] **Salle recherche** (`schema_version` 2) : motif `recherche` prioritaire (déclaré avant `standard`), action `analyser` avec choix de la maladie par le joueur, nouvel effet `rechercher`, champ `recherche.passages` des maladies, capacité `recherche`, spécialité `recherche` réservée aux salles, montée du schéma + migration v1 → v2, proposition d'actions filtrée par précondition de combinaison. Conception : [MOTEUR_EFFETS.md §9](MOTEUR_EFFETS.md#9-salle-recherche-prévu-pour-schema_version-2) et [MODELE_DE_JEU.md §12](MODELE_DE_JEU.md#12-recherche-en-laboratoire). Tests positifs et négatifs.
+    Déjà en place dans le moteur, avec leurs tests : le premier motif déclaré l'emporte, et l'aperçu ne propose que les actions dont la précondition est vérifiée, y compris une précondition de combinaison. Une précondition de combinaison non satisfaite donne un message sur les cartes (« Aucune action possible avec ces cartes ») et non sur l'état du patient. Restent à faire : l'état (maladies suspectées par patient, passages restants par maladie, à ajouter au format de sauvegarde P2), le paramètre `maladie_id` de la confirmation, l'effet `rechercher` et la génération des recettes, les champs du résultat propres à l'analyse, le schéma v2 et sa migration.
 
 Critères de fin : ceux de la [feuille de route](FEUILLE_DE_ROUTE.md#phase-1--moteur-deffets-validateur-et-simulateur), soit une couverture ≥ 90 %, un test négatif par règle de validation et un rapport de simulation reproductible.
 
@@ -125,8 +126,8 @@ Stratégies disponibles :
 | Stratégie | Comportement |
 |---|---|
 | `hasard` | Diagnostiquer ou traiter au hasard, avec une combinaison au hasard |
-| `seuil:X` | Diagnostiquer sans spécialité, à la meilleure précision, jusqu'à ce que le type en tête atteigne X %, puis traiter la maladie la plus probable de ce type |
-| `specialite` | Diagnostiquer avec une seule spécialité à la fois : l'absence de liste de noms exclut la spécialité testée, sa présence confirme le type ; traiter ensuite la maladie la plus probable |
+| `seuil:X` | Diagnostiquer sans spécialité, à la meilleure précision, jusqu'à ce que le type en tête atteigne X %, puis traiter la maladie la plus probable de ce type (selon la liste des noms si elle est affichée) |
+| `specialite` | Diagnostiquer avec la spécialité du type le plus probable non exclu. Une liste de noms donne le type (ce sont des maladies de ce type) ; son absence exclut le type affiché en tête ([MODELE_DE_JEU.md §8.4](MODELE_DE_JEU.md#84-distribution-sur-le-nom)). Traiter ensuite la maladie la plus probable non encore essayée |
 
 Les stratégies voient ce que voit un joueur (résultats des actions, spécialités des cartes) et sont supposées connaître les traitements des maladies, comme s'ils figuraient dans le livret de règles.
 
@@ -134,9 +135,9 @@ Les stratégies voient ce que voit un joueur (résultats des actions, spécialit
 
 Sur le paquet d'exemple (6 maladies, 2 par type), à confirmer avec le paquet intermédiaire :
 
-- **La stratégie `specialite` est presque infaillible** (100 % de guérison en Interne, 94 % en Réanimation). La cause est structurelle : la liste des noms n'apparaît que si le vrai type est une spécialité de la combinaison ([MODELE_DE_JEU.md §8.4](MODELE_DE_JEU.md#84-distribution-sur-le-nom)). Un seul diagnostic avec une spécialité donne donc une réponse **certaine** (« c'est ce type » ou « ce n'est pas ce type »), ce qui rend le bruit de la distribution sur le type sans objet. À trancher avec l'équipe : rendre l'apparition des noms elle-même probabiliste, afficher des noms d'autres types, ou assumer ce comportement comme récompense de la bonne spécialité (choix actuel du modèle de jeu).
-- **Diagnostiquer longtemps coûte cher** : `seuil:70` guérit moins que `seuil:50` (78 % contre 84 % en Interne), car chaque diagnostic aggrave le patient.
-- **Réputation** : avec un jeu attentif (`seuil:50`), une partie de 10 patients descend rarement sous −14 en Interne et −40 en Réanimation (5ᵉ centile du minimum). Ces ordres de grandeur serviront à fixer la valeur de départ et le seuil de fermeture une fois le paquet intermédiaire rédigé.
+- **La stratégie `specialite` reste presque infaillible**, y compris avec la nouvelle règle de la §8.4 (liste des noms affichée seulement si le vrai type est en tête) : 100 % de guérison en Interne, 98 % en Réanimation, avec 1,24 diagnostic par patient en moyenne. Avec l'ancienne règle (noms affichés si le vrai type était une spécialité de la combinaison), elle guérissait 100 % des patients en Interne et 94 % en Réanimation. La cause reste structurelle : la liste ne contient que des maladies du vrai type, donc **sa présence donne le type avec certitude**, et son absence **exclut avec certitude** le type affiché en tête. La remarque de la §8.4 selon laquelle « un seul diagnostic ne tranche jamais définitivement » ne tient donc que si la liste est absente. Avec 3 types, au plus deux diagnostics suffisent à connaître le type. Pistes à trancher avec l'équipe : afficher la liste de noms de façon probabiliste même quand le vrai type n'est pas en tête (avec des noms du type en tête, donc parfois faux), ou y mêler des noms d'autres types. Le paquet d'exemple, avec 2 maladies par type, exagère aussi l'effet : connaître le type y revient presque à connaître la maladie.
+- **Diagnostiquer longtemps coûte cher** : `seuil:70` guérit moins que `seuil:50` (84 % contre 90 % en Interne), car chaque diagnostic aggrave le patient.
+- **Réputation** : avec un jeu attentif (`seuil:50`), une partie de 10 patients descend rarement sous −7 en Interne et −30 en Réanimation (5ᵉ centile du minimum). Ces ordres de grandeur serviront à fixer la valeur de départ et le seuil de fermeture une fois le paquet intermédiaire rédigé.
 
 ## 6. Après le démarrage
 

@@ -6,18 +6,18 @@ Graine 1 · 1000 parties de 10 patients par stratégie et par difficulté · aba
 
 | Stratégie | Difficulté | Guérison | Mort | Abandon | Actions / patient | Diagnostics / patient | Pièces / action | Réputation / action | Réputation / patient |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| hasard | Interne | 23,7 % | 76,3 % | 0 | 4,39 | 2,20 | 0,75 | -0,90 | -3,96 |
-| seuil:50 | Interne | 84,4 % | 15,6 % | 0 | 3,39 | 1,88 | 1,38 | 0,17 | 0,57 |
-| seuil:70 | Interne | 78,0 % | 22,0 % | 0 | 4,23 | 2,99 | 1,31 | 0,02 | 0,10 |
-| specialite | Interne | 100,0 % | 0,0 % | 0 | 3,07 | 1,99 | 1,62 | 0,65 | 1,99 |
-| hasard | Chirurgien | 16,5 % | 83,5 % | 0 | 3,03 | 1,52 | 0,79 | -1,94 | -5,90 |
-| seuil:50 | Chirurgien | 64,4 % | 35,6 % | 0 | 2,80 | 1,63 | 1,54 | -0,19 | -0,53 |
-| seuil:70 | Chirurgien | 54,7 % | 45,3 % | 0 | 3,31 | 2,41 | 1,45 | -0,31 | -1,03 |
-| specialite | Chirurgien | 99,4 % | 0,6 % | 0 | 3,08 | 2,01 | 1,85 | 0,95 | 2,94 |
-| hasard | Réanimation | 14,7 % | 85,3 % | 0 | 2,61 | 1,30 | 1,44 | -2,52 | -6,56 |
-| seuil:50 | Réanimation | 63,4 % | 36,6 % | 0 | 2,63 | 1,46 | 2,45 | -0,15 | -0,39 |
-| seuil:70 | Réanimation | 50,9 % | 49,1 % | 0 | 3,17 | 2,31 | 2,38 | -0,43 | -1,36 |
-| specialite | Réanimation | 93,6 % | 6,4 % | 0 | 3,00 | 2,00 | 2,80 | 1,12 | 3,35 |
+| hasard | Interne | 23,7 % | 76,3 % | 0 | 4,41 | 2,21 | 0,75 | -0,89 | -3,92 |
+| seuil:50 | Interne | 90,3 % | 9,7 % | 0 | 2,89 | 1,59 | 1,49 | 0,38 | 1,10 |
+| seuil:70 | Interne | 84,1 % | 15,9 % | 0 | 3,65 | 2,58 | 1,39 | 0,21 | 0,75 |
+| specialite | Interne | 100,0 % | 0,0 % | 0 | 2,31 | 1,24 | 1,82 | 0,86 | 1,99 |
+| hasard | Chirurgien | 16,0 % | 84,0 % | 0 | 3,03 | 1,52 | 0,77 | -1,97 | -5,96 |
+| seuil:50 | Chirurgien | 73,2 % | 26,9 % | 0 | 2,52 | 1,46 | 1,67 | 0,13 | 0,32 |
+| seuil:70 | Chirurgien | 67,3 % | 32,7 % | 0 | 3,03 | 2,19 | 1,55 | 0,03 | 0,08 |
+| specialite | Chirurgien | 99,0 % | 1,0 % | 0 | 2,30 | 1,25 | 2,13 | 1,26 | 2,91 |
+| hasard | Réanimation | 14,5 % | 85,5 % | 0 | 2,62 | 1,32 | 1,44 | -2,52 | -6,59 |
+| seuil:50 | Réanimation | 72,0 % | 28,1 % | 0 | 2,35 | 1,29 | 2,59 | 0,27 | 0,62 |
+| seuil:70 | Réanimation | 63,6 % | 36,4 % | 0 | 2,90 | 2,09 | 2,49 | 0,01 | 0,04 |
+| specialite | Réanimation | 98,4 % | 1,6 % | 0 | 2,29 | 1,24 | 3,13 | 1,67 | 3,82 |
 
 ## Réputation sur une partie
 
@@ -25,18 +25,18 @@ Cumul des impacts sur une partie (départ à 0). « Minimum » est le point le p
 
 | Stratégie | Difficulté | Finale C5 | Finale C50 | Finale C95 | Minimum C5 | Minimum C50 |
 |---|---|---:|---:|---:|---:|---:|
-| hasard | Interne | -56 | -39 | -22 | -57 | -40 |
-| seuil:50 | Interne | -10 | 6 | 18 | -14 | -1 |
-| seuil:70 | Interne | -16 | 2 | 14 | -18 | -4 |
+| hasard | Interne | -55 | -39 | -22 | -55 | -40 |
+| seuil:50 | Interne | -2 | 12 | 19 | -7 | 0 |
+| seuil:70 | Interne | -7 | 8 | 19 | -11 | -1 |
 | specialite | Interne | 19 | 20 | 20 | 0 | 0 |
-| hasard | Chirurgien | -78 | -60 | -38 | -78 | -60 |
-| seuil:50 | Chirurgien | -31 | -2 | 20 | -33 | -11 |
-| seuil:70 | Chirurgien | -34 | -10 | 12 | -36 | -14 |
+| hasard | Chirurgien | -79 | -60 | -36 | -79 | -61 |
+| seuil:50 | Chirurgien | -21 | 2 | 20 | -23 | -6 |
+| seuil:70 | Chirurgien | -23 | 2 | 22 | -25 | -7 |
 | specialite | Chirurgien | 22 | 30 | 30 | 0 | 0 |
-| hasard | Réanimation | -86 | -68 | -40 | -86 | -68 |
-| seuil:50 | Réanimation | -34 | -4 | 26 | -40 | -12 |
-| seuil:70 | Réanimation | -44 | -14 | 16 | -46 | -18 |
-| specialite | Réanimation | 20 | 40 | 40 | -6 | 0 |
+| hasard | Réanimation | -86 | -68 | -42 | -86 | -68 |
+| seuil:50 | Réanimation | -22 | 4 | 30 | -30 | -8 |
+| seuil:70 | Réanimation | -28 | 0 | 30 | -32 | -8 |
+| specialite | Réanimation | 30 | 40 | 40 | 0 | 0 |
 
 ## Par maladie
 
@@ -44,9 +44,9 @@ Taux de guérison et actions par patient, par stratégie, au niveau Interne.
 
 | Maladie | Type | Poids | hasard | seuil:50 | seuil:70 | specialite |
 |---|---|---:|---:|---:|---:|---:|
-| Appendicite | chirurgie | 2 | 2,4 % en 4,21 | 87,8 % en 2,71 | 78,7 % en 3,23 | 100,0 % en 3,31 |
-| Fracture ouverte | chirurgie | 1 | 29,9 % en 3,17 | 88,0 % en 2,63 | 79,2 % en 3,18 | 100,0 % en 3,22 |
-| Angine bactérienne | pharmacie | 3 | 33,8 % en 5,06 | 95,3 % en 2,76 | 92,0 % en 3,60 | 100,0 % en 3,32 |
-| Allergie saisonnière | pharmacie | 3 | 29,4 % en 4,51 | 71,5 % en 4,99 | 67,1 % en 6,17 | 100,0 % en 3,33 |
-| Phobie des blouses blanches | psychologie | 1 | 23,9 % en 4,30 | 90,5 % en 2,76 | 83,4 % en 3,47 | 100,0 % en 2,00 |
-| Hypocondrie aiguë | psychologie | 1 | 11,9 % en 3,78 | 71,2 % en 3,40 | 59,0 % en 4,14 | 100,0 % en 2,04 |
+| Appendicite | chirurgie | 2 | 2,3 % en 4,22 | 83,5 % en 2,86 | 73,8 % en 3,44 | 100,0 % en 2,33 |
+| Fracture ouverte | chirurgie | 1 | 30,8 % en 3,22 | 87,8 % en 2,64 | 80,1 % en 3,19 | 99,9 % en 2,27 |
+| Angine bactérienne | pharmacie | 3 | 33,9 % en 4,99 | 94,3 % en 3,00 | 89,8 % en 3,92 | 100,0 % en 2,38 |
+| Allergie saisonnière | pharmacie | 3 | 29,7 % en 4,56 | 91,3 % en 2,96 | 86,0 % en 3,78 | 100,0 % en 2,35 |
+| Phobie des blouses blanches | psychologie | 1 | 21,9 % en 4,35 | 92,9 % en 2,74 | 85,7 % en 3,41 | 100,0 % en 2,17 |
+| Hypocondrie aiguë | psychologie | 1 | 11,4 % en 3,79 | 88,7 % en 2,80 | 84,1 % en 3,56 | 100,0 % en 2,19 |

@@ -107,4 +107,32 @@ void main() {
     expect(resultat, isA<Refus>());
     expect((resultat as Refus).message, 'Une seule carte salle par action.');
   });
+
+  test('plusieurs motifs correspondent : le premier déclaré l\'emporte', () {
+    final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
+    final motifs = copie['motifs'] as Map<String, dynamic>;
+    copie['motifs'] = {
+      'recherche': {
+        'patient': [1, 1],
+        'medecin': [1, 1],
+        'salle': [1, 1],
+        'total': [3, 3],
+      },
+      ...motifs,
+    };
+    final r = ReconnaissanceCombinaisons(Jeu.fromJson(copie));
+    expect(
+      (r.reconnaitre(['MED-001', 'PAT-001', 'SAL-001']) as Apercu).motif,
+      'recherche',
+    );
+    expect(
+      (r.reconnaitre([
+        'MED-001',
+        'PAT-001',
+        'SAL-001',
+        'OBJ-001',
+      ]) as Apercu).motif,
+      'standard',
+    );
+  });
 }
