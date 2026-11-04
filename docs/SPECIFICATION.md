@@ -61,7 +61,7 @@ Serveur HTTP embarqué (Dart, `shelf`) sur le réseau local et **WebSocket** pou
 | C → H | `valider` | `qrs` : liste des contenus QR sélectionnés | Appui sur « Valider la sélection » |
 | H → C | `apercu` | `apercu_id`, `cartes` (identifiants), `actions` : liste de `{id, libelle, phrase}` | Combinaison reconnue |
 | H → C | `refus` | `raison` (message affichable) | Sélection non conforme, patient non admis… |
-| C → H | `confirmer` | `apercu_id`, `action_id` | Appui sur une action |
+| C → H | `confirmer` | `apercu_id`, `action_id`, `maladie_id` (facultatif : maladie choisie pour l'action `analyser`) | Appui sur une action |
 | C → H | `annuler` | `apercu_id` | Appui sur « Annuler » |
 | H → C | `resultat` | voir [MODELE_DE_JEU.md §11](MODELE_DE_JEU.md#11-contenu-dun-résultat) | Envoyé **au seul client** qui a confirmé |
 | C ↔ H | `ping` / `pong` | — | Toutes les 5 s, pour détecter les coupures |
@@ -121,7 +121,7 @@ Le bouton **« Valider la sélection »** envoie la liste des QR à l'hôte (`va
 ### 5.3 Écran de confirmation
 
 1. Les **images des cartes** de la combinaison, côte à côte.
-2. Pour chaque action possible, un bouton (« Admettre », « Diagnostiquer », « Traiter ») accompagné de sa **phrase d'aperçu** calculée par l'hôte, par exemple : *« Tentative de soin de M. Dupont par le Dr Lefort et la Dr Benali dans le bloc opératoire. »*
+2. Pour chaque action possible, un bouton (« Admettre », « Diagnostiquer », « Traiter », « Analyser » selon le motif) accompagné de sa **phrase d'aperçu** calculée par l'hôte, par exemple : *« Tentative de soin de M. Dupont par le Dr Lefort et la Dr Benali dans le bloc opératoire. »*
 3. Un bouton **« Annuler »** : rien n'est appliqué et l'appli revient à la sélection.
 
 L'aperçu ne révèle **aucune information cachée** (maladie, PV).
@@ -137,7 +137,7 @@ L'aperçu ne révèle **aucune information cachée** (maladie, PV).
 ### 5.6 Écran de résultat
 
 - Visible **uniquement** sur le téléphone de l'acteur. Il n'existe ni bouton « révéler », ni envoi aux autres téléphones.
-- Contenu : PV avant → après, temps du patient et éventuelle attente dépassée, diagnostic (distribution sur le type, voire sur les noms), issue (en jeu, soigné ou mort, avec la maladie révélée à la sortie), pièces gagnées, impact sur la réputation. Le détail figure dans [MODELE_DE_JEU.md §11](MODELE_DE_JEU.md#11-contenu-dun-résultat).
+- Contenu : PV avant → après, temps du patient et éventuelle attente dépassée, diagnostic (distribution sur le type, voire sur les noms), issue (en jeu, soigné ou mort, avec la maladie révélée à la sortie), pièces gagnées, impact sur la réputation. Pour une **analyse** (laboratoire de recherche) s'ajoutent : la liste des maladies suspectées du patient, la maladie choisie, et les passages restants ou la recette révélée. Le détail figure dans [MODELE_DE_JEU.md §11](MODELE_DE_JEU.md#11-contenu-dun-résultat).
 - Deux rappels : « Pièces : à garder ou à céder en partie à l'hôpital » et, si l'impact n'est pas nul, « Réputation : reportez −2 sur la piste de l'hôpital ».
 - Un bouton **« OK / Fin de l'action »** ramène à l'écran de sélection.
 
@@ -263,6 +263,7 @@ Permissions Android : `CAMERA`, `INTERNET`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK
 | D20 | Catalogue cible : 10 médecins, 30 patients, 30 objets/diplômes, 10 salles, 100 maladies | §8 |
 | D21 | La page admin sert au démarrage et à la connexion ; le reste est du debug | §7 |
 | D22 | Réputation tenue à la main ; sous un seuil, l'hôpital ferme et tous les joueurs perdent (règle de table, l'appli ne tient pas le total) | [Modèle §7.1](MODELE_DE_JEU.md#71-réputation-et-fermeture-de-lhôpital) |
+| D23 | Salle recherche : motif `recherche` déclaré avant `standard`, action `analyser` avec choix d'une maladie suspectée, révélation de la recette complète du traitement adapté après `recherche.passages` passages (global à la partie), coût = temps + aggravation, aucune pièce | [Modèle §12](MODELE_DE_JEU.md#12-recherche-en-laboratoire) |
 
 ## 12. Questions ouvertes
 
