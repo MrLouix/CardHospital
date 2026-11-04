@@ -306,9 +306,9 @@ class Filtre {
 
   factory Filtre.fromJson(Map<String, dynamic> json) {
     return Filtre(
-      type: _listeOuValeur<TypeCarte>(json['type']),
-      specialite: _listeOuValeur<String>(json['specialite']),
-      id: _listeOuValeur<String>(json['id']),
+      type: _listeOuValeur(json['type'])?.map(TypeCarte.values.byName).toList(),
+      specialite: _listeOuValeur(json['specialite']),
+      id: _listeOuValeur(json['id']),
     );
   }
 
@@ -322,11 +322,11 @@ class Filtre {
   final List<String>? specialite;
   final List<String>? id;
 
-  static List<T>? _listeOuValeur<T>(dynamic valeur) {
+  /// Une valeur ou une liste de valeurs, toujours rendue sous forme de liste.
+  static List<String>? _listeOuValeur(dynamic valeur) {
     if (valeur == null) return null;
-    if (valeur is List) return valeur.cast<T>();
-    if (T == TypeCarte) return [TypeCarte.values.byName(valeur as String) as T];
-    return [valeur as T];
+    if (valeur is List) return valeur.cast<String>().toList();
+    return [valeur as String];
   }
 }
 
@@ -346,13 +346,11 @@ class Predicat {
       return Predicat(carte: json['carte'] as String);
     }
     if (json.containsKey('compte')) {
-      final compte = json['compte'] as Map<String, dynamic>;
+      // `min` et `max` sont au même niveau que `compte` (voir le schéma).
       return Predicat(
-        compte: Filtre.fromJson(
-          compte['filtre'] as Map<String, dynamic>? ?? compte,
-        ),
-        min: compte['min'] as int?,
-        max: compte['max'] as int?,
+        compte: Filtre.fromJson(json['compte'] as Map<String, dynamic>),
+        min: json['min'] as int?,
+        max: json['max'] as int?,
       );
     }
     if (json.containsKey('tous')) {
@@ -378,11 +376,9 @@ class Predicat {
     if (carte != null) return {'carte': carte};
     if (compte != null) {
       return {
-        'compte': {
-          ...compte!.toJson(),
-          if (min != null) 'min': min,
-          if (max != null) 'max': max,
-        },
+        'compte': compte!.toJson(),
+        if (min != null) 'min': min,
+        if (max != null) 'max': max,
       };
     }
     if (tous != null) {

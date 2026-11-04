@@ -27,3 +27,6 @@ packages/moteur/.dart_tool/package_config*.json
 
 # Planche de QR de test generee par outils/planche_qr
 planche_qr.pdf
+
+# Couverture de tests du moteur
+packages/moteur/coverage/

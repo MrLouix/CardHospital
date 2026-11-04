@@ -74,4 +74,72 @@ void main() {
     final rapport = Validateur().validerJson(copie, jeu: Jeu.fromJson(copie));
     expect(rapport.erreurs, contains(contains('dermatologie')));
   });
+
+  test('combinaisons standard énumérées sans doublon de carte', () {
+    final combinaisons = Validateur.combinaisonsPossibles(Jeu.fromJson(brut));
+    // 1 médecin : 4 × 3 salles × (1 + 5 accessoires) ; 2 médecins : 6 × 3.
+    expect(combinaisons, hasLength(4 * 3 * 6 + 6 * 3));
+    for (final c in combinaisons) {
+      expect(c.ids.toSet(), hasLength(c.ids.length));
+    }
+  });
+
+  test('un traitement adapté irréalisable est refusé', () {
+    final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
+    // Deux accessoires à la fois : impossible dans une combinaison standard.
+    ((copie['maladies'] as List)[2]['traitement'] as Map)['adapte'] = {
+      'tous': [
+        {'carte': 'OBJ-010'},
+        {'carte': 'OBJ-011'},
+      ],
+    };
+    final rapport = Validateur().validerJson(copie, jeu: Jeu.fromJson(copie));
+    expect(
+      rapport.erreurs,
+      contains(
+        allOf(
+          contains('maladies[2].traitement.adapte'),
+          contains('Angine bactérienne'),
+        ),
+      ),
+    );
+  });
+
+  test('un traitement exigeant trop de médecins est refusé', () {
+    final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
+    ((copie['maladies'] as List)[0]['traitement'] as Map)['adapte'] = {
+      'compte': {'type': 'medecin', 'specialite': 'chirurgie'},
+      'min': 3,
+    };
+    final rapport = Validateur().validerJson(copie, jeu: Jeu.fromJson(copie));
+    expect(rapport.erreurs, contains(contains('Appendicite')));
+  });
+
+  test('le modèle complet fait l\'aller-retour JSON sans perte', () {
+    final une = jsonEncode(Jeu.fromJson(brut));
+    final deux = jsonEncode(
+      Jeu.fromJson(jsonDecode(une) as Map<String, dynamic>),
+    );
+    expect(deux, une);
+    final relu = jsonDecode(une) as Map<String, dynamic>;
+    expect(relu['maladies'][0]['traitement']['adapte'], {
+      'tous': [
+        {
+          'compte': {
+            'type': ['medecin'],
+            'specialite': ['chirurgie'],
+          },
+          'min': 2,
+        },
+        {
+          'compte': {
+            'type': ['salle'],
+            'specialite': ['chirurgie'],
+          },
+          'min': 1,
+        },
+      ],
+    });
+    expect(relu['actions'][2]['effets'][1]['condition'], 'traitement_adapte');
+  });
 }
