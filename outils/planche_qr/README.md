@@ -6,7 +6,7 @@ Génère un PDF A4 de QR codes de test pour valider la détection multi-QR
 ## Contenu de la planche
 
 - Contenus : `MED-001`, `PAT-001`, `SAL-001`, `OBJ-001`, `DIP-001`, `MED-002`, `PAT-002`, `SAL-002`, `OBJ-002`, `DIP-002`.
-- Tailles : 1,5 cm, 2 cm, 2,5 cm.
+- Tailles : 1,5 cm, 2 cm, 2,5 cm (QR seul, hors marge).
 - Niveaux de correction d'erreur : M et Q.
 - Marge de 4 modules autour de chaque QR.
 - Chaque QR est étiqueté (contenu, taille, niveau de correction).
@@ -14,7 +14,7 @@ Génère un PDF A4 de QR codes de test pour valider la détection multi-QR
 ## Génération
 
 ```bash
-pip install qrcode reportlab
+pip install -r requirements.txt
 python3 planche_qr.py --sortie planche_qr.pdf
 ```
 
