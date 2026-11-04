@@ -91,7 +91,7 @@ Les noms de personnages ou de marques existants (personnages de séries, marques
 }
 ```
 
-`attente_max`, `poids` (entier ≥ 1, défaut 1), `traitement.partiel` et `recompenses` sont facultatifs. Un poids nul est interdit : une maladie qui ne peut jamais être tirée n'a pas sa place dans le paquet, il suffit de la retirer. Toute clé de `recompenses` absente reprend la valeur de `parametres.recompenses`.
+`attente_max`, `poids` (entier ≥ 1, défaut 1), `traitement.partiel`, `recompenses` et `recherche` sont facultatifs. `recherche.passages` (entier ≥ 1, défaut 1) est le nombre de passages en laboratoire nécessaires pour révéler la recette de la maladie (§9, prévu pour `schema_version` 2). Un poids nul est interdit : une maladie qui ne peut jamais être tirée n'a pas sa place dans le paquet, il suffit de la retirer. Toute clé de `recompenses` absente reprend la valeur de `parametres.recompenses`.
 
 ## 3. Motifs
 
@@ -104,7 +104,7 @@ Un motif décrit une forme de sélection par des **intervalles `[min, max]`** de
 }
 ```
 
-Un type absent d'un motif est interdit (`[0, 0]`). Le motif standard encode « 1 médecin + 1 patient + 1 salle + au plus une carte parmi {objet, diplôme, second médecin} », la limite `total ≤ 4` excluant d'avoir à la fois un second médecin et un accessoire.
+Un type absent d'un motif est interdit (`[0, 0]`). Le motif standard encode « 1 médecin + 1 patient + 1 salle + au plus une carte parmi {objet, diplôme, second médecin} », la limite `total ≤ 4` excluant d'avoir à la fois un second médecin et un accessoire. Quand plusieurs motifs correspondent à une même sélection, c'est le **premier déclaré** qui l'emporte : le motif `recherche` (§9) doit donc précéder `standard`.
 
 Quand une sélection ne correspond à aucun motif, l'hôte renvoie le **premier écart** constaté par rapport au motif le plus proche (« Il faut une carte salle »). Le motif le plus proche est celui qui a le moins d'écarts de cardinalité (somme des cartes manquantes ou en trop par groupe, plus les cartes d'un type absent du motif) ; à égalité, celui qui a le plus de groupes satisfaits. Le premier écart est cherché dans l'ordre patient, médecin, salle, accessoire, total.
 
@@ -239,3 +239,51 @@ Un paquet est **refusé** s'il comporte au moins une erreur ; les avertissements
 - `schema_version` (entier) est incrémenté à chaque changement incompatible du format.
 - L'application déclare la plage de versions qu'elle sait lire. Un paquet plus ancien est **migré** en mémoire ; un paquet plus récent est refusé (« Ce paquet nécessite une version plus récente de l'application »).
 - `version` (texte, au format `MAJEUR.MINEUR.CORRECTIF`) est la version éditoriale du paquet. Elle est enregistrée dans les sauvegardes : au chargement d'une sauvegarde faite avec un autre paquet (identifiant, version ou empreinte différents), l'appli avertit l'utilisateur et refuse si des maladies référencées n'existent plus.
+
+## 9. Salle recherche (prévu pour `schema_version` 2)
+
+> **État** : conception validée, **non encore implémentée** — le schéma et le validateur actuels restent en `schema_version` 1 et n'acceptent pas les éléments ci-dessous. Livraison prévue avec la montée à `schema_version` 2 (voir [PLAN_DE_CODAGE.md](PLAN_DE_CODAGE.md) §5.2, étape 10). Règles du jeu : [MODELE_DE_JEU.md §12](MODELE_DE_JEU.md#12-recherche-en-laboratoire).
+
+### 9.1 Spécialité réservée
+
+`recherche` est une spécialité de **salle uniquement** : jamais type d'une maladie, jamais portée par un médecin, un objet ou un diplôme (même statut que `generaliste` pour les maladies). Le validateur refusera toute maladie de type `recherche`.
+
+### 9.2 Motif et priorité des motifs
+
+```json
+"motifs": {
+  "recherche": { "patient": [1, 1], "medecin": [1, 1], "salle": [1, 1], "total": [3, 3] },
+  "admission": { "patient": [1, 1], "total": [1, 1] },
+  "standard":  { "patient": [1, 1], "medecin": [1, 2], "salle": [1, 1], "objet|diplome": [0, 1], "total": [3, 4] }
+}
+```
+
+`recherche` est déclaré **avant** `standard` : médecin + patient + salle correspond aux deux motifs, et le premier déclaré l'emporte.
+
+### 9.3 Action `analyser`
+
+- `motif` : `recherche` ; précondition : `patient_en_jeu` **et** `{ "combinaison": { "compte": { "type": "salle", "specialite": "recherche" }, "min": 1 } }`.
+- **Paramètre choisi par le joueur à la confirmation** : la maladie analysée (`maladie_id`), dans la liste des maladies suspectées du patient.
+- Effets : `avancer_temps`, `rechercher` (9.4), `aggraver`, puis pénalité d'attente si dépassée. Aucune pièce gagnée.
+- **Évolution de la reconnaissance** : l'aperçu ne propose que les actions dont la précondition de combinaison est satisfaite — sinon toute sélection médecin + patient + salle proposerait « Analyser », même hors laboratoire.
+
+### 9.4 Nouvel effet `rechercher`
+
+`{ "effet": "rechercher", "maladie": "<id_maladie>" }` :
+
+1. ajoute au résultat la liste des maladies suspectées du patient (noms mémorisés lors des effets `diagnostiquer` précédents, remis à zéro à chaque admission) ;
+2. décrémente de 1 le compteur de passages restants de la maladie choisie — état **global à la partie**, mémorisé par maladie ; la capacité `recherche` de la combinaison réduit le nombre de passages requis (minimum 1) ;
+3. si le compteur atteint 0 : ajoute au résultat la **recette** de `traitement.adapte`, générée depuis le prédicat (`carte` → « la carte X », `compte` → « N cartes de type/spécialité … », `tous` → conjonction, `non` → « sans … ») ;
+4. sinon : indique le nombre de passages restants (« Analyse en cours — X passage(s) restant(s) »).
+
+### 9.5 Champ `recherche` d'une maladie
+
+```json
+{ "id": "maladie_xx", "nom": "…", "recherche": { "passages": 3 } }
+```
+
+`passages` : entier ≥ 1, défaut 1. Le validateur contrôle la cohérence (entier ≥ 1).
+
+### 9.6 Capacité `recherche`
+
+Déclarable comme toute capacité dans `capacites`, portée par des médecins ou des accessoires : chaque point réduit de 1 le nombre de passages requis pour l'analyse en cours, sans descendre sous 1.

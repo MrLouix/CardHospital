@@ -8,7 +8,7 @@ Toutes les valeurs numériques citées ici sont des **valeurs par défaut du paq
 
 | Géré par l'appli (hôte) | Géré par les joueurs, hors appli |
 |---|---|
-| Maladie cachée de chaque patient, PV, temps du patient | Tour de jeu, ordre des joueurs |
+| Maladie cachée de chaque patient, PV, temps du patient, maladies suspectées et passages restants des analyses (§12) | Tour de jeu, ordre des joueurs |
 | Diagnostic probabiliste, issue des traitements | Points de victoire, conditions de victoire et de défaite (dont la **fermeture de l'hôpital**, §7.1) |
 | Calcul des pièces gagnées et de l'impact sur la réputation, **par action** | Cumul des pièces et de la réputation |
 | | Partage des pièces entre le médecin et l'hôpital, achats (salles, objets, diplômes) |
@@ -27,7 +27,7 @@ Toutes les valeurs numériques citées ici sont des **valeurs par défaut du paq
 | Maladies | 100 | virtuelle (dans le JSON) |
 | Spécialités | 3 + extensibles | virtuelle |
 
-Spécialités du paquet de base : `psychologie`, `chirurgie`, `pharmacie`. La valeur `generaliste` peut être portée par une carte (salle généraliste, médecin généraliste) mais **n'est jamais le type d'une maladie**.
+Spécialités du paquet de base : `psychologie`, `chirurgie`, `pharmacie`. La valeur `generaliste` peut être portée par une carte (salle généraliste, médecin généraliste) mais **n'est jamais le type d'une maladie**. La valeur `recherche` est **réservée aux salles** (laboratoire de recherche, §12) : elle n'est jamais le type d'une maladie, ni portée par un médecin, un objet ou un diplôme.
 
 ### 2.2 Cartes
 
@@ -64,12 +64,13 @@ Chaque maladie définit :
 |---|---|---|
 | **Admission** | 1 patient, seul | `admettre` (si le patient n'est pas en jeu) |
 | **Standard** | 1 médecin + 1 patient + 1 salle + 0 ou 1 carte parmi {objet, diplôme, second médecin} | `diagnostiquer`, `traiter` |
+| **Recherche** | 1 médecin + 1 patient + 1 salle de spécialité `recherche` | `analyser` (§12) |
 
-Toute autre sélection est **refusée avec un message explicite** indiquant ce qui manque ou ce qui est en trop (« Il faut une carte salle », « Une seule carte patient par action », « 4 cartes maximum »). Une même carte détectée deux fois ne compte qu'une fois.
+Toute autre sélection est **refusée avec un message explicite** indiquant ce qui manque ou ce qui est en trop (« Il faut une carte salle », « Une seule carte patient par action », « 4 cartes maximum »). Une même carte détectée deux fois ne compte qu'une fois. Quand plusieurs motifs correspondent à une même sélection, c'est le **premier motif déclaré dans le JSON** qui l'emporte : le motif `recherche` doit donc être déclaré avant `standard` (médecin + patient + salle correspond aux deux).
 
 ### 3.2 Choix de l'action
 
-Une combinaison standard permet deux actions. L'écran de confirmation propose **un bouton par action possible** (« Diagnostiquer », « Traiter »), chacun avec sa phrase d'aperçu, plus « Annuler ». Le joueur annonce son intention en choisissant le bouton.
+Une combinaison standard permet deux actions, une combinaison recherche une seule. L'écran de confirmation propose **un bouton par action possible** (« Diagnostiquer », « Traiter », « Analyser »), chacun avec sa phrase d'aperçu, plus « Annuler ». Le joueur annonce son intention en choisissant le bouton.
 
 ### 3.3 Spécialités et capacités d'une combinaison
 
@@ -132,6 +133,8 @@ Les prédicats de traitement portent sur les cartes de la combinaison : présenc
 | Psychologie | un médecin `psychologie` (psychiatre) + une salle `psychologie` | un médecin `psychologie` hors salle dédiée |
 
 Le validateur de paquet vérifie que **chaque maladie a au moins un traitement adapté réalisable** avec les cartes du catalogue.
+
+Le laboratoire de recherche (§12) révèle ce traitement sous forme de **recette lisible**, générée depuis le prédicat `adapte`.
 
 ## 7. Récompenses
 
@@ -202,7 +205,7 @@ Comportement attendu avec 3 types (simulation de 20 000 tirages) :
 
 ### 8.4 Distribution sur le nom
 
-Si le **vrai type ∈ S(C)**, c'est-à-dire si le médecin, l'accessoire ou la salle concorde avec la maladie, le résultat ajoute une distribution sur les **noms** des maladies de ce type :
+Si le **vrai type est le type de poids le plus élevé** de la distribution de la §8.3 (le type affiché en tête), le résultat ajoute une distribution sur les **noms** des maladies de ce type :
 
 1. `w(m) ← loi exponentielle de paramètre 1` pour chaque maladie `m` du vrai type ;
 2. pour la vraie maladie : `w(m) ← w(m) × (1 + verite_nom + par_niveau_nom × N)` ;
@@ -210,7 +213,7 @@ Si le **vrai type ∈ S(C)**, c'est-à-dire si le médecin, l'accessoire ou la s
 
 Valeurs par défaut : `verite_nom = 3.0`, `par_niveau_nom = 1.5`. Avec environ 25 maladies par type, la vraie maladie figure dans les 3 premières environ 2 fois sur 3 (de 57 % à N = 0 à 79 % à N = 4).
 
-Conséquence assumée : l'apparition de la liste de noms **confirme le type** de la maladie. C'est la récompense de la bonne spécialité.
+Conséquence : l'apparition de la liste de noms **ne confirme plus le type avec certitude**. Elle signale que le diagnostic est confiant (vrai type en tête), ce qui arrive d'autant plus souvent que la combinaison comporte la bonne spécialité (`bonus_specialite`) et que N est élevé : environ 79 % du temps à N = 1 et 87 % à N = 4 avec une spécialité concordante (tableau de la §8.3). La bonne spécialité reste donc récompensée — elle rend la liste de noms fréquente — mais un seul diagnostic ne tranche jamais définitivement : tester une spécialité par diagnostic n'est plus une stratégie infaillible.
 
 ### 8.5 Réglage
 
@@ -245,19 +248,22 @@ L'arrondi (§7) s'applique **après** le modificateur.
 
 ## 11. Contenu d'un résultat
 
-| Élément | Admission | Diagnostic | Traitement |
-|---|---|---|---|
-| PV avant → après (delta) | PV initiaux | oui | oui |
-| Temps du patient / attente dépassée | — | oui | oui |
-| Distribution type (et noms) | — | oui | — |
-| Issue : en jeu / soigné / mort | — | oui | oui |
-| Maladie révélée | — | si mort | si soigné ou mort |
-| Pièces gagnées | — | oui | oui |
-| Impact réputation | — | oui | oui |
+| Élément | Admission | Diagnostic | Traitement | Analyse (§12) |
+|---|---|---|---|---|
+| PV avant → après (delta) | PV initiaux | oui | oui | oui |
+| Temps du patient / attente dépassée | — | oui | oui | oui |
+| Distribution type (et noms) | — | oui | — | — |
+| Liste des maladies suspectées | — | oui (affichées) | — | oui (proposées) |
+| Maladie choisie pour l'analyse | — | — | — | oui |
+| Passages restants / recette révélée | — | — | — | oui |
+| Issue : en jeu / soigné / mort | — | oui | oui | oui |
+| Maladie révélée | — | si mort | si soigné ou mort | jamais |
+| Pièces gagnées | — | oui | oui | non (0) |
+| Impact réputation | — | oui | oui | oui |
 
 ### 11.1 Format du résultat
 
-Le moteur renvoie le résultat sous la forme d'un objet JSON, qui est aussi le contenu du message `resultat` du protocole ([SPECIFICATION.md §3.3](SPECIFICATION.md#33-protocole)). Code : `packages/moteur/lib/moteur/resultat.dart`.
+Le moteur renvoie le résultat sous la forme d'un objet JSON, qui est aussi le contenu du message `resultat` du protocole ([SPECIFICATION.md §3.3](SPECIFICATION.md#33-protocole)). Code : `packages/moteur/lib/moteur/resultat.dart`. Les champs propres à l'analyse (§12) seront ajoutés avec la salle recherche.
 
 | Clé | Type | Contenu |
 |---|---|---|
@@ -271,8 +277,37 @@ Le moteur renvoie le résultat sous la forme d'un objet JSON, qui est aussi le c
 | `temps` | entier | Temps du patient après l'action |
 | `attente_depassee` | booléen | `temps > attente_max` |
 | `issue` | `en_jeu`, `soigne` ou `mort` | Issue pour le patient |
-| `diagnostic` | objet ou `null` | `niveau` (N), `types` et `noms` (`null` sans spécialité concordante) : listes de `{id, nom, pourcentage}` triées par pourcentage décroissant, la ligne « Autres » ayant un `id` nul et venant en dernier |
+| `diagnostic` | objet ou `null` | `niveau` (N), `types` et `noms` (`null` si le vrai type n'est pas en tête, §8.4) : listes de `{id, nom, pourcentage}` triées par pourcentage décroissant, la ligne « Autres » ayant un `id` nul et venant en dernier |
 | `maladie_revelee` | `{id, nom}` ou `null` | Maladie, si le patient est sorti |
 | `pieces` | entier | Pièces gagnées par l'acteur, après difficulté et arrondi |
 | `reputation` | entier signé | Impact total sur la réputation (soin, échec, attente et mort cumulés) |
 
+## 12. Recherche en laboratoire
+
+### 12.1 Principe
+
+Une salle de spécialité `recherche` — le **laboratoire** — permet d'analyser une maladie suspectée pour découvrir son traitement. L'analyse se déroule en un ou plusieurs **passages** : une maladie compliquée exige plusieurs passages avant de révéler sa **recette**.
+
+### 12.2 Maladies suspectées
+
+L'hôte mémorise, pour chaque patient en jeu, l'ensemble des maladies dont le nom a figuré dans les distributions affichées lors de ses diagnostics précédents (§8.4) : ce sont ses **maladies suspectées**. La liste est remise à zéro à chaque admission (le patient revient avec une nouvelle maladie). Si le patient n'a aucune maladie suspectée, l'action `analyser` répond : « Aucune piste — refaire un diagnostic avec une spécialité concordante ».
+
+### 12.3 Déroulement d'un passage
+
+1. Le joueur scanne 1 médecin + 1 patient + le laboratoire, puis confirme « Analyser ».
+2. L'appli propose la liste des maladies suspectées du patient ; le joueur en choisit une — même une fausse, l'information reste utile pour toute la partie.
+3. L'hôte décrémente de 1 le compteur de **passages restants** de cette maladie. Ce compteur est **global à la partie** et mémorisé par maladie : une recette découverte l'est pour tous les patients.
+4. Tant que des passages restent : « Analyse en cours — X passage(s) restant(s) ».
+5. Quand le compteur atteint 0, l'hôte révèle la **recette complète** du traitement adapté : la description des cartes requises, générée depuis le prédicat `traitement.adapte` (ex. « 2 médecins chirurgie + le bloc opératoire », « l'antibiotique »).
+
+### 12.4 Nombre de passages
+
+Chaque maladie peut définir `recherche.passages` dans le JSON (entier ≥ 1, défaut 1) : nombre de passages en laboratoire nécessaires pour révéler sa recette. Sans le champ, la recette se révèle en un seul passage.
+
+### 12.5 Coût d'un passage
+
+Un passage en laboratoire est une action sur le patient comme les autres : il avance son temps de 1, subit l'aggravation (action non curative) et éventuellement la pénalité d'attente dépassée. Il ne rapporte **aucune pièce**. Analyser plusieurs fois fait donc courir le risque de perdre le patient.
+
+### 12.6 Capacité `recherche`
+
+Une carte (médecin, objet ou diplôme) peut porter la capacité `recherche` : chaque point réduit d'autant le nombre de passages requis pour l'analyse en cours, sans descendre sous 1.

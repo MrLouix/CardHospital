@@ -100,6 +100,7 @@ Ordre de réalisation, chaque étape étant livrée avec ses tests :
 7. [x] **Résultat et état** : formats arrêtés (points P1 et P2), sérialisation et restauration des instantanés.
 8. [x] **Simulateur** (`bin/simuler.dart`) : stratégies simples (traiter au hasard, diagnostiquer jusqu'à X % puis traiter, se fier à la spécialité). Il mesure le taux de guérison, la durée de vie des patients, les pièces et la réputation par action, et produit un rapport reproductible.
 9. [ ] **Paquet de base intermédiaire** : environ 20 maladies, à rédiger avec l'équipe (voir §3).
+10. [ ] **Salle recherche** (`schema_version` 2) : motif `recherche` prioritaire (déclaré avant `standard`), action `analyser` avec choix de la maladie par le joueur, nouvel effet `rechercher`, champ `recherche.passages` des maladies, capacité `recherche`, spécialité `recherche` réservée aux salles, montée du schéma + migration v1 → v2, proposition d'actions filtrée par précondition de combinaison. Conception : [MOTEUR_EFFETS.md §9](MOTEUR_EFFETS.md#9-salle-recherche-prévu-pour-schema_version-2) et [MODELE_DE_JEU.md §12](MODELE_DE_JEU.md#12-recherche-en-laboratoire). Tests positifs et négatifs.
 
 Critères de fin : ceux de la [feuille de route](FEUILLE_DE_ROUTE.md#phase-1--moteur-deffets-validateur-et-simulateur), soit une couverture ≥ 90 %, un test négatif par règle de validation et un rapport de simulation reproductible.
 
