@@ -12,7 +12,7 @@ void main() {
     patientsParPartie: 5,
   );
   List<Strategie> strategies() => [
-    for (final s in ['hasard', 'seuil:60', 'specialite']) Strategie.depuis(s),
+    for (final s in ['hasard', 'seuil:60', 'couleur:60']) Strategie.depuis(s),
   ];
 
   test('rapport reproductible : même graine, même rapport', () {
@@ -41,7 +41,7 @@ void main() {
       parametres: petit,
     ).simuler([Strategie.depuis('hasard')], difficultes: ['interne']);
     final avec = Simulateur(jeu, parametres: petit).simuler(
-      [Strategie.depuis('hasard'), Strategie.depuis('specialite')],
+      [Strategie.depuis('hasard'), Strategie.depuis('couleur:60')],
       difficultes: ['interne'],
     );
     expect(avec.resultats.first.toJson(), seule.resultats.first.toJson());
@@ -75,7 +75,7 @@ void main() {
     };
     final hasard = taux['hasard']!;
     expect(taux['seuil:60'], greaterThan(hasard + 0.3));
-    expect(taux['specialite'], greaterThan(hasard + 0.3));
+    expect(taux['couleur:60'], greaterThan(hasard + 0.3));
   });
 
   test('abandon au-delà du nombre maximal d\'actions', () {
@@ -119,7 +119,9 @@ void main() {
   test('stratégies : description analysée, erreurs explicites', () {
     expect(Strategie.depuis('hasard').nom, 'hasard');
     expect(Strategie.depuis('seuil:65').nom, 'seuil:65');
-    expect(Strategie.depuis('specialite').nom, 'specialite');
+    expect(Strategie.depuis('couleur:80').nom, 'couleur:80');
+    expect(() => Strategie.depuis('couleur'), throwsFormatException);
+    expect(() => Strategie.depuis('specialite'), throwsFormatException);
     expect(() => Strategie.depuis('seuil'), throwsFormatException);
     expect(() => Strategie.depuis('seuil:120'), throwsFormatException);
     expect(() => Strategie.depuis('magie'), throwsFormatException);
@@ -179,6 +181,90 @@ void main() {
         hasLength(catalogue.length),
         reason: 'aucune combinaison : toutes proposées',
       );
+    });
+  });
+
+  group('stratégies informées', () {
+    final catalogue = CatalogueCombinaisons(jeu);
+    ResultatAction diagnostic(List<(String, String, int)> lignes) =>
+        ResultatAction(
+          numero: 2,
+          action: actionDiagnostiquer,
+          libelle: 'Diagnostiquer',
+          phrase: '',
+          cartes: const [],
+          patient: 'PAT-001',
+          patientNom: 'Mme Garnier',
+          pvAvant: 10,
+          pvApres: 9,
+          temps: 1,
+          attenteDepassee: false,
+          issue: IssuePatient.enJeu,
+          pieces: 1,
+          reputation: 0,
+          diagnostic: ResultatDiagnostic(
+            niveau: 1,
+            maladies: [
+              for (final (id, type, pct) in lignes)
+                LigneDiagnostic(
+                  id: id,
+                  nom: id,
+                  pourcentage: pct,
+                  specialite: SpecialiteAffichee.depuis(
+                    jeu.specialites.firstWhere((s) => s.id == type),
+                  ),
+                ),
+            ],
+          ),
+        );
+
+    final flou = diagnostic([
+      ('angine_bacterienne', 'pharmacie', 60),
+      ('appendicite', 'chirurgie', 55),
+      ('fracture_ouverte', 'chirurgie', 52),
+      ('phobie_des_blouses', 'psychologie', 50),
+      ('allergie_saisonniere', 'pharmacie', 30),
+    ]);
+    final net = diagnostic([
+      ('appendicite', 'chirurgie', 95),
+      ('angine_bacterienne', 'pharmacie', 50),
+      ('fracture_ouverte', 'chirurgie', 45),
+      ('phobie_des_blouses', 'psychologie', 40),
+      ('allergie_saisonniere', 'pharmacie', 30),
+    ]);
+
+    test('seuil : traite la tête si elle atteint le seuil, sinon diagnostique '
+        'sans spécialité', () {
+      final s = StrategieSeuil(80)..debutPatient();
+      final premier = s.choisir([], catalogue, Alea(1));
+      expect(premier.action, actionDiagnostiquer);
+      expect(Combinaison(jeu, premier.cartes).specialites, isEmpty);
+      expect(s.choisir([flou], catalogue, Alea(1)).action, actionDiagnostiquer);
+      final traiter = s.choisir([net], catalogue, Alea(1));
+      expect(traiter.action, actionTraiter);
+      expect(
+        Combinaison(
+          jeu,
+          traiter.cartes,
+        ).satisfait(jeu.maladies.first.traitement.adapte),
+        isTrue,
+        reason: 'combinaison adaptée à l\'appendicite',
+      );
+      expect(
+        s.choisir([net], catalogue, Alea(1)).action,
+        actionDiagnostiquer,
+        reason: 'appendicite déjà essayée, la suivante est sous le seuil',
+      );
+    });
+
+    test('couleur : diagnostique avec la spécialité dominante', () {
+      expect(flou.diagnostic!.specialiteDominante, 'chirurgie');
+      final s = StrategieCouleur(80)..debutPatient();
+      final premier = s.choisir([], catalogue, Alea(1));
+      expect(Combinaison(jeu, premier.cartes).specialites, isEmpty);
+      final suivant = s.choisir([flou], catalogue, Alea(1));
+      expect(suivant.action, actionDiagnostiquer);
+      expect(Combinaison(jeu, suivant.cartes).specialites, {'chirurgie'});
     });
   });
 }

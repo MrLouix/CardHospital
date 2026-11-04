@@ -20,11 +20,12 @@ Termes utilisés dans l'ensemble de la documentation. En cas de doute, ce glossa
 | **Temps du patient** | Compteur propre à chaque patient, incrémenté de 1 à **chaque action confirmée** le concernant (hors admission). Un patient jamais sollicité n'avance pas dans le temps. |
 | **Aggravation** | Perte de PV liée au temps du patient, appliquée à chaque action non curative. |
 | **Attente dépassée** | Temps du patient supérieur au seuil d'attente de sa maladie : chaque action supplémentaire coûte de la réputation. |
-| **Diagnostic** | Résultat probabiliste sur le **type** de maladie, et éventuellement sur son **nom**. Il peut être faux ; il est retiré à chaque diagnostic. |
+| **Diagnostic** | Liste des 5 maladies les plus probables, chacune avec un pourcentage de confiance et la couleur et l'icône de sa spécialité. Il peut être faux ; il est retiré à chaque diagnostic. |
+| **Couleur dominante** | Spécialité dont les maladies totalisent le plus de pourcentage dans la liste d'un diagnostic : la piste que la liste suggère de confirmer par un diagnostic avec cette spécialité. |
 | **Niveau de précision** | Entier calculé pour un diagnostic à partir de la salle et des capacités des cartes ; plus il est élevé, plus le diagnostic penche vers la vérité. |
 | **Traitement adapté / partiel / inadapté** | Issue d'une action `traiter`, déterminée par les prédicats de traitement de la maladie. Adapté → patient soigné ; partiel → gain de PV ; inadapté → perte de PV et réputation. |
 | **Laboratoire de recherche** | Salle de spécialité `recherche` (réservée aux salles, jamais type de maladie). Permet l'action `analyser`. |
-| **Maladies suspectées** | Maladies dont le nom a été affiché lors des diagnostics d'un patient. Mémorisées par l'hôte, remises à zéro à chaque admission. |
+| **Maladies suspectées** | Maladies qui ont figuré dans les listes des diagnostics d'un patient. Mémorisées par l'hôte, remises à zéro à chaque admission. |
 | **Analyse / passage** | Action `analyser` (motif recherche) : un passage en laboratoire sur une maladie suspectée choisie par le joueur. Certaines maladies exigent plusieurs passages. |
 | **Recette** | Description des cartes requises par le traitement adapté d'une maladie, révélée quand les passages de l'analyse sont terminés. |
 | **Soigné / mort / sorti** | Issues finales d'un patient. *Sorti* regroupe soigné et mort : la carte retourne dans la pioche et pourra être réadmise avec une nouvelle maladie. |

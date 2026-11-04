@@ -142,10 +142,10 @@ void main() {
       expect(r.issue, IssuePatient.enJeu);
       expect(r.diagnostic, isNotNull);
       expect(r.diagnostic!.niveau, 3);
-      expect(r.diagnostic!.noms, isNull);
+      expect(r.diagnostic!.maladies, hasLength(5));
       expect(
-        r.diagnostic!.types.fold<int>(0, (s, l) => s + l.pourcentage),
-        100,
+        r.diagnostic!.maladies.map((l) => l.specialite.icone).toSet(),
+        everyElement(isIn(['🧠', '✂️', '💊'])),
       );
     });
 

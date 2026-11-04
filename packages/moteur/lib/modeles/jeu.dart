@@ -62,18 +62,18 @@ class Parametres {
   final Recompenses recompenses;
 }
 
+/// Paramètres du diagnostic (MODELE_DE_JEU.md §8).
 @JsonSerializable()
 class Diagnostic {
   Diagnostic({
     required this.precisionMax,
     required this.verite,
     required this.parNiveau,
+    required this.affiniteType,
     required this.bonusSpecialite,
     required this.exclusion,
-    required this.seuilAffichage,
-    required this.veriteNom,
-    required this.parNiveauNom,
-    required this.nbNoms,
+    required this.tailleListe,
+    required this.scoreBruit,
   });
 
   factory Diagnostic.fromJson(Map<String, dynamic> json) =>
@@ -83,20 +83,30 @@ class Diagnostic {
 
   @JsonKey(name: 'precision_max')
   final int precisionMax;
+
+  /// Bonus de la vraie maladie : `× (1 + verite + par_niveau × N)`.
   final double verite;
   @JsonKey(name: 'par_niveau')
   final double parNiveau;
+
+  /// Bonus de toutes les maladies du vrai type : `× (1 + affinite_type)`.
+  @JsonKey(name: 'affinite_type')
+  final double affiniteType;
+
+  /// Maladies d'une spécialité de la combinaison : `× (1 + bonus_specialite)`
+  /// si c'est le vrai type, `× exclusion` sinon.
   @JsonKey(name: 'bonus_specialite')
   final double bonusSpecialite;
   final double exclusion;
-  @JsonKey(name: 'seuil_affichage')
-  final int seuilAffichage;
-  @JsonKey(name: 'verite_nom')
-  final double veriteNom;
-  @JsonKey(name: 'par_niveau_nom')
-  final double parNiveauNom;
-  @JsonKey(name: 'nb_noms')
-  final int nbNoms;
+
+  /// Nombre de maladies affichées.
+  @JsonKey(name: 'taille_liste')
+  final int tailleListe;
+
+  /// Pourcentage affiché pour une maladie dont le poids égale le maximum
+  /// attendu du bruit seul.
+  @JsonKey(name: 'score_bruit')
+  final int scoreBruit;
 }
 
 @JsonSerializable()
@@ -177,7 +187,12 @@ class Modificateurs {
 
 @JsonSerializable()
 class Specialite {
-  Specialite({required this.id, required this.nom});
+  Specialite({
+    required this.id,
+    required this.nom,
+    required this.couleur,
+    required this.icone,
+  });
 
   factory Specialite.fromJson(Map<String, dynamic> json) =>
       _$SpecialiteFromJson(json);
@@ -186,6 +201,13 @@ class Specialite {
 
   final String id;
   final String nom;
+
+  /// Couleur d'affichage, au format `#RRGGBB`.
+  final String couleur;
+
+  /// Icône d'affichage : un emoji ou un symbole court, qui double la couleur
+  /// (daltonisme).
+  final String icone;
 }
 
 @JsonSerializable()

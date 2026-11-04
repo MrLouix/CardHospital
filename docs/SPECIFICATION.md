@@ -138,7 +138,7 @@ L'aperçu ne révèle **aucune information cachée** (maladie, PV).
 ### 5.6 Écran de résultat
 
 - Visible **uniquement** sur le téléphone de l'acteur. Il n'existe ni bouton « révéler », ni envoi aux autres téléphones.
-- Contenu : PV avant → après, temps du patient et éventuelle attente dépassée, diagnostic (distribution sur le type, voire sur les noms), issue (en jeu, soigné ou mort, avec la maladie révélée à la sortie), pièces gagnées, impact sur la réputation. Pour une **analyse** (laboratoire de recherche) s'ajoutent : la liste des maladies suspectées du patient, la maladie choisie, et les passages restants ou la recette révélée. Le détail figure dans [MODELE_DE_JEU.md §11](MODELE_DE_JEU.md#11-contenu-dun-résultat).
+- Contenu : PV avant → après, temps du patient et éventuelle attente dépassée, diagnostic (liste des 5 maladies les plus probables, chacune avec son pourcentage de confiance, la couleur et l'icône de sa spécialité), issue (en jeu, soigné ou mort, avec la maladie révélée à la sortie), pièces gagnées, impact sur la réputation. Pour une **analyse** (laboratoire de recherche) s'ajoutent : la liste des maladies suspectées du patient, la maladie choisie, et les passages restants ou la recette révélée. Le détail figure dans [MODELE_DE_JEU.md §11](MODELE_DE_JEU.md#11-contenu-dun-résultat).
 - Deux rappels : « Pièces : à garder ou à céder en partie à l'hôpital » et, si l'impact n'est pas nul, « Réputation : reportez −2 sur la piste de l'hôpital ».
 - Un bouton **« OK / Fin de l'action »** ramène à l'écran de sélection.
 
@@ -217,7 +217,7 @@ Le détail est dans [MOTEUR_EFFETS.md](MOTEUR_EFFETS.md).
 | Validation d'un paquet du catalogue cible | < 2 s |
 | Autonomie de l'hôte | Mesurée en phase 3 sur une partie de 2 h |
 | Langue | Français en v1 ; les textes d'interface sont externalisés (fichiers ARB) pour une traduction future |
-| Accessibilité | Respect de la taille de police système ; contrastes suffisants |
+| Accessibilité | Respect de la taille de police système ; contrastes suffisants ; la couleur d'une spécialité est toujours doublée de son icône et de son nom (daltonisme) |
 
 ## 10. Stack technique
 
@@ -252,7 +252,7 @@ Permissions Android : `CAMERA`, `INTERNET`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK
 | D8 | Montants entiers, arrondi au plus proche (demi éloigné de zéro), base non nulle ≥ 1 | [Modèle §7](MODELE_DE_JEU.md#7-récompenses) |
 | D9 | Maladie tirée au hasard à l'admission, indépendante de la carte | [Modèle §4.1](MODELE_DE_JEU.md#41-admission) |
 | D10 | Un patient entre en jeu quand sa carte est scannée seule pour la première fois | [Modèle §4.1](MODELE_DE_JEU.md#41-admission) |
-| D11 | Diagnostic probabiliste, retiré à chaque fois, pouvant être faux ; une spécialité discordante disqualifie sa propre voie | [Modèle §8](MODELE_DE_JEU.md#8-diagnostic-probabiliste) |
+| D11 | Diagnostic probabiliste, retiré à chaque fois, pouvant être faux : liste des 5 maladies les plus probables, pourcentages de confiance indépendants, couleur et icône par spécialité, bruit corrigé selon le nombre de maladies par spécialité ; une spécialité concordante renforce sa couleur, une discordante la fait reculer, sans qu'aucun signal ne soit certain | [Modèle §8](MODELE_DE_JEU.md#8-diagnostic-probabiliste) |
 | D12 | Traitements définis par maladie dans le JSON (carte précise, nombre de médecins par spécialité, salle) | [Modèle §6](MODELE_DE_JEU.md#6-traitement) |
 | D13 | Temps propre à chaque patient, avancé par chaque action confirmée sur lui | [Modèle §5](MODELE_DE_JEU.md#5-temps-et-aggravation) |
 | D14 | Pièces gagnées par l'acteur, partagées hors appli entre lui (objets, diplômes) et l'hôpital (salles) | [Modèle §7](MODELE_DE_JEU.md#7-récompenses) |

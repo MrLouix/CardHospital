@@ -110,20 +110,24 @@ abstract class Strategie {
   );
 
   /// Stratégie décrite par [description] : `hasard`, `seuil:<X>` ou
-  /// `specialite`.
+  /// `couleur:<X>`.
   static Strategie depuis(String description) {
     final parties = description.split(':');
+    int seuil() {
+      final x = parties.length > 1 ? int.tryParse(parties[1]) : null;
+      if (x == null || x < 0 || x > 100) {
+        throw FormatException('seuil attendu entre 0 et 100 : $description');
+      }
+      return x;
+    }
+
     switch (parties.first) {
       case 'hasard':
         return StrategieHasard();
       case 'seuil':
-        final x = parties.length > 1 ? int.tryParse(parties[1]) : null;
-        if (x == null || x < 0 || x > 100) {
-          throw FormatException('seuil attendu entre 0 et 100 : $description');
-        }
-        return StrategieSeuil(x);
-      case 'specialite':
-        return StrategieSpecialite();
+        return StrategieSeuil(seuil());
+      case 'couleur':
+        return StrategieCouleur(seuil());
     }
     throw FormatException('stratégie inconnue : $description');
   }
@@ -147,9 +151,8 @@ class StrategieHasard extends Strategie {
 }
 
 /// Diagnostiquer sans spécialité, avec la meilleure précision, jusqu'à ce
-/// que le type en tête atteigne [seuil] %, puis traiter avec un traitement
-/// adapté d'une maladie de ce type (la plus probable si les noms sont
-/// connus). Un traitement qui échoue relance le diagnostic.
+/// que la maladie en tête de liste (non encore essayée) atteigne [seuil] %,
+/// puis la traiter. Un traitement qui échoue relance le diagnostic.
 class StrategieSeuil extends Strategie {
   StrategieSeuil(this.seuil);
 
@@ -162,54 +165,9 @@ class StrategieSeuil extends Strategie {
   @override
   void debutPatient() => _essayees.clear();
 
-  @override
-  Choix choisir(
-    List<ResultatAction> historique,
-    CatalogueCombinaisons catalogue,
-    SourceAleatoire alea,
-  ) {
-    final diagnostic = historique.lastOrNull?.diagnostic;
-    final tete = diagnostic?.types.firstOrNull;
-    if (diagnostic != null &&
-        tete != null &&
-        !tete.estAutres &&
-        tete.pourcentage >= seuil) {
-      final traitement = _traiterProbable(
-        catalogue,
-        tete.id!,
-        diagnostic.noms,
-        _essayees,
-        alea,
-      );
-      if (traitement != null) return traitement;
-    }
-    return (
-      action: actionDiagnostiquer,
-      cartes: catalogue.tirer(catalogue.meilleursDiagnostics(const {}), alea),
-    );
-  }
-}
-
-/// Se fier à la spécialité : diagnostiquer avec la spécialité du type le
-/// plus probable non exclu, ce qui rend la liste des noms plus fréquente.
-/// La liste des noms n'apparaît que si le vrai type est en tête (§8.4) : sa
-/// présence donne le type (ce sont des maladies de ce type), son absence
-/// exclut le type affiché en tête. On traite alors la maladie la plus
-/// probable non encore essayée.
-class StrategieSpecialite extends Strategie {
-  final _exclues = <String>{};
-  final _essayees = <String>{};
-  String? _type;
-
-  @override
-  String get nom => 'specialite';
-
-  @override
-  void debutPatient() {
-    _exclues.clear();
-    _essayees.clear();
-    _type = null;
-  }
+  /// Spécialités de la combinaison du prochain diagnostic.
+  Set<String> specialitesDiagnostic(List<ResultatAction> historique) =>
+      const {};
 
   @override
   Choix choisir(
@@ -217,92 +175,46 @@ class StrategieSpecialite extends Strategie {
     CatalogueCombinaisons catalogue,
     SourceAleatoire alea,
   ) {
-    final diagnostic = historique.lastOrNull?.diagnostic;
-    if (diagnostic != null && _type == null) {
-      final noms = diagnostic.noms;
-      final tete = diagnostic.types.firstOrNull;
-      if (noms != null) {
-        final id = noms.firstWhere((l) => !l.estAutres).id;
-        _type = catalogue.jeu.maladies.firstWhere((m) => m.id == id).type;
-      } else if (tete != null && !tete.estAutres) {
-        _exclues.add(tete.id!);
+    final candidate = historique.lastOrNull?.diagnostic?.maladies
+        .where((l) => !_essayees.contains(l.id))
+        .firstOrNull;
+    if (candidate != null && candidate.pourcentage >= seuil) {
+      final combinaisons = catalogue.adaptees(candidate.id);
+      if (combinaisons.isNotEmpty) {
+        _essayees.add(candidate.id);
+        return (
+          action: actionTraiter,
+          cartes: catalogue.tirer(combinaisons, alea),
+        );
       }
     }
-
-    final type = _type;
-    if (type != null) {
-      final traitement = _traiterProbable(
-        catalogue,
-        type,
-        _derniersNoms(historique),
-        _essayees,
-        alea,
-      );
-      if (traitement != null) return traitement;
-    }
-
-    final typesMaladies = catalogue.jeu.maladies.map((m) => m.type).toSet();
-    var restants = [
-      for (final s in catalogue.jeu.specialites)
-        if (typesMaladies.contains(s.id) && !_exclues.contains(s.id)) s.id,
-    ];
-    if (restants.isEmpty) {
-      _exclues.clear();
-      restants = [...typesMaladies];
-    }
-    // Spécialité la plus probable d'après le dernier diagnostic.
-    final ordre = [
-      for (final l in diagnostic?.types ?? const <LigneDistribution>[])
-        if (restants.contains(l.id)) l.id!,
-      ...restants,
-    ];
-    final testee = ordre.first;
     return (
       action: actionDiagnostiquer,
-      cartes: catalogue.tirer(catalogue.meilleursDiagnostics({testee}), alea),
+      cartes: catalogue.tirer(
+        catalogue.meilleursDiagnostics(specialitesDiagnostic(historique)),
+        alea,
+      ),
     );
-  }
-
-  static List<LigneDistribution>? _derniersNoms(
-    List<ResultatAction> historique,
-  ) {
-    for (final r in historique.reversed) {
-      final noms = r.diagnostic?.noms;
-      if (noms != null) return noms;
-    }
-    return null;
   }
 }
 
-/// Traite la maladie la plus probable du [type] non encore [essayees] :
-/// selon la distribution des [noms] si elle est connue, puis par poids
-/// décroissant. Quand toutes ont été essayées, le tour recommence. `null` si
-/// aucune maladie du type n'a de traitement réalisable.
-Choix? _traiterProbable(
-  CatalogueCombinaisons catalogue,
-  String type,
-  List<LigneDistribution>? noms,
-  Set<String> essayees,
-  SourceAleatoire alea,
-) {
-  final duType = catalogue.jeu.maladies.where((m) => m.type == type).toList()
-    ..sort((a, b) => (b.poids ?? 1).compareTo(a.poids ?? 1));
-  final ids = duType.map((m) => m.id).toSet();
-  final ordre = [
-    for (final l in noms ?? const <LigneDistribution>[])
-      if (ids.contains(l.id)) l.id!,
-    ...ids,
-  ];
-  var restantes = ordre.where((id) => !essayees.contains(id)).toList();
-  if (restantes.isEmpty) {
-    essayees.removeAll(ids);
-    restantes = ordre;
+/// Suivre la couleur : comme [StrategieSeuil], mais après un premier
+/// diagnostic sans spécialité, chaque diagnostic se fait avec la spécialité
+/// dominante de la dernière liste (somme des pourcentages par spécialité),
+/// pour la confirmer ou l'écarter.
+class StrategieCouleur extends StrategieSeuil {
+  StrategieCouleur(super.seuil);
+
+  @override
+  String get nom => 'couleur:$seuil';
+
+  @override
+  Set<String> specialitesDiagnostic(List<ResultatAction> historique) {
+    final diagnostic = historique.reversed
+        .map((r) => r.diagnostic)
+        .whereType<ResultatDiagnostic>()
+        .firstOrNull;
+    if (diagnostic == null) return const {};
+    return {diagnostic.specialiteDominante};
   }
-  for (final maladie in restantes) {
-    final combinaisons = catalogue.adaptees(maladie);
-    if (combinaisons.isEmpty) continue;
-    essayees.add(maladie);
-    return (action: actionTraiter, cartes: catalogue.tirer(combinaisons, alea));
-  }
-  return null;
 }

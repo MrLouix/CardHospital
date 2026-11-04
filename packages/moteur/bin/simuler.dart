@@ -10,7 +10,7 @@ import 'package:moteur_cardhospital/simulateur.dart';
 /// Exemple, depuis `packages/moteur` :
 ///
 /// ```
-/// dart run bin/simuler.dart --parties 2000 --strategies hasard,seuil:60,specialite
+/// dart run bin/simuler.dart --parties 2000 --strategies hasard,seuil:70,couleur:70
 /// ```
 Future<void> main(List<String> args) async {
   final options = ArgParser()
@@ -43,8 +43,8 @@ Future<void> main(List<String> args) async {
       abbr: 's',
       help:
           'Stratégies, séparées par des virgules : hasard, seuil:<X>, '
-          'specialite.',
-      defaultsTo: 'hasard,seuil:50,seuil:70,specialite',
+          'couleur:<X>.',
+      defaultsTo: 'hasard,seuil:60,seuil:80,couleur:60,couleur:80',
     )
     ..addOption(
       'difficultes',

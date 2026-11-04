@@ -70,6 +70,8 @@ void main() {
     (copie['specialites'] as List).add({
       'id': 'dermatologie',
       'nom': 'Dermatologie',
+      'couleur': '#F9A825',
+      'icone': '🧴',
     });
     final rapport = Validateur().validerJson(copie, jeu: Jeu.fromJson(copie));
     expect(rapport.erreurs, contains(contains('dermatologie')));
@@ -155,5 +157,53 @@ void main() {
         'actions[2].id : l\'identifiant « diagnostiquer » est déjà utilisé',
       ]),
     );
+  });
+
+  test(
+    'couleur et icône d\'une spécialité : absentes ou mal formées, erreur',
+    () {
+      final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
+      final specialites = copie['specialites'] as List;
+      (specialites[0] as Map).remove('couleur');
+      (specialites[1] as Map)['couleur'] = 'rouge';
+      (specialites[2] as Map)['icone'] = '';
+      final rapport = Validateur().validerJson(copie);
+      expect(rapport.valide, isFalse);
+      expect(rapport.erreurs, contains(startsWith('specialites[0].couleur')));
+      expect(rapport.erreurs, contains(startsWith('specialites[1].couleur')));
+      expect(rapport.erreurs, contains(startsWith('specialites[2].icone')));
+    },
+  );
+
+  test('couleur ou icône partagées par deux spécialités : avertissement', () {
+    final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
+    final specialites = copie['specialites'] as List;
+    (specialites[1] as Map)['couleur'] = (specialites[0] as Map)['couleur']
+        .toString()
+        .toLowerCase();
+    (specialites[2] as Map)['icone'] = (specialites[0] as Map)['icone'];
+    final rapport = Validateur().validerJson(copie, jeu: Jeu.fromJson(copie));
+    expect(rapport.valide, isTrue);
+    expect(
+      rapport.avertissements,
+      containsAll([
+        startsWith('specialites[1].couleur : même couleur que « psychologie »'),
+        startsWith('specialites[2].icone : même icone que « psychologie »'),
+      ]),
+    );
+  });
+
+  test('l\'exemple porte une couleur et une icône par spécialité', () {
+    final jeu = Jeu.fromJson(brut);
+    expect(
+      {for (final s in jeu.specialites) s.id: (s.couleur, s.icone)},
+      {
+        'psychologie': ('#7B4FBF', '🧠'),
+        'chirurgie': ('#C62828', '✂️'),
+        'pharmacie': ('#2E7D32', '💊'),
+      },
+    );
+    expect(jeu.parametres.diagnostic.tailleListe, 5);
+    expect(jeu.parametres.diagnostic.scoreBruit, 50);
   });
 }

@@ -102,6 +102,24 @@ class Validateur {
         'difficultes : exactement 3 niveaux requis (${diff ?? 0} trouvé(s))',
       );
     }
+    final specialites = brut['specialites'] as List? ?? const [];
+    for (var i = 0; i < specialites.length; i++) {
+      final sp = specialites[i] as Map;
+      final couleur = sp['couleur'];
+      if (couleur is! String || !_couleur.hasMatch(couleur)) {
+        erreurs.add(
+          'specialites[$i].couleur : couleur au format #RRGGBB attendue '
+          '(${couleur ?? 'absente'})',
+        );
+      }
+      final icone = sp['icone'];
+      if (icone is! String || icone.isEmpty || icone.runes.length > 8) {
+        erreurs.add(
+          'specialites[$i].icone : emoji ou symbole court attendu '
+          '(1 à 8 caractères)',
+        );
+      }
+    }
     for (final m in (brut['maladies'] as List? ?? const [])) {
       final poids = (m as Map)['poids'];
       if (poids is int && poids < 1) {
@@ -517,8 +535,30 @@ class Validateur {
       c.constante == 'traitement_adapte' ||
       [...?c.et, ...?c.ou, ?c.non].any(_conditionTesteAdapte);
 
+  static final _couleur = RegExp(r'^#[0-9A-Fa-f]{6}$');
+
   List<String> _avertissements(Jeu j) {
     final avertissements = <String>[];
+    // Couleur et icône distinguent les spécialités dans un diagnostic.
+    for (final (champ, valeur) in [
+      ('couleur', (Specialite s) => s.couleur.toUpperCase()),
+      ('icone', (Specialite s) => s.icone),
+    ]) {
+      final vues = <String, String>{};
+      for (var i = 0; i < j.specialites.length; i++) {
+        final s = j.specialites[i];
+        final autre = vues[valeur(s)];
+        if (autre != null) {
+          avertissements.add(
+            'specialites[$i].$champ : même $champ que « $autre » ; les '
+            'deux spécialités seront difficiles à distinguer dans un '
+            'diagnostic',
+          );
+        } else {
+          vues[valeur(s)] = s.id;
+        }
+      }
+    }
     for (final m in j.maladies) {
       if (m.traitement.partiel == null) {
         avertissements.add(

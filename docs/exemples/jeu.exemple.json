@@ -10,14 +10,13 @@
     "attente_max_defaut": 5,
     "diagnostic": {
       "precision_max": 5,
-      "verite": 0.5,
-      "par_niveau": 0.5,
-      "bonus_specialite": 2.0,
-      "exclusion": 0.15,
-      "seuil_affichage": 5,
-      "verite_nom": 3.0,
-      "par_niveau_nom": 1.5,
-      "nb_noms": 3
+      "verite": 3.0,
+      "par_niveau": 1.5,
+      "affinite_type": 0.2,
+      "bonus_specialite": 0.3,
+      "exclusion": 0.75,
+      "taille_liste": 5,
+      "score_bruit": 50
     },
     "recompenses": {
       "pieces_diagnostic": 1,
@@ -37,9 +36,9 @@
     { "id": "reanimation", "nom": "Réanimation", "modificateurs": { "pv_perdus": 2.0, "pieces": 1.5, "reputation": 2.0 } }
   ],
   "specialites": [
-    { "id": "psychologie", "nom": "Psychologie" },
-    { "id": "chirurgie", "nom": "Chirurgie" },
-    { "id": "pharmacie", "nom": "Pharmacie" }
+    { "id": "psychologie", "nom": "Psychologie", "couleur": "#7B4FBF", "icone": "🧠" },
+    { "id": "chirurgie", "nom": "Chirurgie", "couleur": "#C62828", "icone": "✂️" },
+    { "id": "pharmacie", "nom": "Pharmacie", "couleur": "#2E7D32", "icone": "💊" }
   ],
   "capacites": [
     { "id": "precision", "nom": "Précision", "description": "Améliore le niveau de précision des diagnostics." },

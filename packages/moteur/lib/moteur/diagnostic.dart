@@ -4,81 +4,162 @@ import '../modeles/jeu.dart';
 import 'alea.dart';
 import 'combinaison.dart';
 
-/// Une ligne d'une distribution affichée : un type, un nom de maladie, ou le
-/// regroupement « Autres » ([id] nul).
-class LigneDistribution {
-  const LigneDistribution({
+/// Spécialité d'une maladie listée, avec de quoi l'afficher sans le paquet
+/// (un client ne connaît pas forcément le paquet actif de l'hôte).
+class SpecialiteAffichee {
+  const SpecialiteAffichee({
+    required this.id,
+    required this.nom,
+    required this.couleur,
+    required this.icone,
+  });
+
+  factory SpecialiteAffichee.depuis(Specialite s) => SpecialiteAffichee(
+    id: s.id,
+    nom: s.nom,
+    couleur: s.couleur,
+    icone: s.icone,
+  );
+
+  factory SpecialiteAffichee.fromJson(Map<String, dynamic> json) =>
+      SpecialiteAffichee(
+        id: json['id'] as String,
+        nom: json['nom'] as String,
+        couleur: json['couleur'] as String,
+        icone: json['icone'] as String,
+      );
+
+  final String id;
+  final String nom;
+  final String couleur;
+  final String icone;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'nom': nom,
+    'couleur': couleur,
+    'icone': icone,
+  };
+}
+
+/// Une maladie de la liste d'un diagnostic.
+class LigneDiagnostic {
+  const LigneDiagnostic({
     required this.id,
     required this.nom,
     required this.pourcentage,
+    required this.specialite,
   });
 
-  factory LigneDistribution.fromJson(Map<String, dynamic> json) =>
-      LigneDistribution(
-        id: json['id'] as String?,
+  factory LigneDiagnostic.fromJson(Map<String, dynamic> json) =>
+      LigneDiagnostic(
+        id: json['id'] as String,
         nom: json['nom'] as String,
         pourcentage: json['pourcentage'] as int,
+        specialite: SpecialiteAffichee.fromJson(
+          json['specialite'] as Map<String, dynamic>,
+        ),
       );
 
-  /// Libellé du regroupement des lignes non détaillées.
-  static const libelleAutres = 'Autres';
-
-  final String? id;
+  final String id;
   final String nom;
-  final int pourcentage;
 
-  bool get estAutres => id == null;
+  /// Confiance que cette maladie est la bonne, de 0 à 99 %. Les pourcentages
+  /// des lignes sont indépendants : ils ne somment pas à 100.
+  final int pourcentage;
+  final SpecialiteAffichee specialite;
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'nom': nom,
     'pourcentage': pourcentage,
+    'specialite': specialite.toJson(),
   };
 }
 
 /// Résultat d'un diagnostic (MODELE_DE_JEU.md §8).
 class ResultatDiagnostic {
-  const ResultatDiagnostic({
-    required this.niveau,
-    required this.types,
-    this.noms,
-  });
+  const ResultatDiagnostic({required this.niveau, required this.maladies});
 
   factory ResultatDiagnostic.fromJson(Map<String, dynamic> json) =>
       ResultatDiagnostic(
         niveau: json['niveau'] as int,
-        types: _lignes(json['types'])!,
-        noms: _lignes(json['noms']),
+        maladies: [
+          for (final l in json['maladies'] as List)
+            LigneDiagnostic.fromJson(l as Map<String, dynamic>),
+        ],
       );
 
   /// Niveau de précision `N` utilisé.
   final int niveau;
 
-  /// Distribution sur le type, en pourcentages entiers de somme 100, triée
-  /// par pourcentage décroissant, « Autres » en dernier.
-  final List<LigneDistribution> types;
+  /// Les maladies les plus probables, par pourcentage décroissant.
+  final List<LigneDiagnostic> maladies;
 
-  /// Distribution sur les noms des maladies du vrai type, présente seulement
-  /// si le vrai type est en tête de la distribution sur le type (§8.4).
-  final List<LigneDistribution>? noms;
+  /// Spécialité dont les maladies totalisent le plus de pourcentage dans la
+  /// liste (la première rencontrée en cas d'égalité) : la piste que la liste
+  /// suggère de confirmer par un diagnostic avec cette spécialité.
+  String get specialiteDominante {
+    final totaux = <String, int>{};
+    for (final l in maladies) {
+      totaux[l.specialite.id] = (totaux[l.specialite.id] ?? 0) + l.pourcentage;
+    }
+    return totaux.entries.reduce((a, b) => b.value > a.value ? b : a).key;
+  }
 
   Map<String, dynamic> toJson() => {
     'niveau': niveau,
-    'types': types.map((l) => l.toJson()).toList(),
-    'noms': noms?.map((l) => l.toJson()).toList(),
+    'maladies': maladies.map((l) => l.toJson()).toList(),
   };
-
-  static List<LigneDistribution>? _lignes(dynamic json) => (json as List?)
-      ?.map((e) => LigneDistribution.fromJson(e as Map<String, dynamic>))
-      .toList();
 }
 
-/// Calcul du diagnostic probabiliste (MODELE_DE_JEU.md §8).
+/// Pourcentage maximal affiché : un diagnostic n'affiche jamais de certitude.
+const pourcentageMax = 99;
+
+/// Calcul du diagnostic probabiliste (MODELE_DE_JEU.md §8.3).
 class Diagnostiqueur {
-  Diagnostiqueur(this.jeu, this.alea);
+  factory Diagnostiqueur(Jeu jeu, SourceAleatoire alea) {
+    final specialites = {for (final s in jeu.specialites) s.id: s};
+    final parType = <String, int>{};
+    for (final m in jeu.maladies) {
+      parType[m.type] = (parType[m.type] ?? 0) + 1;
+    }
+    final moyenne = jeu.maladies.length / parType.length;
+    final p = jeu.parametres.diagnostic;
+    return Diagnostiqueur._(
+      jeu,
+      alea,
+      {
+        for (final m in jeu.maladies)
+          m.id: SpecialiteAffichee.depuis(specialites[m.type]!),
+      },
+      {for (final e in parType.entries) e.key: e.value / moyenne},
+      maximumAttenduBruit(moyenne),
+      -math.log(1 - p.scoreBruit / 100),
+    );
+  }
+
+  Diagnostiqueur._(
+    this.jeu,
+    this.alea,
+    this._specialites,
+    this._exposants,
+    this._reference,
+    this._pente,
+  );
 
   final Jeu jeu;
   final SourceAleatoire alea;
+  final Map<String, SpecialiteAffichee> _specialites;
+
+  /// `n_t / n̄` par type : exposant de la correction du bruit.
+  final Map<String, double> _exposants;
+
+  /// Maximum attendu du bruit seul, `H(n̄)`.
+  final double _reference;
+
+  /// `k = −ln(1 − score_bruit / 100)`.
+  final double _pente;
 
   Diagnostic get _p => jeu.parametres.diagnostic;
 
@@ -90,123 +171,69 @@ class Diagnostiqueur {
   ResultatDiagnostic diagnostiquer(Maladie vraie, Combinaison combinaison) {
     final n = niveau(combinaison);
     final sc = combinaison.specialites;
-
-    // §8.3 : distribution sur le type.
-    final typesMaladies = jeu.maladies.map((m) => m.type).toSet();
-    final types = jeu.specialites
-        .where((s) => typesMaladies.contains(s.id))
-        .toList();
-    final poidsTypes = <double>[];
-    for (final t in types) {
-      var w = alea.exponentielle();
-      final estVrai = t.id == vraie.type;
-      if (estVrai) w *= 1 + _p.verite + _p.parNiveau * n;
-      if (sc.contains(t.id)) {
-        w *= estVrai ? 1 + _p.bonusSpecialite : _p.exclusion;
+    final poids = <(Maladie, double)>[];
+    for (final m in jeu.maladies) {
+      // 1. Bruit corrigé : le maximum de chaque type suit la même loi que
+      //    celui de n̄ tirages exponentiels, quel que soit son nombre de
+      //    maladies.
+      var w = -math.log(
+        1 - math.pow(alea.flottant(), _exposants[m.type]!).toDouble(),
+      );
+      final vraiType = m.type == vraie.type;
+      // 2. Affinité du vrai type.
+      if (vraiType) w *= 1 + _p.affiniteType;
+      // 3. Vraie maladie.
+      if (m.id == vraie.id) w *= 1 + _p.verite + _p.parNiveau * n;
+      // 4. Spécialités de la combinaison : concordance ou exclusion.
+      if (sc.contains(m.type)) {
+        w *= vraiType ? 1 + _p.bonusSpecialite : _p.exclusion;
       }
-      poidsTypes.add(w);
+      poids.add((m, w));
     }
-    final lignesTypes = _lignesTriees([
-      for (var i = 0; i < types.length; i++)
-        (id: types[i].id, nom: types[i].nom),
-    ], poidsTypes);
-    final affichees = <LigneDistribution>[];
-    var autres = 0;
-    var regroupees = 0;
-    for (final l in lignesTypes) {
-      if (l.pourcentage < _p.seuilAffichage) {
-        autres += l.pourcentage;
-        regroupees++;
-      } else {
-        affichees.add(l);
-      }
-    }
-    if (regroupees > 0 && autres > 0) affichees.add(_autres(autres));
-
-    // §8.4 : distribution sur le nom, si le vrai type a le poids le plus
-    // élevé (type affiché en tête). Comparaison sur les poids bruts, avant
-    // arrondi : en cas d'égalité, le vrai type n'est pas considéré en tête.
-    List<LigneDistribution>? noms;
-    final iVrai = types.indexWhere((t) => t.id == vraie.type);
-    final vraiEnTete =
-        iVrai >= 0 &&
-        [
-          for (var i = 0; i < types.length; i++)
-            if (i != iVrai) poidsTypes[i],
-        ].every((w) => w < poidsTypes[iVrai]);
-    if (vraiEnTete) {
-      final maladies = jeu.maladies.where((m) => m.type == vraie.type).toList();
-      final poids = [
-        for (final m in maladies)
-          alea.exponentielle() *
-              (m.id == vraie.id ? 1 + _p.veriteNom + _p.parNiveauNom * n : 1),
-      ];
-      final lignes = _lignesTriees([
-        for (final m in maladies) (id: m.id, nom: m.nom),
-      ], poids);
-      noms = lignes.take(_p.nbNoms).toList();
-      final reste = lignes
-          .skip(_p.nbNoms)
-          .fold<int>(0, (s, l) => s + l.pourcentage);
-      if (reste > 0) noms.add(_autres(reste));
-    }
-
-    return ResultatDiagnostic(niveau: n, types: affichees, noms: noms);
-  }
-
-  static LigneDistribution _autres(int pourcentage) => LigneDistribution(
-    id: null,
-    nom: LigneDistribution.libelleAutres,
-    pourcentage: pourcentage,
-  );
-
-  /// Lignes triées par pourcentage décroissant ; une égalité d'arrondi est
-  /// départagée par le poids brut, pour que la ligne en tête soit toujours
-  /// celle de poids le plus élevé (§8.4), puis par l'ordre de déclaration.
-  static List<LigneDistribution> _lignesTriees(
-    List<({String id, String nom})> entrees,
-    List<double> poids,
-  ) {
-    final pourcentages = pourcentagesPlusFortReste(poids);
-    final lignes = [
-      for (var i = 0; i < entrees.length; i++)
-        (
-          i,
-          LigneDistribution(
-            id: entrees[i].id,
-            nom: entrees[i].nom,
-            pourcentage: pourcentages[i],
+    // 5. Tri par poids décroissant (ordre de déclaration en cas d'égalité).
+    final indices = List.generate(poids.length, (i) => i)
+      ..sort((a, b) {
+        final c = poids[b].$2.compareTo(poids[a].$2);
+        return c != 0 ? c : a.compareTo(b);
+      });
+    return ResultatDiagnostic(
+      niveau: n,
+      maladies: [
+        for (final i in indices.take(_p.tailleListe))
+          LigneDiagnostic(
+            id: poids[i].$1.id,
+            nom: poids[i].$1.nom,
+            pourcentage: pourcentage(poids[i].$2),
+            specialite: _specialites[poids[i].$1.id]!,
           ),
-        ),
-    ];
-    lignes.sort((a, b) {
-      var c = b.$2.pourcentage.compareTo(a.$2.pourcentage);
-      if (c == 0) c = poids[b.$1].compareTo(poids[a.$1]);
-      return c != 0 ? c : a.$1.compareTo(b.$1);
-    });
-    return [for (final l in lignes) l.$2];
+      ],
+    );
   }
+
+  /// 6. Pourcentage affiché pour un poids : `100 × (1 − e^(−k·w/H))`,
+  /// arrondi, plafonné à [pourcentageMax].
+  int pourcentage(double poids) => math.min(
+    pourcentageMax,
+    (100 * (1 - math.exp(-_pente * poids / _reference))).round(),
+  );
 }
 
-/// Pourcentages entiers de somme 100 proportionnels à [poids], par la
-/// méthode du plus fort reste (égalités départagées par l'ordre).
-List<int> pourcentagesPlusFortReste(List<double> poids) {
-  if (poids.isEmpty) return const [];
-  final total = poids.fold<double>(0, (a, b) => a + b);
-  if (total <= 0) {
-    // Cas dégénéré : répartition uniforme.
-    return pourcentagesPlusFortReste(List.filled(poids.length, 1));
+/// Maximum attendu de [n] tirages exponentiels de paramètre 1, généralisé aux
+/// réels : `H(n) = ψ(n + 1) + γ` (nombre harmonique pour n entier).
+double maximumAttenduBruit(double n) => _digamma(n + 1) + _euler;
+
+const _euler = 0.5772156649015329;
+
+double _digamma(double x) {
+  var resultat = 0.0;
+  var y = x;
+  while (y < 10) {
+    resultat -= 1 / y;
+    y += 1;
   }
-  final exacts = [for (final w in poids) w / total * 100];
-  final parts = [for (final e in exacts) e.floor()];
-  var manquant = 100 - parts.fold<int>(0, (a, b) => a + b);
-  final ordre = List.generate(poids.length, (i) => i)
-    ..sort((a, b) {
-      final c = (exacts[b] - parts[b]).compareTo(exacts[a] - parts[a]);
-      return c != 0 ? c : a.compareTo(b);
-    });
-  for (var k = 0; manquant > 0; k = (k + 1) % ordre.length, manquant--) {
-    parts[ordre[k]]++;
-  }
-  return parts;
+  final y2 = 1 / (y * y);
+  return resultat +
+      math.log(y) -
+      1 / (2 * y) -
+      y2 * (1 / 12 - y2 * (1 / 120 - y2 / 252));
 }

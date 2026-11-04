@@ -96,7 +96,7 @@ Ordre de réalisation, chaque étape étant livrée avec ses tests :
 3. [x] **Validateur** : JSON Schema, puis les contrôles sémantiques de [MOTEUR_EFFETS.md §7](MOTEUR_EFFETS.md#7-validation-à-limport) (références, phrases, spécialités sans maladie, réalisabilité des traitements par recherche exhaustive, doublons, poids), avec messages en français et chemin JSON. Un test négatif par règle.
 4. [x] **Reconnaissance des combinaisons** : motifs, préconditions, actions proposées, message du premier écart (point P3).
 5. [x] **Moteur d'effets** : état des patients, effets, conditions, prédicats, valeurs `$…`, modificateurs de difficulté, arrondi, invariants (mort, sortie, révélation).
-6. [x] **Diagnostic probabiliste** : distributions sur le type et sur le nom, pourcentages entiers par plus fort reste, regroupement « Autres ». Tests statistiques sur graine fixe, comparés aux valeurs de [MODELE_DE_JEU.md §8.3](MODELE_DE_JEU.md#83-distribution-sur-le-type).
+6. [x] **Diagnostic probabiliste** : liste des 5 maladies les plus probables, pourcentages de confiance indépendants, couleur et icône de chaque spécialité, bruit corrigé selon le nombre de maladies par spécialité. Tests statistiques sur graine fixe, comparés aux valeurs de [MODELE_DE_JEU.md §8.4](MODELE_DE_JEU.md#84-comportement-attendu). Cette version remplace le premier diagnostic (distribution sur le type, puis liste de noms), dont la liste de noms révélait le type avec certitude (voir §5.4).
 7. [x] **Résultat et état** : formats arrêtés (points P1 et P2), sérialisation et restauration des instantanés.
 8. [x] **Simulateur** (`bin/simuler.dart`) : stratégies simples (traiter au hasard, diagnostiquer jusqu'à X % puis traiter, se fier à la spécialité). Il mesure le taux de guérison, la durée de vie des patients, les pièces et la réputation par action, et produit un rapport reproductible.
 9. [ ] **Paquet de base intermédiaire** : environ 20 maladies, à rédiger avec l'équipe (voir §3).
@@ -117,7 +117,7 @@ Depuis `packages/moteur` :
 
 ```bash
 dart test
-dart run bin/simuler.dart --parties 2000 --strategies hasard,seuil:60,specialite
+dart run bin/simuler.dart --parties 2000 --strategies hasard,seuil:70,couleur:70
 dart run bin/simuler.dart --help
 ```
 
@@ -126,18 +126,21 @@ Stratégies disponibles :
 | Stratégie | Comportement |
 |---|---|
 | `hasard` | Diagnostiquer ou traiter au hasard, avec une combinaison au hasard |
-| `seuil:X` | Diagnostiquer sans spécialité, à la meilleure précision, jusqu'à ce que le type en tête atteigne X %, puis traiter la maladie la plus probable de ce type (selon la liste des noms si elle est affichée) |
-| `specialite` | Diagnostiquer avec la spécialité du type le plus probable non exclu. Une liste de noms donne le type (ce sont des maladies de ce type) ; son absence exclut le type affiché en tête ([MODELE_DE_JEU.md §8.4](MODELE_DE_JEU.md#84-distribution-sur-le-nom)). Traiter ensuite la maladie la plus probable non encore essayée |
+| `seuil:X` | Diagnostiquer sans spécialité, à la meilleure précision, jusqu'à ce que la maladie en tête de liste, non encore essayée, atteigne X % ; puis la traiter |
+| `couleur:X` | Comme `seuil:X`, mais après un premier diagnostic sans spécialité, diagnostiquer avec la spécialité de la couleur dominante de la dernière liste, pour la confirmer ou l'écarter |
 
 Les stratégies voient ce que voit un joueur (résultats des actions, spécialités des cartes) et sont supposées connaître les traitements des maladies, comme s'ils figuraient dans le livret de règles.
 
 ### 5.4 Premiers constats du simulateur
 
-Sur le paquet d'exemple (6 maladies, 2 par type), à confirmer avec le paquet intermédiaire :
+**Historique du diagnostic.** Le premier diagnostic donnait une distribution sur le type, puis une liste de noms dans certains cas. Le simulateur a montré que l'apparition de cette liste était un signal **certain** : elle ne contenait que des maladies du vrai type. Avec la première règle (liste si la bonne spécialité est dans la combinaison), comme avec la seconde (liste si le vrai type est en tête), une stratégie qui raisonnait par élimination guérissait 94 à 100 % des patients. Le diagnostic par liste de 5 maladies ([MODELE_DE_JEU.md §8](MODELE_DE_JEU.md#8-diagnostic-probabiliste)) supprime ce signal : la liste a toujours la même forme, et les couleurs comme les pourcentages ne font qu'orienter.
 
-- **La stratégie `specialite` reste presque infaillible**, y compris avec la nouvelle règle de la §8.4 (liste des noms affichée seulement si le vrai type est en tête) : 100 % de guérison en Interne, 98 % en Réanimation, avec 1,24 diagnostic par patient en moyenne. Avec l'ancienne règle (noms affichés si le vrai type était une spécialité de la combinaison), elle guérissait 100 % des patients en Interne et 94 % en Réanimation. La cause reste structurelle : la liste ne contient que des maladies du vrai type, donc **sa présence donne le type avec certitude**, et son absence **exclut avec certitude** le type affiché en tête. La remarque de la §8.4 selon laquelle « un seul diagnostic ne tranche jamais définitivement » ne tient donc que si la liste est absente. Avec 3 types, au plus deux diagnostics suffisent à connaître le type. Pistes à trancher avec l'équipe : afficher la liste de noms de façon probabiliste même quand le vrai type n'est pas en tête (avec des noms du type en tête, donc parfois faux), ou y mêler des noms d'autres types. Le paquet d'exemple, avec 2 maladies par type, exagère aussi l'effet : connaître le type y revient presque à connaître la maladie.
-- **Diagnostiquer longtemps coûte cher** : `seuil:70` guérit moins que `seuil:50` (84 % contre 90 % en Interne), car chaque diagnostic aggrave le patient.
-- **Réputation** : avec un jeu attentif (`seuil:50`), une partie de 10 patients descend rarement sous −7 en Interne et −30 en Réanimation (5ᵉ centile du minimum). Ces ordres de grandeur serviront à fixer la valeur de départ et le seuil de fermeture une fois le paquet intermédiaire rédigé.
+**Sur le paquet d'exemple** (6 maladies, 2 par spécialité), le rapport de référence n'est **pas représentatif** :
+
+- les stratégies informées (`seuil:X`, `couleur:X`) guérissent 99 % des patients en Interne et 90 à 94 % en Réanimation, en 1,1 à 1,3 diagnostic. Les paramètres par défaut sont calés pour une centaine de maladies : avec 6, la vraie maladie ressort presque toujours en tête, et le diagnostic est trop facile ;
+- `couleur:X` ne fait pas mieux que `seuil:X`, car un seul diagnostic suffit le plus souvent.
+
+**À refaire avec le paquet intermédiaire** (environ 20 maladies, étape 9) : comparer `seuil:X` et `couleur:X`, vérifier que suivre la couleur est récompensé sans être infaillible, puis régler `verite`, `affinite_type`, `bonus_specialite` et `exclusion` pour la taille réelle du paquet. Le comportement sur le catalogue cible (100 maladies) est déjà mesuré dans [MODELE_DE_JEU.md §8.4](MODELE_DE_JEU.md#84-comportement-attendu). La valeur de départ et le seuil de fermeture de la réputation ne sont à fixer qu'après ce réglage.
 
 ## 6. Après le démarrage
 

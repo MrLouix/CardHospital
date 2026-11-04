@@ -70,17 +70,16 @@
         "diagnostic": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["precision_max", "verite", "par_niveau", "bonus_specialite", "exclusion", "seuil_affichage", "verite_nom", "par_niveau_nom", "nb_noms"],
+          "required": ["precision_max", "verite", "par_niveau", "affinite_type", "bonus_specialite", "exclusion", "taille_liste", "score_bruit"],
           "properties": {
             "precision_max": { "$ref": "#/$defs/entier_positif_ou_nul" },
             "verite": { "type": "number", "minimum": 0 },
             "par_niveau": { "type": "number", "minimum": 0 },
+            "affinite_type": { "type": "number", "minimum": 0 },
             "bonus_specialite": { "type": "number", "minimum": 0 },
-            "exclusion": { "type": "number", "minimum": 0, "maximum": 1 },
-            "seuil_affichage": { "type": "integer", "minimum": 0, "maximum": 100 },
-            "verite_nom": { "type": "number", "minimum": 0 },
-            "par_niveau_nom": { "type": "number", "minimum": 0 },
-            "nb_noms": { "$ref": "#/$defs/entier_positif" }
+            "exclusion": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+            "taille_liste": { "$ref": "#/$defs/entier_positif" },
+            "score_bruit": { "type": "integer", "minimum": 1, "maximum": 99 }
           }
         },
         "recompenses": {
@@ -131,10 +130,12 @@
     "specialite": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "nom"],
+      "required": ["id", "nom", "couleur", "icone"],
       "properties": {
         "id": { "allOf": [{ "$ref": "#/$defs/identifiant" }, { "not": { "const": "generaliste" } }] },
-        "nom": { "$ref": "#/$defs/texte" }
+        "nom": { "$ref": "#/$defs/texte" },
+        "couleur": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$", "description": "Couleur d'affichage des maladies de cette spécialité dans un diagnostic." },
+        "icone": { "type": "string", "minLength": 1, "maxLength": 8, "description": "Emoji ou symbole court qui double la couleur (daltonisme)." }
       }
     },
 
