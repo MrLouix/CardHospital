@@ -205,7 +205,7 @@ Comportement attendu avec 3 types (simulation de 20 000 tirages) :
 
 ### 8.4 Distribution sur le nom
 
-Si le **vrai type ∈ S(C)**, c'est-à-dire si le médecin, l'accessoire ou la salle concorde avec la maladie, le résultat ajoute une distribution sur les **noms** des maladies de ce type :
+Si le **vrai type est le type de poids le plus élevé** de la distribution de la §8.3 (le type affiché en tête), le résultat ajoute une distribution sur les **noms** des maladies de ce type :
 
 1. `w(m) ← loi exponentielle de paramètre 1` pour chaque maladie `m` du vrai type ;
 2. pour la vraie maladie : `w(m) ← w(m) × (1 + verite_nom + par_niveau_nom × N)` ;
@@ -213,7 +213,7 @@ Si le **vrai type ∈ S(C)**, c'est-à-dire si le médecin, l'accessoire ou la s
 
 Valeurs par défaut : `verite_nom = 3.0`, `par_niveau_nom = 1.5`. Avec environ 25 maladies par type, la vraie maladie figure dans les 3 premières environ 2 fois sur 3 (de 57 % à N = 0 à 79 % à N = 4).
 
-Conséquence assumée : l'apparition de la liste de noms **confirme le type** de la maladie. C'est la récompense de la bonne spécialité.
+Conséquence : l'apparition de la liste de noms **ne confirme plus le type avec certitude**. Elle signale que le diagnostic est confiant (vrai type en tête), ce qui arrive d'autant plus souvent que la combinaison comporte la bonne spécialité (`bonus_specialite`) et que N est élevé : environ 79 % du temps à N = 1 et 87 % à N = 4 avec une spécialité concordante (tableau de la §8.3). La bonne spécialité reste donc récompensée — elle rend la liste de noms fréquente — mais un seul diagnostic ne tranche jamais définitivement : tester une spécialité par diagnostic n'est plus une stratégie infaillible.
 
 ### 8.5 Réglage
 
