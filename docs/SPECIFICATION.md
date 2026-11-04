@@ -63,7 +63,7 @@ Serveur HTTP embarqué (Dart, `shelf`) sur le réseau local et **WebSocket** pou
 | H → C | `refus` | `raison` (message affichable) | Sélection non conforme, patient non admis… |
 | C → H | `confirmer` | `apercu_id`, `action_id`, `maladie_id` (facultatif : maladie choisie pour l'action `analyser`) | Appui sur une action |
 | C → H | `annuler` | `apercu_id` | Appui sur « Annuler » |
-| H → C | `resultat` | voir [MODELE_DE_JEU.md §11](MODELE_DE_JEU.md#11-contenu-dun-résultat) | Envoyé **au seul client** qui a confirmé |
+| H → C | `resultat` | voir [MODELE_DE_JEU.md §11.1](MODELE_DE_JEU.md#111-format-du-résultat) | Envoyé **au seul client** qui a confirmé |
 | C ↔ H | `ping` / `pong` | — | Toutes les 5 s, pour détecter les coupures |
 
 - `id_client` est un identifiant **technique d'appareil**, et non de joueur. Il sert à renvoyer le dernier résultat à un client qui s'est reconnecté entre sa confirmation et la réception du résultat.
@@ -82,6 +82,7 @@ Serveur HTTP embarqué (Dart, `shelf`) sur le réseau local et **WebSocket** pou
 - **Service de premier plan** (*foreground service*, avec notification permanente « Partie CardHospital en cours ») : il porte le serveur et l'état, et survit à un appel entrant ou à un changement d'application.
 - **Verrou de veille partiel** pendant une partie : l'écran peut s'éteindre sans couper le serveur.
 - **Sauvegarde automatique** de l'état après chaque action confirmée. L'écriture est atomique (fichier temporaire puis renommage).
+- **Format de la sauvegarde** (code : `packages/moteur/lib/moteur/etat.dart` et `partie.dart`) : `{ "format_sauvegarde": 1, "etat": …, "historique": [ { "avant": …, "resultat": … } ] }`. L'état contient `format_etat` (1), l'identité du `paquet` (`id`, `version`, `empreinte` SHA-256 du `jeu.json`), la `difficulte`, le nombre d'`actions` confirmées et les `patients` déjà admis, par identifiant de carte : `statut` (`en_jeu` ou `sorti`), `maladie`, `pv`, `temps` et, pour un patient sorti, `issue` (`soigne` ou `mort`). Un patient jamais admis n'y figure pas. L'historique garde les 5 dernières actions annulables, chacune avec l'instantané pris avant elle. L'état du générateur aléatoire n'est pas sauvegardé : une partie reprise continue avec un hasard neuf.
 - **Reprise** : au redémarrage de l'appli hôte, si une partie est en cours, l'appli propose de la reprendre. Le jeton est conservé : les clients se reconnectent seuls si l'adresse IP n'a pas changé, et sinon ils doivent rescanner le QR de connexion.
 - **Reconnexion des clients** : automatique, avec des délais croissants (1, 2, 4, 8 s, puis toutes les 10 s), et un bandeau « Connexion à l'hôte perdue… » tant qu'elle n'est pas rétablie.
 
@@ -116,7 +117,7 @@ Le joueur pose ses cartes, les scanne avec **son propre téléphone** et vérifi
 Le bouton **« Valider la sélection »** envoie la liste des QR à l'hôte (`valider`). L'hôte reconnaît le motif de la combinaison ([MODELE_DE_JEU.md §3](MODELE_DE_JEU.md#3-combinaisons)), évalue les préconditions des actions, puis répond :
 
 - par un **aperçu** (une ou plusieurs actions possibles) ;
-- ou par un **refus** avec un message explicite : « Il faut une carte salle », « Une seule carte patient par action », « M. Dupont n'est pas admis », « M. Dupont est déjà en jeu »… La sélection est conservée pour être corrigée.
+- ou par un **refus** avec un message explicite : « Il faut une carte salle », « Une seule carte patient par action », « M. Dupont n'est pas en jeu », « M. Dupont est déjà en jeu »… La sélection est conservée pour être corrigée.
 
 ### 5.3 Écran de confirmation
 
@@ -137,7 +138,7 @@ L'aperçu ne révèle **aucune information cachée** (maladie, PV).
 ### 5.6 Écran de résultat
 
 - Visible **uniquement** sur le téléphone de l'acteur. Il n'existe ni bouton « révéler », ni envoi aux autres téléphones.
-- Contenu : PV avant → après, temps du patient et éventuelle attente dépassée, diagnostic (distribution sur le type, voire sur les noms), issue (en jeu, soigné ou mort, avec la maladie révélée à la sortie), pièces gagnées, impact sur la réputation. Pour une **analyse** (laboratoire de recherche) s'ajoutent : la liste des maladies suspectées du patient, la maladie choisie, et les passages restants ou la recette révélée. Le détail figure dans [MODELE_DE_JEU.md §11](MODELE_DE_JEU.md#11-contenu-dun-résultat).
+- Contenu : PV avant → après, temps du patient et éventuelle attente dépassée, diagnostic (liste des 5 maladies les plus probables, chacune avec son pourcentage de confiance, la couleur et l'icône de sa spécialité), issue (en jeu, soigné ou mort, avec la maladie révélée à la sortie), pièces gagnées, impact sur la réputation. Pour une **analyse** (laboratoire de recherche) s'ajoutent : la liste des maladies suspectées du patient, la maladie choisie, et les passages restants ou la recette révélée. Le détail figure dans [MODELE_DE_JEU.md §11](MODELE_DE_JEU.md#11-contenu-dun-résultat).
 - Deux rappels : « Pièces : à garder ou à céder en partie à l'hôpital » et, si l'impact n'est pas nul, « Réputation : reportez −2 sur la piste de l'hôpital ».
 - Un bouton **« OK / Fin de l'action »** ramène à l'écran de sélection.
 
@@ -216,7 +217,7 @@ Le détail est dans [MOTEUR_EFFETS.md](MOTEUR_EFFETS.md).
 | Validation d'un paquet du catalogue cible | < 2 s |
 | Autonomie de l'hôte | Mesurée en phase 3 sur une partie de 2 h |
 | Langue | Français en v1 ; les textes d'interface sont externalisés (fichiers ARB) pour une traduction future |
-| Accessibilité | Respect de la taille de police système ; contrastes suffisants |
+| Accessibilité | Respect de la taille de police système ; contrastes suffisants ; la couleur d'une spécialité est toujours doublée de son icône et de son nom (daltonisme) |
 
 ## 10. Stack technique
 
@@ -251,7 +252,7 @@ Permissions Android : `CAMERA`, `INTERNET`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK
 | D8 | Montants entiers, arrondi au plus proche (demi éloigné de zéro), base non nulle ≥ 1 | [Modèle §7](MODELE_DE_JEU.md#7-récompenses) |
 | D9 | Maladie tirée au hasard à l'admission, indépendante de la carte | [Modèle §4.1](MODELE_DE_JEU.md#41-admission) |
 | D10 | Un patient entre en jeu quand sa carte est scannée seule pour la première fois | [Modèle §4.1](MODELE_DE_JEU.md#41-admission) |
-| D11 | Diagnostic probabiliste, retiré à chaque fois, pouvant être faux ; une spécialité discordante disqualifie sa propre voie | [Modèle §8](MODELE_DE_JEU.md#8-diagnostic-probabiliste) |
+| D11 | Diagnostic probabiliste, retiré à chaque fois, pouvant être faux : liste des 5 maladies les plus probables, pourcentages de confiance indépendants, couleur et icône par spécialité, bruit corrigé selon le nombre de maladies par spécialité ; une spécialité concordante renforce sa couleur, une discordante la fait reculer, sans qu'aucun signal ne soit certain | [Modèle §8](MODELE_DE_JEU.md#8-diagnostic-probabiliste) |
 | D12 | Traitements définis par maladie dans le JSON (carte précise, nombre de médecins par spécialité, salle) | [Modèle §6](MODELE_DE_JEU.md#6-traitement) |
 | D13 | Temps propre à chaque patient, avancé par chaque action confirmée sur lui | [Modèle §5](MODELE_DE_JEU.md#5-temps-et-aggravation) |
 | D14 | Pièces gagnées par l'acteur, partagées hors appli entre lui (objets, diplômes) et l'hôpital (salles) | [Modèle §7](MODELE_DE_JEU.md#7-récompenses) |

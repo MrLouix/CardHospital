@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import '../modeles/jeu.dart';
+import '../moteur/combinaison.dart';
+import '../moteur/reconnaissance.dart';
 
 /// Résultat d'une validation : erreurs bloquantes et avertissements.
 class RapportValidation {
@@ -34,11 +36,7 @@ class Validateur {
 
   /// Valide le JSON brut d'un paquet. Retourne le rapport ; en cas de succès
   /// strict, [jeu] est renseigné.
-  RapportValidation validerJson(
-    Map<String, dynamic> brut, {
-    Jeu? jeu,
-    bool catalogueEmbarque = false,
-  }) {
+  RapportValidation validerJson(Map<String, dynamic> brut, {Jeu? jeu}) {
     final erreurs = <String>[];
     final avertissements = <String>[];
 
@@ -57,11 +55,10 @@ class Validateur {
         'schema_version : ce paquet nécessite une version plus récente de l\'application',
       );
     }
+    erreurs.addAll(_verifierDoublons(j));
     erreurs.addAll(_verifierReferences(j));
     erreurs.addAll(_verifierPhrases(j));
-    if (catalogueEmbarque) {
-      erreurs.addAll(_verifierRealisabilite(j));
-    }
+    erreurs.addAll(_verifierRealisabilite(j));
     avertissements.addAll(_avertissements(j));
 
     return RapportValidation(erreurs: erreurs, avertissements: avertissements);
@@ -105,6 +102,24 @@ class Validateur {
         'difficultes : exactement 3 niveaux requis (${diff ?? 0} trouvé(s))',
       );
     }
+    final specialites = brut['specialites'] as List? ?? const [];
+    for (var i = 0; i < specialites.length; i++) {
+      final sp = specialites[i] as Map;
+      final couleur = sp['couleur'];
+      if (couleur is! String || !_couleur.hasMatch(couleur)) {
+        erreurs.add(
+          'specialites[$i].couleur : couleur au format #RRGGBB attendue '
+          '(${couleur ?? 'absente'})',
+        );
+      }
+      final icone = sp['icone'];
+      if (icone is! String || icone.isEmpty || icone.runes.length > 8) {
+        erreurs.add(
+          'specialites[$i].icone : emoji ou symbole court attendu '
+          '(1 à 8 caractères)',
+        );
+      }
+    }
     for (final m in (brut['maladies'] as List? ?? const [])) {
       final poids = (m as Map)['poids'];
       if (poids is int && poids < 1) {
@@ -114,6 +129,30 @@ class Validateur {
         );
       }
     }
+    return erreurs;
+  }
+
+  /// Règle 8 : identifiants en double dans les listes. Les cartes et les
+  /// motifs sont des objets JSON, dont les clés sont uniques par
+  /// construction.
+  List<String> _verifierDoublons(Jeu j) {
+    final erreurs = <String>[];
+    void verifier(String liste, List<String> ids) {
+      final vus = <String>{};
+      for (var i = 0; i < ids.length; i++) {
+        if (!vus.add(ids[i])) {
+          erreurs.add(
+            '$liste[$i].id : l\'identifiant « ${ids[i]} » est déjà utilisé',
+          );
+        }
+      }
+    }
+
+    verifier('difficultes', [for (final d in j.difficultes) d.id]);
+    verifier('specialites', [for (final x in j.specialites) x.id]);
+    verifier('capacites', [for (final c in j.capacites) c.id]);
+    verifier('maladies', [for (final m in j.maladies) m.id]);
+    verifier('actions', [for (final a in j.actions) a.id]);
     return erreurs;
   }
 
@@ -419,91 +458,107 @@ class Validateur {
     return erreurs;
   }
 
+  /// Règle 7 : chaque traitement adapté doit être satisfait par au moins une
+  /// combinaison reconnue des cartes du paquet (recherche exhaustive), parmi
+  /// les motifs des actions qui testent `traitement_adapte`.
   List<String> _verifierRealisabilite(Jeu j) {
+    final combinaisons = combinaisonsPossibles(j);
     final erreurs = <String>[];
-    final medecins = j.cartes.values
-        .where((c) => c.type == TypeCarte.medecin)
-        .toList();
-    final salles = j.cartes.values
-        .where((c) => c.type == TypeCarte.salle)
-        .toList();
-    final accessoires = j.cartes.values
-        .where((c) => c.type == TypeCarte.objet || c.type == TypeCarte.diplome)
-        .toList();
     for (var i = 0; i < j.maladies.length; i++) {
       final m = j.maladies[i];
-      var realisable = false;
-      outer:
-      for (final a in medecins) {
-        for (final b in medecins) {
-          for (final s in salles) {
-            for (final acc in [null, ...accessoires]) {
-              final combinaison = <Carte>[
-                a,
-                b,
-                s,
-                ...[acc].whereType<Carte>(),
-              ];
-              if (_evaluePredicat(m.traitement.adapte, combinaison, j)) {
-                realisable = true;
-                break outer;
-              }
-            }
-          }
-        }
-      }
-      if (!realisable) {
+      if (!combinaisons.any((c) => c.satisfait(m.traitement.adapte))) {
         erreurs.add(
-          'maladies[$i].traitement.adapte : aucun combinaison standard ne satisfait le traitement adapté de « ${m.nom} »',
+          'maladies[$i].traitement.adapte : aucune combinaison standard ne '
+          'satisfait le traitement adapté de « ${m.nom} »',
         );
       }
     }
     return erreurs;
   }
 
-  bool _evaluePredicat(Predicat p, List<Carte> combinaison, Jeu j) {
-    if (p.carte != null) {
-      return combinaison.any(
-        (c) => j.cartes.entries.any((e) => e.key == p.carte && e.value == c),
-      );
+  /// Toutes les combinaisons d'un patient et de cartes non patient du paquet
+  /// reconnues par un motif d'action qui teste `traitement_adapte` (tous les
+  /// motifs si aucune action ne le teste). Le patient étant indifférent aux
+  /// prédicats, un seul suffit.
+  static List<Combinaison> combinaisonsPossibles(Jeu j) {
+    final patient = j.cartes.entries
+        .where((e) => e.value.type == TypeCarte.patient)
+        .map((e) => e.key)
+        .firstOrNull;
+    if (patient == null) return const [];
+    final autres = j.cartes.entries
+        .where((e) => e.value.type != TypeCarte.patient)
+        .map((e) => e.key)
+        .toList();
+
+    final motifsTraitement = {
+      for (final a in j.actions)
+        if (a.effets.any(_testeTraitementAdapte)) a.motif,
+    };
+    final motifs = motifsTraitement.isEmpty
+        ? j.motifs.keys.toSet()
+        : motifsTraitement;
+    var taille = 0;
+    for (final id in motifs) {
+      final total = j.motifs[id]?.intervalles['total']?.max ?? 5;
+      if (total > taille) taille = total;
     }
-    if (p.compte != null) {
-      final compte = combinaison
-          .where((c) => _correspond(c, p.compte!, j))
-          .length;
-      if (p.min != null && compte < p.min!) return false;
-      if (p.max != null && compte > p.max!) return false;
-      return true;
+    taille = (taille - 1).clamp(0, 4);
+
+    final reconnaissance = ReconnaissanceCombinaisons(j);
+    final resultat = <Combinaison>[];
+    void parcourir(int debut, List<String> choisis) {
+      if (choisis.isNotEmpty) {
+        final ids = [patient, ...choisis];
+        final r = reconnaissance.reconnaitre(ids);
+        if (r is Apercu && motifs.contains(r.motif)) {
+          resultat.add(Combinaison(j, ids));
+        }
+      }
+      if (choisis.length == taille) return;
+      for (var i = debut; i < autres.length; i++) {
+        choisis.add(autres[i]);
+        parcourir(i + 1, choisis);
+        choisis.removeLast();
+      }
     }
-    if (p.tous != null) {
-      return p.tous!.every((s) => _evaluePredicat(s, combinaison, j));
-    }
-    if (p.unDe != null) {
-      return p.unDe!.any((s) => _evaluePredicat(s, combinaison, j));
-    }
-    if (p.non != null) {
-      return !_evaluePredicat(p.non!, combinaison, j);
-    }
-    return false;
+
+    parcourir(0, []);
+    return resultat;
   }
 
-  bool _correspond(Carte c, Filtre f, Jeu j) {
-    if (f.type != null && !f.type!.contains(c.type)) return false;
-    if (f.specialite != null &&
-        (c.specialite == null || !f.specialite!.contains(c.specialite))) {
-      return false;
-    }
-    if (f.id != null) {
-      final id = j.cartes.entries
-          .firstWhere((e) => identical(e.value, c) || e.value == c)
-          .key;
-      if (!f.id!.contains(id)) return false;
-    }
-    return true;
-  }
+  static bool _testeTraitementAdapte(Effet e) =>
+      (e.condition != null && _conditionTesteAdapte(e.condition!)) ||
+      [...?e.alors, ...?e.sinon].any(_testeTraitementAdapte);
+
+  static bool _conditionTesteAdapte(Condition c) =>
+      c.constante == 'traitement_adapte' ||
+      [...?c.et, ...?c.ou, ?c.non].any(_conditionTesteAdapte);
+
+  static final _couleur = RegExp(r'^#[0-9A-Fa-f]{6}$');
 
   List<String> _avertissements(Jeu j) {
     final avertissements = <String>[];
+    // Couleur et icône distinguent les spécialités dans un diagnostic.
+    for (final (champ, valeur) in [
+      ('couleur', (Specialite s) => s.couleur.toUpperCase()),
+      ('icone', (Specialite s) => s.icone),
+    ]) {
+      final vues = <String, String>{};
+      for (var i = 0; i < j.specialites.length; i++) {
+        final s = j.specialites[i];
+        final autre = vues[valeur(s)];
+        if (autre != null) {
+          avertissements.add(
+            'specialites[$i].$champ : même $champ que « $autre » ; les '
+            'deux spécialités seront difficiles à distinguer dans un '
+            'diagnostic',
+          );
+        } else {
+          vues[valeur(s)] = s.id;
+        }
+      }
+    }
     for (final m in j.maladies) {
       if (m.traitement.partiel == null) {
         avertissements.add(

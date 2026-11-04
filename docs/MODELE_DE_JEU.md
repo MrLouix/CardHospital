@@ -100,7 +100,7 @@ Scanner seul un patient déjà en jeu ne déclenche rien (« M. Dupont est déj�
 
 ### 4.2 Sortie
 
-Un patient soigné ou mort passe à l'état **sorti** : sa maladie est révélée dans le résultat (« M. Dupont est guéri de sa péritonite »). La carte retourne dans la pioche ; si elle est de nouveau piochée et scannée seule, elle est **réadmise avec une nouvelle maladie**. Une combinaison standard contenant un patient hors jeu ou sorti est refusée (« M. Dupont n'est pas admis »).
+Un patient soigné ou mort passe à l'état **sorti** : sa maladie est révélée dans le résultat (« M. Dupont est guéri de sa péritonite »). La carte retourne dans la pioche ; si elle est de nouveau piochée et scannée seule, elle est **réadmise avec une nouvelle maladie**. Une combinaison standard contenant un patient hors jeu ou sorti est refusée (« M. Dupont n'est pas en jeu »). Les messages évitent tout accord (« n'est pas en jeu » plutôt que « n'est pas admis », qui deviendrait fautif pour Mme Garnier).
 
 ## 5. Temps et aggravation
 
@@ -168,9 +168,22 @@ L'appli ne connaît ni la valeur de départ, ni le seuil, ni le total : elle n'a
 
 ### 8.1 Principe
 
-Un diagnostic produit une **distribution de probabilités** sur le type de maladie, et éventuellement sur son nom. Elle est **retirée à chaque diagnostic** : deux diagnostics successifs donnent des chiffres différents. Elle **peut être fausse** : le type le plus probable n'est pas toujours le bon. Les diagnostics répétés orientent les joueurs, mais chacun fait avancer le temps du patient.
+Un diagnostic produit une **liste des 5 maladies les plus probables**. Chaque maladie y figure avec :
 
-Exemple de résultat : *« Psychologie 60 % — Chirurgie 30 % — Pharmacie 10 % »*, alors que la maladie est de type chirurgie.
+- un **pourcentage de confiance**, de 0 à 99 % ;
+- la **couleur et l'icône de sa spécialité** ([MOTEUR_EFFETS.md §2.3](MOTEUR_EFFETS.md#23-spécialités)).
+
+La liste est **retirée à chaque diagnostic** : deux diagnostics successifs donnent des listes différentes. Elle **peut être fausse** : la maladie en tête n'est pas toujours la bonne, et la bonne peut ne pas figurer dans la liste. Les diagnostics répétés orientent les joueurs, mais chacun fait avancer le temps du patient.
+
+Exemple, alors que la maladie est une appendicite :
+
+> 🧠 Phobie des blouses blanches 64 % — ✂️ Appendicite 61 % — ✂️ Fracture ouverte 55 % — 💊 Angine bactérienne 48 % — 🧠 Hypocondrie aiguë 44 %
+
+**Lecture de la liste** :
+
+- **Les pourcentages sont indépendants** et ne somment pas à 100 : chacun mesure la confiance que cette maladie est la bonne. Une liste avec une maladie à 95 % est un diagnostic net. Une liste où toutes les maladies sont entre 40 et 60 % est un diagnostic flou, proche du bruit pur.
+- **Les couleurs donnent une piste de spécialité** : quand plusieurs maladies d'une même couleur occupent le haut de la liste, la spécialité est probablement la bonne. Le joueur est alors poussé à refaire un diagnostic avec une carte de cette spécialité, pour confirmer la piste (concordance) ou l'écarter (exclusion).
+- **Aucun signal n'est certain** : la liste a toujours la même forme, quelle que soit la combinaison. Rien dans sa présence ou sa composition ne prouve le type ou la maladie. C'est ce qui distingue ce diagnostic de la version précédente, où l'apparition d'une liste de noms révélait le type avec certitude.
 
 ### 8.2 Niveau de précision
 
@@ -180,44 +193,59 @@ N = min(precision_max, somme des capacités « precision » des cartes de la com
 
 La salle porte la précision de base (salle généraliste : 1). Les médecins et accessoires l'augmentent (livre de médecine +1, scanner IRM +2…). Défaut : `precision_max = 5`.
 
-### 8.3 Distribution sur le type
+### 8.3 Calcul de la liste
 
-Pour chaque spécialité-type `t` du paquet :
+Notations : `n` maladies dans le paquet, `T` spécialités qui sont le type d'au moins une maladie, `n_t` maladies de type `t`, et `n̄ = n / T` le nombre moyen de maladies par spécialité.
 
-1. `w(t) ← tirage aléatoire selon une loi exponentielle de paramètre 1`. Ce bruit non borné garantit qu'aucun diagnostic n'est infaillible.
-2. Si `t` est le vrai type : `w(t) ← w(t) × (1 + verite + par_niveau × N)`.
-3. Si `t ∈ S(C)` (spécialité présente dans la combinaison) :
-   - `t` est le vrai type (**concordance**) : `w(t) ← w(t) × (1 + bonus_specialite)` ;
-   - sinon (**exclusion**) : `w(t) ← w(t) × exclusion`. Utiliser un psychiatre sur un patient chirurgical **disqualifie rapidement** la piste psychologie.
-4. Normalisation en pourcentages entiers de somme 100 (méthode du plus fort reste). Les types sous `seuil_affichage` (défaut 5 %) sont regroupés en « Autres ».
+Pour chaque maladie `m` du paquet, de type `t` :
 
-Valeurs par défaut : `verite = 0.5`, `par_niveau = 0.5`, `bonus_specialite = 2.0`, `exclusion = 0.15`.
+1. **Bruit corrigé** : `w(m) ← −ln(1 − u^(n_t / n̄))`, où `u` est tiré uniformément dans `[0, 1[`. Pour `n_t = n̄`, c'est une loi exponentielle de paramètre 1. La correction donne au maximum des maladies de chaque spécialité la même loi que s'il y avait `n̄` maladies dans chacune. Sans indice, chaque spécialité a donc **la même chance** d'avoir la maladie en tête, quel que soit son nombre de maladies. Sans correction, une spécialité de 60 maladies face à deux de 25 et 15 serait en tête 60 % du temps ; avec la correction, chacune l'est un tiers du temps.
+2. **Affinité du vrai type** : si `t` est le vrai type, `w(m) ← w(m) × (1 + affinite_type)`. Toutes les maladies du vrai type sont légèrement favorisées : c'est ce qui fait ressortir sa couleur.
+3. **Vraie maladie** : `w(m) ← w(m) × (1 + verite + par_niveau × N)`.
+4. **Spécialités de la combinaison**, si `t ∈ S(C)` :
+   - **concordance** (`t` est le vrai type) : `w(m) ← w(m) × (1 + bonus_specialite)` ;
+   - **exclusion** (`t` n'est pas le vrai type) : `w(m) ← w(m) × exclusion`. Les maladies de la spécialité testée reculent dans la liste, sans disparaître.
 
-Comportement attendu avec 3 types (simulation de 20 000 tirages) :
+   Ces deux facteurs s'appliquent à **toutes** les maladies du type. Ils doivent rester modérés : dans une liste de 5 tirée parmi une centaine de maladies, un facteur appliqué à 33 maladies pèse beaucoup plus qu'un facteur appliqué à un seul type. Avec un bonus ×3, la couleur dominante serait juste dans 100 % des cas, et la certitude reviendrait.
+5. **Liste** : les maladies sont triées par `w` décroissant ; les `taille_liste` premières sont affichées.
+6. **Pourcentage** : `p(m) = 100 × (1 − e^(−k · w(m) / H))`, arrondi à l'entier et plafonné à 99 % : un diagnostic n'affiche jamais de certitude. `H = ψ(n̄ + 1) + γ` est le maximum attendu du bruit seul, soit environ `ln n̄ + 0,58` (nombre harmonique pour `n̄` entier). `k = −ln(1 − score_bruit / 100)`. Une maladie dont le poids égale ce maximum attendu affiche donc `score_bruit` %.
 
-| Combinaison | N | Vrai type en tête | Probabilité moyenne affichée pour le vrai type |
-|---|---|---|---|
-| Aucune spécialité | 1 | 53 % | 46 % |
-| Aucune spécialité | 4 | 68 % | 56 % |
-| Spécialité discordante (ex. psy sur chirurgie) | 1 | 66 % | 57 % (psy tombe à ~7 %) |
-| Spécialité concordante | 1 | 79 % | 65 % |
-| Spécialité concordante | 4 | 87 % | 73 % |
+Valeurs par défaut :
 
-### 8.4 Distribution sur le nom
+| Paramètre | Défaut | Rôle |
+|---|---|---|
+| `precision_max` | 5 | Plafond du niveau de précision N |
+| `verite` | 3,0 | Bonus de base de la vraie maladie |
+| `par_niveau` | 1,5 | Bonus de la vraie maladie par niveau de précision |
+| `affinite_type` | 0,2 | Bonus de toutes les maladies du vrai type |
+| `bonus_specialite` | 0,3 | Bonus des maladies du vrai type si sa spécialité est dans la combinaison |
+| `exclusion` | 0,75 | Facteur des maladies d'une spécialité de la combinaison qui n'est pas le vrai type |
+| `taille_liste` | 5 | Nombre de maladies affichées |
+| `score_bruit` | 50 | Pourcentage d'une maladie au niveau du maximum attendu du bruit |
 
-Si le **vrai type est le type de poids le plus élevé** de la distribution de la §8.3 (le type affiché en tête), le résultat ajoute une distribution sur les **noms** des maladies de ce type :
+### 8.4 Comportement attendu
 
-1. `w(m) ← loi exponentielle de paramètre 1` pour chaque maladie `m` du vrai type ;
-2. pour la vraie maladie : `w(m) ← w(m) × (1 + verite_nom + par_niveau_nom × N)` ;
-3. normalisation ; affichage des `nb_noms` premières (défaut 3) puis « Autres ».
+Sur le catalogue cible (100 maladies sur 3 spécialités), pour une maladie de chirurgie, sur 20 000 tirages :
 
-Valeurs par défaut : `verite_nom = 3.0`, `par_niveau_nom = 1.5`. Avec environ 25 maladies par type, la vraie maladie figure dans les 3 premières environ 2 fois sur 3 (de 57 % à N = 0 à 79 % à N = 4).
+| Combinaison | N | Vraie maladie en tête | Vraie maladie dans la liste | 1ʳᵉ couleur juste | Couleur dominante juste | Pourcentage de la tête : juste / fausse |
+|---|---|---:|---:|---:|---:|---:|
+| Aucune spécialité | 1 | 43 % | 60 % | 72 % | 72 % | 80 % / 61 % |
+| Aucune spécialité | 4 | 62 % | 75 % | 82 % | 77 % | 86 % / 62 % |
+| Spécialité concordante | 1 | 46 % | 64 % | 88 % | 91 % | 85 % / 68 % |
+| Spécialité concordante | 4 | 65 % | 78 % | 92 % | 94 % | 90 % / 68 % |
+| Spécialité discordante (psy sur chirurgie) | 1 | 44 % | 62 % | 79 % | 80 % | 79 % / 60 % |
 
-Conséquence : l'apparition de la liste de noms **ne confirme plus le type avec certitude**. Elle signale que le diagnostic est confiant (vrai type en tête), ce qui arrive d'autant plus souvent que la combinaison comporte la bonne spécialité (`bonus_specialite`) et que N est élevé : environ 79 % du temps à N = 1 et 87 % à N = 4 avec une spécialité concordante (tableau de la §8.3). La bonne spécialité reste donc récompensée — elle rend la liste de noms fréquente — mais un seul diagnostic ne tranche jamais définitivement : tester une spécialité par diagnostic n'est plus une stratégie infaillible.
+- La **couleur dominante** est la spécialité dont les maladies totalisent le plus de pourcentage dans la liste.
+- **Bruit seul** (aucun bonus) : les 5 lignes affichent en moyenne 57, 50, 46, 43 et 41 %. Un diagnostic flou ressemble à cela.
+- **Le pourcentage informe** : quand la tête est juste, elle affiche en moyenne 80 à 90 % ; quand elle est fausse, 60 à 68 %. Un joueur apprend vite qu'une tête à 95 % est presque sûre et qu'une tête à 60 % ne prouve rien, sans qu'aucun seuil ne soit infaillible.
+- **La bonne spécialité est récompensée** : avec elle, la couleur dominante est juste 9 fois sur 10, contre 7 sur 10 sans spécialité.
+- **La mauvaise spécialité n'est pas éliminée d'un coup** : ses maladies reculent, ce qui améliore un peu la lecture des autres couleurs, mais une seule exclusion ne prouve rien.
+
+Ces valeurs sont vérifiées par les tests du moteur (`packages/moteur/test/diagnostic_test.dart`), à 2 points près.
 
 ### 8.5 Réglage
 
-Ces paramètres sont dans le JSON (`parametres.diagnostic`). Leur réglage se fait avec le **simulateur** prévu à la phase 1 de la [feuille de route](FEUILLE_DE_ROUTE.md), qui remplace en partie un prototype papier.
+Ces paramètres sont dans le JSON (`parametres.diagnostic`). Leur réglage se fait avec le **simulateur** prévu à la phase 1 de la [feuille de route](FEUILLE_DE_ROUTE.md), qui remplace en partie un prototype papier. Les valeurs par défaut sont calées pour le catalogue cible : sur un petit paquet (6 maladies dans l'exemple), la vraie maladie ressort presque toujours, et le diagnostic est trop facile.
 
 ## 9. Ordre de résolution d'une action
 
@@ -252,7 +280,7 @@ L'arrondi (§7) s'applique **après** le modificateur.
 |---|---|---|---|---|
 | PV avant → après (delta) | PV initiaux | oui | oui | oui |
 | Temps du patient / attente dépassée | — | oui | oui | oui |
-| Distribution type (et noms) | — | oui | — | — |
+| Liste des 5 maladies (pourcentage, couleur, icône) | — | oui | — | — |
 | Liste des maladies suspectées | — | oui (affichées) | — | oui (proposées) |
 | Maladie choisie pour l'analyse | — | — | — | oui |
 | Passages restants / recette révélée | — | — | — | oui |
@@ -260,6 +288,27 @@ L'arrondi (§7) s'applique **après** le modificateur.
 | Maladie révélée | — | si mort | si soigné ou mort | jamais |
 | Pièces gagnées | — | oui | oui | non (0) |
 | Impact réputation | — | oui | oui | oui |
+
+### 11.1 Format du résultat
+
+Le moteur renvoie le résultat sous la forme d'un objet JSON, qui est aussi le contenu du message `resultat` du protocole ([SPECIFICATION.md §3.3](SPECIFICATION.md#33-protocole)). Code : `packages/moteur/lib/moteur/resultat.dart`. Les champs propres à l'analyse (§12) seront ajoutés avec la salle recherche.
+
+| Clé | Type | Contenu |
+|---|---|---|
+| `numero` | entier | Numéro d'ordre de l'action dans la partie (à partir de 1) |
+| `action`, `libelle` | texte | Identifiant et libellé de l'action appliquée |
+| `phrase` | texte | Phrase de l'aperçu |
+| `cartes` | liste de textes | Cartes de la combinaison, dans l'ordre de sélection |
+| `patient`, `patient_nom` | texte | Carte patient et son nom affiché |
+| `pv_avant` | entier ou `null` | PV avant l'action ; `null` pour une admission |
+| `pv_apres` | entier | PV après l'action (PV initiaux pour une admission) |
+| `temps` | entier | Temps du patient après l'action |
+| `attente_depassee` | booléen | `temps > attente_max` |
+| `issue` | `en_jeu`, `soigne` ou `mort` | Issue pour le patient |
+| `diagnostic` | objet ou `null` | `niveau` (N) et `maladies` : liste de `{id, nom, pourcentage, specialite}` triée par pourcentage décroissant, où `specialite` vaut `{id, nom, couleur, icone}`. La couleur et l'icône sont recopiées dans le résultat, pour qu'un client puisse afficher la liste sans connaître le paquet actif de l'hôte |
+| `maladie_revelee` | `{id, nom}` ou `null` | Maladie, si le patient est sorti |
+| `pieces` | entier | Pièces gagnées par l'acteur, après difficulté et arrondi |
+| `reputation` | entier signé | Impact total sur la réputation (soin, échec, attente et mort cumulés) |
 
 ## 12. Recherche en laboratoire
 
@@ -269,7 +318,7 @@ Une salle de spécialité `recherche` — le **laboratoire** — permet d'analys
 
 ### 12.2 Maladies suspectées
 
-L'hôte mémorise, pour chaque patient en jeu, l'ensemble des maladies dont le nom a figuré dans les distributions affichées lors de ses diagnostics précédents (§8.4) : ce sont ses **maladies suspectées**. La liste est remise à zéro à chaque admission (le patient revient avec une nouvelle maladie). Si le patient n'a aucune maladie suspectée, l'action `analyser` répond : « Aucune piste — refaire un diagnostic avec une spécialité concordante ».
+L'hôte mémorise, pour chaque patient en jeu, l'ensemble des maladies qui ont figuré dans les listes affichées lors de ses diagnostics précédents (§8) : ce sont ses **maladies suspectées**. La liste est remise à zéro à chaque admission (le patient revient avec une nouvelle maladie). Chaque diagnostic affichant 5 maladies, un patient diagnostiqué au moins une fois a toujours des maladies suspectées. Si le patient n'a encore jamais été diagnostiqué, l'action `analyser` répond : « Aucune piste — faire d'abord un diagnostic ».
 
 ### 12.3 Déroulement d'un passage
 

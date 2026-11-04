@@ -42,7 +42,7 @@ Réservé à la future possibilité d'ajouter des cartes. En v1, son contenu est
 | `id`, `nom`, `version`, `description` | Identité du paquet (`version` au format `MAJEUR.MINEUR.CORRECTIF`) |
 | `parametres` | Paramètres du diagnostic, récompenses par défaut, attente par défaut |
 | `difficultes` | Exactement 3 niveaux et leurs modificateurs |
-| `specialites` | Types de maladie / spécialités (`generaliste` est réservé et implicite) |
+| `specialites` | Types de maladie / spécialités, avec leur couleur et leur icône (`generaliste` est réservé et implicite) |
 | `capacites` | Capacités déclarées (ex. `precision`, `soin`) |
 | `cartes` | Dictionnaire `identifiant QR → carte` |
 | `maladies` | Liste des maladies |
@@ -93,6 +93,25 @@ Les noms de personnages ou de marques existants (personnages de séries, marques
 
 `attente_max`, `poids` (entier ≥ 1, défaut 1), `traitement.partiel`, `recompenses` et `recherche` sont facultatifs. `recherche.passages` (entier ≥ 1, défaut 1) est le nombre de passages en laboratoire nécessaires pour révéler la recette de la maladie (§9, prévu pour `schema_version` 2). Un poids nul est interdit : une maladie qui ne peut jamais être tirée n'a pas sa place dans le paquet, il suffit de la retirer. Toute clé de `recompenses` absente reprend la valeur de `parametres.recompenses`.
 
+### 2.3 Spécialités
+
+```json
+"specialites": [
+  { "id": "psychologie", "nom": "Psychologie", "couleur": "#7B4FBF", "icone": "🧠" },
+  { "id": "chirurgie",   "nom": "Chirurgie",   "couleur": "#C62828", "icone": "✂️" },
+  { "id": "pharmacie",   "nom": "Pharmacie",   "couleur": "#2E7D32", "icone": "💊" }
+]
+```
+
+- `couleur` : couleur d'affichage des maladies de la spécialité dans un diagnostic, au format `#RRGGBB`.
+- `icone` : emoji ou symbole court (1 à 8 caractères) affiché à côté de la couleur. Il double la couleur pour les joueurs daltoniens, et distingue les spécialités sur un écran mal calibré.
+- Les deux champs sont obligatoires. Deux spécialités de même couleur ou de même icône déclenchent un avertissement à l'import.
+- Une extension qui ajoute une spécialité lui choisit sa couleur et son icône. L'emoji évite d'avoir à embarquer une image, ce qui reste interdit aux extensions en v1.
+
+### 2.4 Paramètres du diagnostic
+
+`parametres.diagnostic` contient `precision_max`, `verite`, `par_niveau`, `affinite_type`, `bonus_specialite`, `exclusion`, `taille_liste` et `score_bruit`. Leur rôle et leurs valeurs par défaut sont décrits dans le [modèle de jeu §8.3](MODELE_DE_JEU.md#83-calcul-de-la-liste).
+
 ## 3. Motifs
 
 Un motif décrit une forme de sélection par des **intervalles `[min, max]`** de nombre de cartes, par type ou groupe de types (séparés par `|`), plus un intervalle sur le total.
@@ -106,7 +125,7 @@ Un motif décrit une forme de sélection par des **intervalles `[min, max]`** de
 
 Un type absent d'un motif est interdit (`[0, 0]`). Le motif standard encode « 1 médecin + 1 patient + 1 salle + au plus une carte parmi {objet, diplôme, second médecin} », la limite `total ≤ 4` excluant d'avoir à la fois un second médecin et un accessoire. Quand plusieurs motifs correspondent à une même sélection, c'est le **premier déclaré** qui l'emporte : le motif `recherche` (§9) doit donc précéder `standard`.
 
-Quand une sélection ne correspond à aucun motif, l'hôte renvoie le **premier écart** constaté par rapport au motif le plus proche (« Il faut une carte salle »).
+Quand une sélection ne correspond à aucun motif, l'hôte renvoie le **premier écart** constaté par rapport au motif le plus proche (« Il faut une carte salle »). Le motif le plus proche est celui qui a le moins d'écarts de cardinalité (somme des cartes manquantes ou en trop par groupe, plus les cartes d'un type absent du motif) ; à égalité, celui qui a le plus de groupes satisfaits. Le premier écart est cherché dans l'ordre patient, médecin, salle, accessoire, total.
 
 ## 4. Valeurs
 
@@ -143,7 +162,7 @@ Une action est une **liste d'effets exécutés dans l'ordre**. Chaque effet est 
 |---|---|---|
 | `admettre` | — | Tire une maladie (pondérée par `poids`), `PV ← pv_initial`, `temps ← 0`, patient « en jeu » |
 | `avancer_temps` | — | `temps ← temps + 1` |
-| `diagnostiquer` | — | Calcule et ajoute au résultat la distribution du [modèle de jeu §8](MODELE_DE_JEU.md#8-diagnostic-probabiliste) |
+| `diagnostiquer` | — | Calcule et ajoute au résultat la liste des maladies les plus probables du [modèle de jeu §8](MODELE_DE_JEU.md#8-diagnostic-probabiliste) |
 | `aggraver` | — | Perte de `aggravation[temps]` PV (dernière valeur répétée), modificateur `pv_perdus` |
 | `soigner` | — | Marque le patient soigné |
 | `gagner_pv` | `valeur` | Ajoute des PV, plafonnés à `pv_initial` (pas de modificateur) |
@@ -232,12 +251,13 @@ Un paquet est **refusé** s'il comporte au moins une erreur ; les avertissements
 8. identifiants en double ;
 9. `poids` d'une maladie inférieur à 1 (déjà refusé par le JSON Schema, et revérifié par le validateur sémantique, qui donne un message explicite : `maladies[12].poids : une maladie doit avoir un poids d'au moins 1 ; pour l'écarter, retirez-la du paquet`).
 
-**Avertissements** : dossier `images/` non vide, maladie sans traitement partiel, spécialité portée par aucune carte.
+**Avertissements** : dossier `images/` non vide, maladie sans traitement partiel, spécialité portée par aucune carte, deux spécialités de même couleur ou de même icône.
 
 ## 8. Versionnement
 
 - `schema_version` (entier) est incrémenté à chaque changement incompatible du format.
 - L'application déclare la plage de versions qu'elle sait lire. Un paquet plus ancien est **migré** en mémoire ; un paquet plus récent est refusé (« Ce paquet nécessite une version plus récente de l'application »).
+- Tant qu'aucun paquet n'a été publié (avant la première version de l'application), le format `schema_version` 1 peut encore évoluer sans incrément. Le passage au diagnostic par liste (couleur et icône des spécialités, nouveaux paramètres du diagnostic) a été fait ainsi.
 - `version` (texte, au format `MAJEUR.MINEUR.CORRECTIF`) est la version éditoriale du paquet. Elle est enregistrée dans les sauvegardes : au chargement d'une sauvegarde faite avec un autre paquet (identifiant, version ou empreinte différents), l'appli avertit l'utilisateur et refuse si des maladies référencées n'existent plus.
 
 ## 9. Salle recherche (prévu pour `schema_version` 2)

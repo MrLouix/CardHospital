@@ -62,18 +62,18 @@ class Parametres {
   final Recompenses recompenses;
 }
 
+/// Paramètres du diagnostic (MODELE_DE_JEU.md §8).
 @JsonSerializable()
 class Diagnostic {
   Diagnostic({
     required this.precisionMax,
     required this.verite,
     required this.parNiveau,
+    required this.affiniteType,
     required this.bonusSpecialite,
     required this.exclusion,
-    required this.seuilAffichage,
-    required this.veriteNom,
-    required this.parNiveauNom,
-    required this.nbNoms,
+    required this.tailleListe,
+    required this.scoreBruit,
   });
 
   factory Diagnostic.fromJson(Map<String, dynamic> json) =>
@@ -83,20 +83,30 @@ class Diagnostic {
 
   @JsonKey(name: 'precision_max')
   final int precisionMax;
+
+  /// Bonus de la vraie maladie : `× (1 + verite + par_niveau × N)`.
   final double verite;
   @JsonKey(name: 'par_niveau')
   final double parNiveau;
+
+  /// Bonus de toutes les maladies du vrai type : `× (1 + affinite_type)`.
+  @JsonKey(name: 'affinite_type')
+  final double affiniteType;
+
+  /// Maladies d'une spécialité de la combinaison : `× (1 + bonus_specialite)`
+  /// si c'est le vrai type, `× exclusion` sinon.
   @JsonKey(name: 'bonus_specialite')
   final double bonusSpecialite;
   final double exclusion;
-  @JsonKey(name: 'seuil_affichage')
-  final int seuilAffichage;
-  @JsonKey(name: 'verite_nom')
-  final double veriteNom;
-  @JsonKey(name: 'par_niveau_nom')
-  final double parNiveauNom;
-  @JsonKey(name: 'nb_noms')
-  final int nbNoms;
+
+  /// Nombre de maladies affichées.
+  @JsonKey(name: 'taille_liste')
+  final int tailleListe;
+
+  /// Pourcentage affiché pour une maladie dont le poids égale le maximum
+  /// attendu du bruit seul.
+  @JsonKey(name: 'score_bruit')
+  final int scoreBruit;
 }
 
 @JsonSerializable()
@@ -177,7 +187,12 @@ class Modificateurs {
 
 @JsonSerializable()
 class Specialite {
-  Specialite({required this.id, required this.nom});
+  Specialite({
+    required this.id,
+    required this.nom,
+    required this.couleur,
+    required this.icone,
+  });
 
   factory Specialite.fromJson(Map<String, dynamic> json) =>
       _$SpecialiteFromJson(json);
@@ -186,6 +201,13 @@ class Specialite {
 
   final String id;
   final String nom;
+
+  /// Couleur d'affichage, au format `#RRGGBB`.
+  final String couleur;
+
+  /// Icône d'affichage : un emoji ou un symbole court, qui double la couleur
+  /// (daltonisme).
+  final String icone;
 }
 
 @JsonSerializable()
@@ -306,9 +328,9 @@ class Filtre {
 
   factory Filtre.fromJson(Map<String, dynamic> json) {
     return Filtre(
-      type: _listeOuValeur<TypeCarte>(json['type']),
-      specialite: _listeOuValeur<String>(json['specialite']),
-      id: _listeOuValeur<String>(json['id']),
+      type: _listeOuValeur(json['type'])?.map(TypeCarte.values.byName).toList(),
+      specialite: _listeOuValeur(json['specialite']),
+      id: _listeOuValeur(json['id']),
     );
   }
 
@@ -322,11 +344,11 @@ class Filtre {
   final List<String>? specialite;
   final List<String>? id;
 
-  static List<T>? _listeOuValeur<T>(dynamic valeur) {
+  /// Une valeur ou une liste de valeurs, toujours rendue sous forme de liste.
+  static List<String>? _listeOuValeur(dynamic valeur) {
     if (valeur == null) return null;
-    if (valeur is List) return valeur.cast<T>();
-    if (T == TypeCarte) return [TypeCarte.values.byName(valeur as String) as T];
-    return [valeur as T];
+    if (valeur is List) return valeur.cast<String>().toList();
+    return [valeur as String];
   }
 }
 
@@ -346,13 +368,11 @@ class Predicat {
       return Predicat(carte: json['carte'] as String);
     }
     if (json.containsKey('compte')) {
-      final compte = json['compte'] as Map<String, dynamic>;
+      // `min` et `max` sont au même niveau que `compte` (voir le schéma).
       return Predicat(
-        compte: Filtre.fromJson(
-          compte['filtre'] as Map<String, dynamic>? ?? compte,
-        ),
-        min: compte['min'] as int?,
-        max: compte['max'] as int?,
+        compte: Filtre.fromJson(json['compte'] as Map<String, dynamic>),
+        min: json['min'] as int?,
+        max: json['max'] as int?,
       );
     }
     if (json.containsKey('tous')) {
@@ -378,11 +398,9 @@ class Predicat {
     if (carte != null) return {'carte': carte};
     if (compte != null) {
       return {
-        'compte': {
-          ...compte!.toJson(),
-          if (min != null) 'min': min,
-          if (max != null) 'max': max,
-        },
+        'compte': compte!.toJson(),
+        if (min != null) 'min': min,
+        if (max != null) 'max': max,
       };
     }
     if (tous != null) {

@@ -73,12 +73,11 @@ Diagnostic _$DiagnosticFromJson(Map<String, dynamic> json) => Diagnostic(
   precisionMax: (json['precision_max'] as num).toInt(),
   verite: (json['verite'] as num).toDouble(),
   parNiveau: (json['par_niveau'] as num).toDouble(),
+  affiniteType: (json['affinite_type'] as num).toDouble(),
   bonusSpecialite: (json['bonus_specialite'] as num).toDouble(),
   exclusion: (json['exclusion'] as num).toDouble(),
-  seuilAffichage: (json['seuil_affichage'] as num).toInt(),
-  veriteNom: (json['verite_nom'] as num).toDouble(),
-  parNiveauNom: (json['par_niveau_nom'] as num).toDouble(),
-  nbNoms: (json['nb_noms'] as num).toInt(),
+  tailleListe: (json['taille_liste'] as num).toInt(),
+  scoreBruit: (json['score_bruit'] as num).toInt(),
 );
 
 Map<String, dynamic> _$DiagnosticToJson(Diagnostic instance) =>
@@ -86,12 +85,11 @@ Map<String, dynamic> _$DiagnosticToJson(Diagnostic instance) =>
       'precision_max': instance.precisionMax,
       'verite': instance.verite,
       'par_niveau': instance.parNiveau,
+      'affinite_type': instance.affiniteType,
       'bonus_specialite': instance.bonusSpecialite,
       'exclusion': instance.exclusion,
-      'seuil_affichage': instance.seuilAffichage,
-      'verite_nom': instance.veriteNom,
-      'par_niveau_nom': instance.parNiveauNom,
-      'nb_noms': instance.nbNoms,
+      'taille_liste': instance.tailleListe,
+      'score_bruit': instance.scoreBruit,
     };
 
 Recompenses _$RecompensesFromJson(Map<String, dynamic> json) => Recompenses(
@@ -148,11 +146,20 @@ Map<String, dynamic> _$ModificateursToJson(Modificateurs instance) =>
       'reputation': instance.reputation,
     };
 
-Specialite _$SpecialiteFromJson(Map<String, dynamic> json) =>
-    Specialite(id: json['id'] as String, nom: json['nom'] as String);
+Specialite _$SpecialiteFromJson(Map<String, dynamic> json) => Specialite(
+  id: json['id'] as String,
+  nom: json['nom'] as String,
+  couleur: json['couleur'] as String,
+  icone: json['icone'] as String,
+);
 
 Map<String, dynamic> _$SpecialiteToJson(Specialite instance) =>
-    <String, dynamic>{'id': instance.id, 'nom': instance.nom};
+    <String, dynamic>{
+      'id': instance.id,
+      'nom': instance.nom,
+      'couleur': instance.couleur,
+      'icone': instance.icone,
+    };
 
 Capacite _$CapaciteFromJson(Map<String, dynamic> json) => Capacite(
   id: json['id'] as String,

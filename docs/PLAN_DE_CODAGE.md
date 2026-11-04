@@ -18,12 +18,12 @@ En résumé : la spec suffit pour démarrer selon la feuille de route, pas pour 
 
 Aucun ne bloque le démarrage. Chacun est tranché au moment du codage, puis reporté dans la spec concernée.
 
-| # | Sujet | Document à mettre à jour |
-|---|---|---|
-| P1 | **Format exact du résultat** renvoyé par le moteur (structure de données), qui servira aussi de contenu au message `resultat` | [MODELE_DE_JEU.md §11](MODELE_DE_JEU.md#11-contenu-dun-résultat), [SPECIFICATION.md §3.3](SPECIFICATION.md#33-protocole) |
-| P2 | **Format de l'état sauvegardé** et des instantanés (patients, difficulté, paquet actif avec son identifiant, sa version et son empreinte) | [SPECIFICATION.md §3.5](SPECIFICATION.md#35-robustesse-de-lhôte) |
-| P3 | **« Motif le plus proche »** : la règle qui choisit le message d'erreur d'une sélection refusée. Proposition : le motif qui a le moins d'écarts de cardinalité, puis le premier écart dans l'ordre patient, médecin, salle, accessoire, total | [MOTEUR_EFFETS.md §3](MOTEUR_EFFETS.md#3-motifs) |
-| P4 | **Organisation du code** et versions figées de Flutter et Dart (voir §4) | ce document |
+| # | Sujet | Document à mettre à jour | Statut |
+|---|---|---|---|
+| P1 | **Format exact du résultat** renvoyé par le moteur (structure de données), qui servira aussi de contenu au message `resultat` | [MODELE_DE_JEU.md §11.1](MODELE_DE_JEU.md#111-format-du-résultat), [SPECIFICATION.md §3.3](SPECIFICATION.md#33-protocole) | Tranché |
+| P2 | **Format de l'état sauvegardé** et des instantanés (patients, difficulté, paquet actif avec son identifiant, sa version et son empreinte) | [SPECIFICATION.md §3.5](SPECIFICATION.md#35-robustesse-de-lhôte) | Tranché |
+| P3 | **« Motif le plus proche »** : la règle qui choisit le message d'erreur d'une sélection refusée. Proposition : le motif qui a le moins d'écarts de cardinalité, puis le premier écart dans l'ordre patient, médecin, salle, accessoire, total | [MOTEUR_EFFETS.md §3](MOTEUR_EFFETS.md#3-motifs) | Tranché (proposition retenue) |
+| P4 | **Organisation du code** et versions figées de Flutter et Dart (voir §4) | ce document | Tranché pour le moteur : Dart 3.13 (`environment: sdk: ^3.13.0`) ; Flutter à figer en phase 0 |
 
 ## 3. Prérequis hors code
 
@@ -80,7 +80,7 @@ Les deux phases sont indépendantes : la phase 0 lève le risque matériel (cam�
 
 Réparti entre le code (Claude) et les essais physiques (l'équipe).
 
-- [ ] **Générateur de planche de QR** (`outils/planche_qr`) : PDF A4 avec des QR de 1,5, 2 et 2,5 cm, en correction M et Q, avec une marge de 4 modules et le contenu `MED-001`, `PAT-001`… Chaque QR est étiqueté par sa taille et son niveau de correction.
+- [x] **Générateur de planche de QR** (`outils/planche_qr`) : PDF A4 avec des QR de 1,5, 2 et 2,5 cm, en correction M et Q, avec une marge de 4 modules et le contenu `MED-001`, `PAT-001`… Chaque QR est étiqueté par sa taille et son niveau de correction.
 - [ ] **Appli de test** (`prototypes/detection`) : flux caméra `mobile_scanner`, liste des QR détectés par image avec horodatage, deux modes (détection simultanée / sélection cumulative selon [SPECIFICATION.md §4.1](SPECIFICATION.md#41-sélection-cumulative)), chronomètre « 4 cartes sélectionnées en X s », export des mesures en CSV.
 - [ ] **Essais physiques** (équipe) : impression mate et brillante, protocole de la [feuille de route](FEUILLE_DE_ROUTE.md#phase-0--prototype-de-détection), au moins 3 téléphones.
 - [ ] **Bilan** : taille de QR, niveau de correction, finition et mode de sélection arrêtés et reportés dans [SPECIFICATION.md §4](SPECIFICATION.md#4-détection-des-cartes).
@@ -91,18 +91,56 @@ La caméra ne peut pas être testée depuis l'environnement de développement de
 
 Ordre de réalisation, chaque étape étant livrée avec ses tests :
 
-1. [ ] **Squelette** : `packages/moteur`, analyse statique stricte, intégration continue.
-2. [ ] **Modèles** : classes typées de `jeu.json` (cartes, maladies, prédicats, conditions, valeurs, effets, actions), chargement de l'exemple.
-3. [ ] **Validateur** : JSON Schema, puis les contrôles sémantiques de [MOTEUR_EFFETS.md §7](MOTEUR_EFFETS.md#7-validation-à-limport) (références, phrases, spécialités sans maladie, réalisabilité des traitements par recherche exhaustive, doublons, poids), avec messages en français et chemin JSON. Un test négatif par règle.
-4. [ ] **Reconnaissance des combinaisons** : motifs, préconditions, actions proposées, message du premier écart (point P3).
-5. [ ] **Moteur d'effets** : état des patients, effets, conditions, prédicats, valeurs `$…`, modificateurs de difficulté, arrondi, invariants (mort, sortie, révélation).
-6. [ ] **Diagnostic probabiliste** : distributions sur le type et sur le nom, pourcentages entiers par plus fort reste, regroupement « Autres ». Tests statistiques sur graine fixe, comparés aux valeurs de [MODELE_DE_JEU.md §8.3](MODELE_DE_JEU.md#83-distribution-sur-le-type).
-7. [ ] **Résultat et état** : formats arrêtés (points P1 et P2), sérialisation et restauration des instantanés.
-8. [ ] **Simulateur** (`bin/simuler.dart`) : stratégies simples (traiter au hasard, diagnostiquer jusqu'à X % puis traiter, se fier à la spécialité). Il mesure le taux de guérison, la durée de vie des patients, les pièces et la réputation par action, et produit un rapport reproductible.
+1. [x] **Squelette** : `packages/moteur`, analyse statique stricte, intégration continue.
+2. [x] **Modèles** : classes typées de `jeu.json` (cartes, maladies, prédicats, conditions, valeurs, effets, actions), chargement de l'exemple.
+3. [x] **Validateur** : JSON Schema, puis les contrôles sémantiques de [MOTEUR_EFFETS.md §7](MOTEUR_EFFETS.md#7-validation-à-limport) (références, phrases, spécialités sans maladie, réalisabilité des traitements par recherche exhaustive, doublons, poids), avec messages en français et chemin JSON. Un test négatif par règle.
+4. [x] **Reconnaissance des combinaisons** : motifs, préconditions, actions proposées, message du premier écart (point P3).
+5. [x] **Moteur d'effets** : état des patients, effets, conditions, prédicats, valeurs `$…`, modificateurs de difficulté, arrondi, invariants (mort, sortie, révélation).
+6. [x] **Diagnostic probabiliste** : liste des 5 maladies les plus probables, pourcentages de confiance indépendants, couleur et icône de chaque spécialité, bruit corrigé selon le nombre de maladies par spécialité. Tests statistiques sur graine fixe, comparés aux valeurs de [MODELE_DE_JEU.md §8.4](MODELE_DE_JEU.md#84-comportement-attendu). Cette version remplace le premier diagnostic (distribution sur le type, puis liste de noms), dont la liste de noms révélait le type avec certitude (voir §5.4).
+7. [x] **Résultat et état** : formats arrêtés (points P1 et P2), sérialisation et restauration des instantanés.
+8. [x] **Simulateur** (`bin/simuler.dart`) : stratégies simples (traiter au hasard, diagnostiquer jusqu'à X % puis traiter, se fier à la spécialité). Il mesure le taux de guérison, la durée de vie des patients, les pièces et la réputation par action, et produit un rapport reproductible.
 9. [ ] **Paquet de base intermédiaire** : environ 20 maladies, à rédiger avec l'équipe (voir §3).
 10. [ ] **Salle recherche** (`schema_version` 2) : motif `recherche` prioritaire (déclaré avant `standard`), action `analyser` avec choix de la maladie par le joueur, nouvel effet `rechercher`, champ `recherche.passages` des maladies, capacité `recherche`, spécialité `recherche` réservée aux salles, montée du schéma + migration v1 → v2, proposition d'actions filtrée par précondition de combinaison. Conception : [MOTEUR_EFFETS.md §9](MOTEUR_EFFETS.md#9-salle-recherche-prévu-pour-schema_version-2) et [MODELE_DE_JEU.md §12](MODELE_DE_JEU.md#12-recherche-en-laboratoire). Tests positifs et négatifs.
+    Déjà en place dans le moteur, avec leurs tests : le premier motif déclaré l'emporte, et l'aperçu ne propose que les actions dont la précondition est vérifiée, y compris une précondition de combinaison. Une précondition de combinaison non satisfaite donne un message sur les cartes (« Aucune action possible avec ces cartes ») et non sur l'état du patient. Restent à faire : l'état (maladies suspectées par patient, passages restants par maladie, à ajouter au format de sauvegarde P2), le paramètre `maladie_id` de la confirmation, l'effet `rechercher` et la génération des recettes, les champs du résultat propres à l'analyse, le schéma v2 et sa migration.
 
 Critères de fin : ceux de la [feuille de route](FEUILLE_DE_ROUTE.md#phase-1--moteur-deffets-validateur-et-simulateur), soit une couverture ≥ 90 %, un test négatif par règle de validation et un rapport de simulation reproductible.
+
+État des critères (fin de l'étape 8) :
+
+- **couverture** : 95 % hors code généré, vérifiée en intégration continue avec un seuil de 90 % (`dart run tool/couverture.dart`) ;
+- **rapport reproductible** : atteint ; même graine, même rapport, testé. Rapport de référence : [simulations/rapport_exemple.md](simulations/rapport_exemple.md) ;
+- **un test négatif par règle de validation** : partiel. Les règles 4 à 9 sont testées, sauf la règle 3. Restent : la conformité complète au JSON Schema (règle 1 : le validateur ne contrôle encore qu'une partie du schéma, sans la bibliothèque `json_schema` prévue), la règle 2 (une seule version de schéma existe) et la règle 3 (le catalogue embarqué n'existe pas encore).
+
+### 5.3 Utiliser le moteur et le simulateur
+
+Depuis `packages/moteur` :
+
+```bash
+dart test
+dart run bin/simuler.dart --parties 2000 --strategies hasard,seuil:70,couleur:70
+dart run bin/simuler.dart --help
+```
+
+Stratégies disponibles :
+
+| Stratégie | Comportement |
+|---|---|
+| `hasard` | Diagnostiquer ou traiter au hasard, avec une combinaison au hasard |
+| `seuil:X` | Diagnostiquer sans spécialité, à la meilleure précision, jusqu'à ce que la maladie en tête de liste, non encore essayée, atteigne X % ; puis la traiter |
+| `couleur:X` | Comme `seuil:X`, mais après un premier diagnostic sans spécialité, diagnostiquer avec la spécialité de la couleur dominante de la dernière liste, pour la confirmer ou l'écarter |
+
+Les stratégies voient ce que voit un joueur (résultats des actions, spécialités des cartes) et sont supposées connaître les traitements des maladies, comme s'ils figuraient dans le livret de règles.
+
+### 5.4 Premiers constats du simulateur
+
+**Historique du diagnostic.** Le premier diagnostic donnait une distribution sur le type, puis une liste de noms dans certains cas. Le simulateur a montré que l'apparition de cette liste était un signal **certain** : elle ne contenait que des maladies du vrai type. Avec la première règle (liste si la bonne spécialité est dans la combinaison), comme avec la seconde (liste si le vrai type est en tête), une stratégie qui raisonnait par élimination guérissait 94 à 100 % des patients. Le diagnostic par liste de 5 maladies ([MODELE_DE_JEU.md §8](MODELE_DE_JEU.md#8-diagnostic-probabiliste)) supprime ce signal : la liste a toujours la même forme, et les couleurs comme les pourcentages ne font qu'orienter.
+
+**Sur le paquet d'exemple** (6 maladies, 2 par spécialité), le rapport de référence n'est **pas représentatif** :
+
+- les stratégies informées (`seuil:X`, `couleur:X`) guérissent 99 % des patients en Interne et 90 à 94 % en Réanimation, en 1,1 à 1,3 diagnostic. Les paramètres par défaut sont calés pour une centaine de maladies : avec 6, la vraie maladie ressort presque toujours en tête, et le diagnostic est trop facile ;
+- `couleur:X` ne fait pas mieux que `seuil:X`, car un seul diagnostic suffit le plus souvent.
+
+**À refaire avec le paquet intermédiaire** (environ 20 maladies, étape 9) : comparer `seuil:X` et `couleur:X`, vérifier que suivre la couleur est récompensé sans être infaillible, puis régler `verite`, `affinite_type`, `bonus_specialite` et `exclusion` pour la taille réelle du paquet. Le comportement sur le catalogue cible (100 maladies) est déjà mesuré dans [MODELE_DE_JEU.md §8.4](MODELE_DE_JEU.md#84-comportement-attendu). La valeur de départ et le seuil de fermeture de la réputation ne sont à fixer qu'après ce réglage.
 
 ## 6. Après le démarrage
 
