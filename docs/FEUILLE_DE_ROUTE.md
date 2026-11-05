@@ -37,8 +37,8 @@ Principe : **traiter les risques en premier**. Le démarrage concret (organisati
 - Validateur : JSON Schema ([schema/jeu.schema.json](schema/jeu.schema.json)) et contrôles sémantiques ([MOTEUR_EFFETS.md §7](MOTEUR_EFFETS.md#7-validation-à-limport)), messages en français.
 - Moteur : reconnaissance des motifs, préconditions, évaluation des prédicats, effets, invariants, arrondis, diagnostic probabiliste, avec une graine aléatoire injectable ; salle recherche (motif `recherche`, action `analyser`, [MODELE_DE_JEU.md §12](MODELE_DE_JEU.md#12-recherche-en-laboratoire)).
 - Instantanés de l'état (sérialisation et restauration).
-- **Simulateur en ligne de commande** : joue des milliers de parties automatiques selon des stratégies simples (diagnostiquer jusqu'à X % de confiance puis traiter, traiter au hasard…). Il mesure le taux de guérison, la durée moyenne, les pièces par action et l'**évolution de la réputation**, ce qui permet de régler les paramètres du diagnostic et des récompenses, ainsi que la **valeur de départ et le seuil de fermeture de l'hôpital** pour chaque niveau de difficulté. Il **remplace en partie le prototype papier**.
-- Rédaction d'un paquet de base intermédiaire (environ 20 maladies) pour les tests.
+- **Simulateur en ligne de commande** : joue des milliers de parties automatiques selon des stratégies simples (diagnostiquer jusqu'à un indice de suspicion X puis traiter, traiter au hasard…). Il mesure le taux de guérison, la durée moyenne, les pièces par action et l'**évolution de la réputation**, ce qui permet de régler les paramètres du diagnostic et des récompenses, ainsi que la **valeur de départ et le seuil de fermeture de l'hôpital** pour chaque niveau de difficulté. Il **remplace en partie le prototype papier**.
+- Rédaction du paquet de base (fait : `contenu/paquet_base.json`, 103 maladies sur 5 spécialités, validé en intégration continue).
 
 **Critères de sortie**
 
@@ -68,7 +68,7 @@ Principe : **traiter les risques en premier**. Le démarrage concret (organisati
 
 **Critères de sortie**
 
-- partie de 2 h avec 8 téléphones sans perte d'action ;
+- partie de 2 h avec 3 téléphones (2 à 3 joueurs) sans perte d'action, et un essai à 5 téléphones pour la marge ;
 - coupure Wi-Fi de 30 s et appel entrant sur l'hôte récupérés sans intervention ;
 - latences conformes à [SPECIFICATION.md §9](SPECIFICATION.md#9-exigences-non-fonctionnelles) ;
 - consommation de batterie de l'hôte mesurée.
@@ -84,7 +84,7 @@ Principe : **traiter les risques en premier**. Le démarrage concret (organisati
 ## Phase 5 — Paquets d'extension, contenu complet, équilibrage
 
 - Import de `.zip` (système de fichiers, partage Android), rapport de validation, sélection du paquet actif.
-- Contenu complet du paquet de base : 10 médecins, 30 patients, 30 objets et diplômes, 10 salles, **100 maladies**, réparties entre les spécialités.
+- Contenu complet du paquet de base : 10 médecins, 12 patients, 21 objets et diplômes plus les objets d'aide à la recherche, 11 salles dont le laboratoire, **103 maladies** réparties entre 5 spécialités.
 - Équilibrage au simulateur, puis en parties réelles.
 - Création des illustrations et impression des cartes selon les recommandations de la phase 0.
 

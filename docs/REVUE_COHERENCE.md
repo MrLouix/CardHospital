@@ -2,7 +2,7 @@
 
 Revue du 5 novembre 2026, faite sur `main` (commit `1b4ee46`). Elle couvre le README, `docs/*.md`, le schéma, l'exemple, `contenu/paquet_base.json`, et la partie du moteur (`packages/moteur`) qui applique les règles.
 
-Chaque constat indique **où** se trouve le problème, **pourquoi** c'en est un, et une **proposition de correction**. Rien n'a été modifié dans les règles, le contenu ou le code : ce document ne fait que proposer.
+Chaque constat indique **où** se trouve le problème, **pourquoi** c'en est un, et une **proposition de correction**. La revue elle-même ne modifiait rien ; les corrections décidées ensuite sont suivies dans la section « Suivi des corrections » et dans la colonne « Suivi » du tableau. Les références de lignes et les noms cités dans les constats sont ceux de la version revue.
 
 ## Méthode
 
@@ -22,63 +22,79 @@ Chaque constat indique **où** se trouve le problème, **pourquoi** c'en est un,
 4. **[B4](#b4)** et **[E1](#e1)** : un diagnostic à précision maximale suffit souvent à trouver la bonne maladie avec certitude, et un traitement générique soigne 75 à 95 % des maladies d'une spécialité. Le diagnostic fin et le laboratoire perdent donc beaucoup de leur intérêt.
 5. **[R1](#r1)**, **[R2](#r2)** et **[R3](#r3)** : la mise en place, le tour de jeu et la fin de partie ne sont pas définis. Aujourd'hui, la pression du temps n'existe que si les joueurs se l'imposent.
 
+## Suivi des corrections
+
+Corrections appliquées à la demande (même branche, après la revue) : **B1 à B5, T1 à T14 et D1 à D12**. Les constats R1 à R7 et E1 à E15 attendent une décision.
+
+Choix retenus :
+
+- **B2 / B3** : le motif `recherche` est gardé, avec un accessoire facultatif (objet ou diplôme) pour les futurs objets d'aide à la recherche. Le moteur réunit désormais les actions de tous les motifs reconnus, et les préconditions rendent le laboratoire exclusif : il ne sert qu'à analyser, et aucune autre salle ne permet d'analyser. Le laboratoire (`SAL-011`) est dans le paquet de base ; tant que l'action `analyser` n'existe pas (`schema_version` 1), il ne permet aucune action.
+- **B4** : `precision_max` passe de 5 à 4. **Mesure après correction** (paquet de base, précision maximale sans spécialité) : 28 % des diagnostics ont encore une tête à 95 ou plus, fausse dans 0,04 % des cas (contre 33 % des diagnostics et 0 erreur avant). La quasi-certitude recule mais demeure ; le modèle de jeu le dit désormais. Pour la supprimer, il faudra agir aussi sur `par_niveau` ou sur le plafond d'affichage.
+- **T1** : la valeur neutre s'appelle `polyvalent` ; `generaliste` reste lu, avec un avertissement.
+- **T3, T4, T7** : renommages faits directement en `schema_version` 1, qui peut encore évoluer tant qu'aucun paquet n'est publié (MOTEUR_EFFETS.md §8). `affinite_type` devient aussi `affinite_specialite`.
+- **T5** : l'issue s'appelle « échec » partout ; les clés `pv_echec` et `reputation_echec` ne changent pas.
+- **T7** : l'indice de suspicion s'affiche sans « % », avec une table de lecture dans le modèle de jeu (§8.1).
+- **T14** : la couleur dominante est la couleur la plus présente dans la liste (« 3 bleus sur 5 ») ; en cas d'égalité, la mieux classée.
+- **D3** : le catalogue cible est aligné sur le paquet de base (12 patients, 21 objets et diplômes, 11 salles, 103 maladies), puisque les patients sortis retournent dans la pioche.
+- **D4** : l'exemple est maintenant un sous-ensemble exact du paquet de base (18 cartes, 6 maladies), vérifié par un test.
+
 ## Tableau des constats
 
-| # | Constat | Gravité |
-|---|---|---|
-| [B1](#b1) | Un `compte` sans `min` est toujours vrai : les salles exigées sont ignorées | Bloquant |
-| [B2](#b2) | Le motif `recherche` déclaré en tête bloquerait les combinaisons standard à 3 cartes | Bloquant |
-| [B3](#b3) | La capacité `recherche` est donnée aux objets et diplômes, mais le motif `recherche` n'accepte pas d'accessoire | Bloquant |
-| [B4](#b4) | « Aucun signal n'est certain » est faux : une tête de liste à 95 % ou plus n'est jamais fausse | Important |
-| [B5](#b5) | Le paquet de base n'est ni validé ni simulé en intégration continue | Important |
-| [T1](#t1) | `generale` et `generaliste` | Important |
-| [T2](#t2) | « Retiré » se lit « supprimé » alors qu'il veut dire « tiré à nouveau » | Mineur |
-| [T3](#t3) | `type` désigne tantôt la nature de la carte, tantôt la spécialité de la maladie | Mineur |
-| [T4](#t4) | La famille de mots « soin » a cinq sens différents | Mineur |
-| [T5](#t5) | « Échec » et « inadapté » désignent la même issue | Mineur |
-| [T6](#t6) | Le traitement « partiel » censé stabiliser peut faire perdre des PV | Important |
-| [T7](#t7) | Le « pourcentage de confiance » n'est pas une probabilité | Important |
-| [T8](#t8) | « L'appli ne gère pas deux diagnostics en parallèle » se lit comme une interdiction | Mineur |
-| [T9](#t9) | L'admission « pour la première fois » contredit la réadmission | Mineur |
-| [T10](#t10) | Les messages d'exemple font des accords, contrairement à la règle de style | Mineur |
-| [T11](#t11) | Fermeture de l'hôpital : « sous le seuil » ou « réputation à 0 » ? | Mineur |
-| [T12](#t12) | « 2 médecins » peut vouloir dire 1 médecin + 1 diplôme | Important |
-| [T13](#t13) | « Attente dépassée » : on ne sait pas à partir de quelle action elle s'applique | Mineur |
-| [T14](#t14) | La couleur dominante oblige à additionner des pourcentages de tête | Mineur |
-| [D1](#d1) | Exemples restés sur l'ancien jeu (psychologie, chirurgie, pharmacie) | Mineur |
-| [D2](#d2) | Le tableau du §8.4 est calculé pour 3 spécialités, le paquet de base en a 5 | Important |
-| [D3](#d3) | Chiffres du catalogue contradictoires entre les documents et le paquet de base | Mineur |
-| [D4](#d4) | Un même identifiant de carte désigne des cartes différentes selon le fichier | Important |
-| [D5](#d5) | Plan de codage périmé (paquet intermédiaire, `--help`, règle 3…) | Mineur |
-| [D6](#d6) | « Maladie révélée : jamais » pour l'analyse, alors que l'analyse peut tuer le patient | Mineur |
-| [D7](#d7) | Maladies suspectées « affichées » au diagnostic, mais aucun champ prévu dans le résultat | Mineur |
-| [D8](#d8) | « La salle porte la précision de base (1) », alors que deux salles ont 0 | Mineur |
-| [D9](#d9) | « Aucune piste » au laboratoire : refus ou action ? Aucune condition ne permet de l'exprimer | Mineur |
-| [D10](#d10) | 2 à 3 joueurs, mais critères de test à 8 téléphones | Mineur |
-| [D11](#d11) | Message d'erreur « 4 cartes total maximum. » | Mineur |
-| [D12](#d12) | Aucune carte laboratoire dans le paquet de base, et les 10 salles sont déjà prises | Mineur |
-| [R1](#r1) | Mise en place incomplète | Important |
-| [R2](#r2) | Tour de jeu non défini : un patient laissé de côté ne s'aggrave jamais | Important |
-| [R3](#r3) | Victoire individuelle et fin de partie non définies | Important |
-| [R4](#r4) | Économie non définie : prix, propriété des cartes, cartes des autres joueurs | Important |
-| [R5](#r5) | Partage des diagnostics : a-t-on le droit de mentir ? | Mineur |
-| [R6](#r6) | Laboratoire : réanalyse, diffusion des recettes, effet de la capacité `recherche` | Mineur |
-| [R7](#r7) | L'annulation permet de voir un diagnostic gratuitement ou de relancer un tirage | Important |
-| [E1](#e1) | Traitements génériques : connaître la spécialité suffit presque toujours | Important |
-| [E2](#e2) | Traitements « connus via le livret de règles », mais laboratoire chargé de les révéler | Important |
-| [E3](#e3) | Les PV et l'attente trahissent la maladie | Important |
-| [E4](#e4) | Arrondis : Chirurgien et Réanimation donnent le même résultat sur les petites valeurs | Important |
-| [E5](#e5) | Le modificateur de réputation s'applique aussi aux gains : Réanimation est plus facile | Important |
-| [E6](#e6) | Pièces gagnées même si le patient meurt, et diagnostics répétables pour gagner des pièces | Important |
-| [E7](#e7) | Le diplôme rend la spécialité du médecin presque inutile | Important |
-| [E8](#e8) | Cartes sans usage ou incohérentes (Plâtre, Tensiomètre, Pharmacie…) | Mineur |
-| [E9](#e9) | Recettes peu crédibles (sirop antitussif contre la conjonctivite…) | Mineur |
-| [E10](#e10) | Noms de maladies trop proches d'une spécialité à l'autre | Mineur |
-| [E11](#e11) | Objectif « défaite quasi inévitable sans partage » ni mesurable ni mesuré | Important |
-| [E12](#e12) | Le diagnostic ignore la fréquence des maladies (`poids`) | Mineur |
-| [E13](#e13) | Une extension peut changer des attributs imprimés sur les cartes | Mineur |
-| [E14](#e14) | Prépositions des salles dans les phrases (« dans la réanimation ») | Mineur |
-| [E15](#e15) | Couleurs de spécialités proches ou peu contrastées | Mineur |
+| # | Constat | Gravité | Suivi |
+|---|---|---|---|
+| [B1](#b1) | Un `compte` sans `min` est toujours vrai : les salles exigées sont ignorées | Bloquant | Corrigé |
+| [B2](#b2) | Le motif `recherche` déclaré en tête bloquerait les combinaisons standard à 3 cartes | Bloquant | Corrigé |
+| [B3](#b3) | La capacité `recherche` est donnée aux objets et diplômes, mais le motif `recherche` n'accepte pas d'accessoire | Bloquant | Corrigé |
+| [B4](#b4) | « Aucun signal n'est certain » est faux : une tête de liste à 95 % ou plus n'est jamais fausse | Important | Appliqué, insuffisant (voir le suivi) |
+| [B5](#b5) | Le paquet de base n'est ni validé ni simulé en intégration continue | Important | Corrigé |
+| [T1](#t1) | `generale` et `generaliste` | Important | Corrigé |
+| [T2](#t2) | « Retiré » se lit « supprimé » alors qu'il veut dire « tiré à nouveau » | Mineur | Corrigé |
+| [T3](#t3) | `type` désigne tantôt la nature de la carte, tantôt la spécialité de la maladie | Mineur | Corrigé |
+| [T4](#t4) | La famille de mots « soin » a cinq sens différents | Mineur | Corrigé |
+| [T5](#t5) | « Échec » et « inadapté » désignent la même issue | Mineur | Corrigé (« échec ») |
+| [T6](#t6) | Le traitement « partiel » censé stabiliser peut faire perdre des PV | Important | Corrigé |
+| [T7](#t7) | Le « pourcentage de confiance » n'est pas une probabilité | Important | Corrigé |
+| [T8](#t8) | « L'appli ne gère pas deux diagnostics en parallèle » se lit comme une interdiction | Mineur | Corrigé |
+| [T9](#t9) | L'admission « pour la première fois » contredit la réadmission | Mineur | Corrigé |
+| [T10](#t10) | Les messages d'exemple font des accords, contrairement à la règle de style | Mineur | Corrigé |
+| [T11](#t11) | Fermeture de l'hôpital : « sous le seuil » ou « réputation à 0 » ? | Mineur | Corrigé |
+| [T12](#t12) | « 2 médecins » peut vouloir dire 1 médecin + 1 diplôme | Important | Corrigé (encadré) |
+| [T13](#t13) | « Attente dépassée » : on ne sait pas à partir de quelle action elle s'applique | Mineur | Corrigé |
+| [T14](#t14) | La couleur dominante oblige à additionner des pourcentages de tête | Mineur | Corrigé (couleur la plus présente) |
+| [D1](#d1) | Exemples restés sur l'ancien jeu (psychologie, chirurgie, pharmacie) | Mineur | Corrigé |
+| [D2](#d2) | Le tableau du §8.4 est calculé pour 3 spécialités, le paquet de base en a 5 | Important | Corrigé |
+| [D3](#d3) | Chiffres du catalogue contradictoires entre les documents et le paquet de base | Mineur | Corrigé |
+| [D4](#d4) | Un même identifiant de carte désigne des cartes différentes selon le fichier | Important | Corrigé |
+| [D5](#d5) | Plan de codage périmé (paquet intermédiaire, `--help`, règle 3…) | Mineur | Corrigé |
+| [D6](#d6) | « Maladie révélée : jamais » pour l'analyse, alors que l'analyse peut tuer le patient | Mineur | Corrigé |
+| [D7](#d7) | Maladies suspectées « affichées » au diagnostic, mais aucun champ prévu dans le résultat | Mineur | Corrigé |
+| [D8](#d8) | « La salle porte la précision de base (1) », alors que deux salles ont 0 | Mineur | Corrigé (texte) ; précision de la pharmacie et de la plâtrerie inchangée |
+| [D9](#d9) | « Aucune piste » au laboratoire : refus ou action ? Aucune condition ne permet de l'exprimer | Mineur | Corrigé |
+| [D10](#d10) | 2 à 3 joueurs, mais critères de test à 8 téléphones | Mineur | Corrigé |
+| [D11](#d11) | Message d'erreur « 4 cartes total maximum. » | Mineur | Corrigé |
+| [D12](#d12) | Aucune carte laboratoire dans le paquet de base, et les 10 salles sont déjà prises | Mineur | Corrigé |
+| [R1](#r1) | Mise en place incomplète | Important | En attente |
+| [R2](#r2) | Tour de jeu non défini : un patient laissé de côté ne s'aggrave jamais | Important | En attente |
+| [R3](#r3) | Victoire individuelle et fin de partie non définies | Important | En attente |
+| [R4](#r4) | Économie non définie : prix, propriété des cartes, cartes des autres joueurs | Important | En attente |
+| [R5](#r5) | Partage des diagnostics : a-t-on le droit de mentir ? | Mineur | En attente |
+| [R6](#r6) | Laboratoire : réanalyse, diffusion des recettes, effet de la capacité `recherche` | Mineur | En attente |
+| [R7](#r7) | L'annulation permet de voir un diagnostic gratuitement ou de relancer un tirage | Important | En attente |
+| [E1](#e1) | Traitements génériques : connaître la spécialité suffit presque toujours | Important | En attente |
+| [E2](#e2) | Traitements « connus via le livret de règles », mais laboratoire chargé de les révéler | Important | En attente |
+| [E3](#e3) | Les PV et l'attente trahissent la maladie | Important | En attente |
+| [E4](#e4) | Arrondis : Chirurgien et Réanimation donnent le même résultat sur les petites valeurs | Important | En attente |
+| [E5](#e5) | Le modificateur de réputation s'applique aussi aux gains : Réanimation est plus facile | Important | En attente |
+| [E6](#e6) | Pièces gagnées même si le patient meurt, et diagnostics répétables pour gagner des pièces | Important | En attente |
+| [E7](#e7) | Le diplôme rend la spécialité du médecin presque inutile | Important | En attente |
+| [E8](#e8) | Cartes sans usage ou incohérentes (Plâtre, Tensiomètre, Pharmacie…) | Mineur | En attente |
+| [E9](#e9) | Recettes peu crédibles (sirop antitussif contre la conjonctivite…) | Mineur | En attente |
+| [E10](#e10) | Noms de maladies trop proches d'une spécialité à l'autre | Mineur | En attente |
+| [E11](#e11) | Objectif « défaite quasi inévitable sans partage » ni mesurable ni mesuré | Important | En attente |
+| [E12](#e12) | Le diagnostic ignore la fréquence des maladies (`poids`) | Mineur | En attente |
+| [E13](#e13) | Une extension peut changer des attributs imprimés sur les cartes | Mineur | En attente |
+| [E14](#e14) | Prépositions des salles dans les phrases (« dans la réanimation ») | Mineur | En attente |
+| [E15](#e15) | Couleurs de spécialités proches ou peu contrastées | Mineur | En attente |
 
 ---
 
@@ -419,7 +435,7 @@ La phrase « 9 fois sur 10 contre 7 sur 10 » devient « 8 sur 10 contre 6 sur 1
 **Où** : `docs/exemples/jeu.exemple.json` comparé à `contenu/paquet_base.json`, et `MOTEUR_EFFETS.md` §2.1.
 
 | Identifiant | Dans l'exemple | Dans le paquet de base |
-|---|---|---|
+|---|---|---|---|
 | MED-002 | Dr Lefort, chirurgie | Dr Lefort, médecine générale |
 | MED-003 | Dr Benali, chirurgie (et « Dr Lefort » dans MOTEUR §2.1) | Dr Benali, cardiologie |
 | MED-004 | Dr Sauvage | Dr Fontaine |

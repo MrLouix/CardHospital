@@ -18,9 +18,9 @@ L'application Android (transposable iOS) sert de **moteur d'actions**. Elle lit 
 
 **Hors périmètre de l'appli** (géré à la table par les joueurs) :
 
-- tour de jeu : les joueurs jouent **à tour de rôle**, même si plusieurs smartphones sont disponibles ; l'appli ne gère ni l'ordre des tours, ni deux diagnostics en parallèle ;
+- tour de jeu : les joueurs jouent **à tour de rôle**, même si plusieurs smartphones sont disponibles ; l'appli n'impose aucun ordre de jeu et ne bloque pas deux actions simultanées (§5.4) : c'est aux joueurs de jouer chacun leur tour ;
 - partage ou non des résultats de diagnostic entre joueurs (les probabilités sont réglées pour que ne rien mettre en commun rende la défaite commune quasi inévitable, [MODELE_DE_JEU.md §8.6](MODELE_DE_JEU.md#86-partage-des-diagnostics-entre-joueurs)) ;
-- points de victoire et conditions de victoire ou de défaite, dont la **fermeture de l'hôpital** quand la réputation passe sous un seuil (tous les joueurs perdent, [MODELE_DE_JEU.md §7.1](MODELE_DE_JEU.md#71-réputation-et-fermeture-de-lhôpital)) ;
+- points de victoire et conditions de victoire ou de défaite, dont la **fermeture de l'hôpital** quand la réputation devient strictement inférieure au seuil de fermeture (tous les joueurs perdent, [MODELE_DE_JEU.md §7.1](MODELE_DE_JEU.md#71-réputation-et-fermeture-de-lhôpital)) ;
 - cumul des pièces et de la réputation, partage des pièces entre médecin et hôpital, achats ;
 - identité des joueurs : l'appli n'en connaît aucune ;
 - fonctionnement via Internet : tout se passe en réseau local.
@@ -83,7 +83,7 @@ Serveur HTTP embarqué (Dart, `shelf`) sur le réseau local et **WebSocket** pou
 - **Service de premier plan** (*foreground service*, avec notification permanente « Partie CardHospital en cours ») : il porte le serveur et l'état, et survit à un appel entrant ou à un changement d'application.
 - **Verrou de veille partiel** pendant une partie : l'écran peut s'éteindre sans couper le serveur.
 - **Sauvegarde automatique** de l'état après chaque action confirmée. L'écriture est atomique (fichier temporaire puis renommage).
-- **Format de la sauvegarde** (code : `packages/moteur/lib/moteur/etat.dart` et `partie.dart`) : `{ "format_sauvegarde": 1, "etat": …, "historique": [ { "avant": …, "resultat": … } ] }`. L'état contient `format_etat` (1), l'identité du `paquet` (`id`, `version`, `empreinte` SHA-256 du `jeu.json`), la `difficulte`, le nombre d'`actions` confirmées et les `patients` déjà admis, par identifiant de carte : `statut` (`en_jeu` ou `sorti`), `maladie`, `pv`, `temps` et, pour un patient sorti, `issue` (`soigne` ou `mort`). Un patient jamais admis n'y figure pas. L'historique garde les 5 dernières actions annulables, chacune avec l'instantané pris avant elle. L'état du générateur aléatoire n'est pas sauvegardé : une partie reprise continue avec un hasard neuf.
+- **Format de la sauvegarde** (code : `packages/moteur/lib/moteur/etat.dart` et `partie.dart`) : `{ "format_sauvegarde": 1, "etat": …, "historique": [ { "avant": …, "resultat": … } ] }`. L'état contient `format_etat` (1), l'identité du `paquet` (`id`, `version`, `empreinte` SHA-256 du `jeu.json`), la `difficulte`, le nombre d'`actions` confirmées et les `patients` déjà admis, par identifiant de carte : `statut` (`en_jeu` ou `sorti`), `maladie`, `pv`, `temps` et, pour un patient sorti, `issue` (`gueri` ou `mort`). Un patient jamais admis n'y figure pas. L'historique garde les 5 dernières actions annulables, chacune avec l'instantané pris avant elle. L'état du générateur aléatoire n'est pas sauvegardé : une partie reprise continue avec un hasard neuf.
 - **Reprise** : au redémarrage de l'appli hôte, si une partie est en cours, l'appli propose de la reprendre. Le jeton est conservé : les clients se reconnectent seuls si l'adresse IP n'a pas changé, et sinon ils doivent rescanner le QR de connexion.
 - **Reconnexion des clients** : automatique, avec des délais croissants (1, 2, 4, 8 s, puis toutes les 10 s), et un bandeau « Connexion à l'hôte perdue… » tant qu'elle n'est pas rétablie.
 
@@ -123,7 +123,7 @@ Le bouton **« Valider la sélection »** envoie la liste des QR à l'hôte (`va
 ### 5.3 Écran de confirmation
 
 1. Les **images des cartes** de la combinaison, côte à côte.
-2. Pour chaque action possible, un bouton (« Admettre », « Diagnostiquer », « Traiter », « Analyser » selon le motif) accompagné de sa **phrase d'aperçu** calculée par l'hôte, par exemple : *« Tentative de soin de M. Dupont par le Dr Lefort et la Dr Benali dans le bloc opératoire. »*
+2. Pour chaque action possible, un bouton (« Admettre », « Diagnostiquer », « Traiter », « Analyser » selon les motifs reconnus et les préconditions : le laboratoire ne propose qu'« Analyser ») accompagné de sa **phrase d'aperçu** calculée par l'hôte, par exemple : *« Tentative de soin de M. Dupont par le Dr Cassagne et le Dr Vasseur dans le bloc opératoire. »*
 3. Un bouton **« Annuler »** : rien n'est appliqué et l'appli revient à la sélection.
 
 L'aperçu ne révèle **aucune information cachée** (maladie, PV).
@@ -139,7 +139,7 @@ L'aperçu ne révèle **aucune information cachée** (maladie, PV).
 ### 5.6 Écran de résultat
 
 - Visible **uniquement** sur le téléphone de l'acteur. Il n'existe ni bouton « révéler », ni envoi aux autres téléphones.
-- Contenu : PV avant → après, temps du patient et éventuelle attente dépassée, diagnostic (liste des 5 maladies les plus probables, chacune avec son pourcentage de confiance, la couleur et l'icône de sa spécialité), issue (en jeu, soigné ou mort, avec la maladie révélée à la sortie), pièces gagnées, impact sur la réputation. Pour une **analyse** (laboratoire de recherche) s'ajoutent : la liste des maladies suspectées du patient, la maladie choisie, et les passages restants ou la recette révélée. Le détail figure dans [MODELE_DE_JEU.md §11](MODELE_DE_JEU.md#11-contenu-dun-résultat).
+- Contenu : PV avant → après, temps du patient et éventuelle attente dépassée, diagnostic (liste des 5 maladies les plus suspectes, chacune avec son indice de suspicion, la couleur et l'icône de sa spécialité), issue (en jeu, guéri ou mort, avec la maladie révélée à la sortie), pièces gagnées, impact sur la réputation. Pour une **analyse** (laboratoire de recherche) s'ajoutent : la liste des maladies suspectées du patient, la maladie choisie, et les passages restants ou la recette révélée. Le détail figure dans [MODELE_DE_JEU.md §11](MODELE_DE_JEU.md#11-contenu-dun-résultat).
 - Deux rappels : « Pièces : à garder ou à céder en partie à l'hôpital » et, si l'impact n'est pas nul, « Réputation : reportez −2 sur la piste de l'hôpital ».
 - Un bouton **« OK / Fin de l'action »** ramène à l'écran de sélection.
 
@@ -201,7 +201,7 @@ Le contenu et les règles sont décrits par un **paquet de jeu** :
 
 - le **paquet de base** est embarqué ; les **extensions** sont des `.zip` importés, contenant `jeu.json` et un dossier `images/` réservé ;
 - en v1, les extensions **n'ajoutent pas de cartes** : elles modifient les maladies, les traitements, les paramètres, les récompenses, les difficultés et les phrases ;
-- le **catalogue cible** du paquet de base compte 10 médecins, 30 patients, 30 objets et diplômes, 10 salles et 100 maladies ;
+- le **catalogue** du paquet de base compte 10 médecins, 12 patients, 21 objets et diplômes (plus les objets d'aide à la recherche, à créer), 11 salles dont le laboratoire de recherche, et 103 maladies ;
 - chaque paquet est validé à l'import (JSON Schema et contrôles sémantiques) et versionné.
 
 Le détail est dans [MOTEUR_EFFETS.md](MOTEUR_EFFETS.md).
@@ -211,11 +211,11 @@ Le détail est dans [MOTEUR_EFFETS.md](MOTEUR_EFFETS.md).
 | Exigence | Cible |
 |---|---|
 | Version Android minimale | Android 8.0 (API 26) |
-| Clients simultanés | Illimité côté serveur ; testé jusqu'à ~8 clients |
+| Clients simultanés | Illimité côté serveur ; testé avec 3 téléphones (2 à 3 joueurs), et un essai à 5 pour la marge |
 | Latence de « Valider » à l'aperçu | < 300 ms en réseau local |
 | Latence de « Confirmer » au résultat | < 500 ms, sauvegarde automatique comprise |
 | Détection de 4 cartes | < 3 s en éclairage intérieur normal (à valider en phase 0) |
-| Validation d'un paquet du catalogue cible | < 2 s |
+| Validation du paquet de base (103 maladies, 2 650 combinaisons) | < 2 s |
 | Autonomie de l'hôte | Mesurée en phase 3 sur une partie de 2 h |
 | Langue | Français en v1 ; les textes d'interface sont externalisés (fichiers ARB) pour une traduction future |
 | Accessibilité | Respect de la taille de police système ; contrastes suffisants ; la couleur d'une spécialité est toujours doublée de son icône et de son nom (daltonisme) |
@@ -244,7 +244,7 @@ Permissions Android : `CAMERA`, `INTERNET`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK
 | # | Décision | Référence |
 |---|---|---|
 | D1 | Android 8.0 (API 26) minimum | §9 |
-| D2 | Clients illimités, testé jusqu'à ~8 | §9 |
+| D2 | Clients illimités, testé avec 3 téléphones, et 5 pour la marge | §9 |
 | D3 | Pas de partie rejouable ni de journal rejouable ; instantanés limités aux 5 dernières actions | §7.3 |
 | D4 | Confirmation obligatoire | §5.3 |
 | D5 | Résultat privé, sur le seul téléphone de l'acteur | §5.6 |
@@ -253,7 +253,7 @@ Permissions Android : `CAMERA`, `INTERNET`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK
 | D8 | Montants entiers, arrondi au plus proche (demi éloigné de zéro), base non nulle ≥ 1 | [Modèle §7](MODELE_DE_JEU.md#7-récompenses) |
 | D9 | Maladie tirée au hasard à l'admission, indépendante de la carte | [Modèle §4.1](MODELE_DE_JEU.md#41-admission) |
 | D10 | Un patient entre en jeu quand sa carte est scannée seule pour la première fois | [Modèle §4.1](MODELE_DE_JEU.md#41-admission) |
-| D11 | Diagnostic probabiliste, retiré à chaque fois, pouvant être faux : liste des 5 maladies les plus probables, pourcentages de confiance indépendants, couleur et icône par spécialité, bruit corrigé selon le nombre de maladies par spécialité ; une spécialité concordante renforce sa couleur, une discordante la fait reculer, sans qu'aucun signal ne soit certain | [Modèle §8](MODELE_DE_JEU.md#8-diagnostic-probabiliste) |
+| D11 | Diagnostic probabiliste, tiré à nouveau à chaque fois, pouvant être faux : liste des 5 maladies les plus suspectes, indices de suspicion indépendants (pas des probabilités), couleur et icône par spécialité, bruit corrigé selon le nombre de maladies par spécialité ; une spécialité concordante renforce sa couleur, une discordante la fait reculer ; seule une tête à 95 ou plus est presque toujours juste | [Modèle §8](MODELE_DE_JEU.md#8-diagnostic-probabiliste) |
 | D12 | Traitements définis par maladie dans le JSON (carte précise, nombre de médecins par spécialité, salle) | [Modèle §6](MODELE_DE_JEU.md#6-traitement) |
 | D13 | Temps propre à chaque patient, avancé par chaque action confirmée sur lui | [Modèle §5](MODELE_DE_JEU.md#5-temps-et-aggravation) |
 | D14 | Pièces gagnées par l'acteur, partagées hors appli entre lui (objets, diplômes) et l'hôpital (salles) | [Modèle §7](MODELE_DE_JEU.md#7-récompenses) |
@@ -262,12 +262,12 @@ Permissions Android : `CAMERA`, `INTERNET`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK
 | D17 | L'aperçu est calculé par l'hôte | §5.2 |
 | D18 | Extensions au format `.zip` (JSON + images) | [Moteur §1](MOTEUR_EFFETS.md#1-paquet-de-jeu) |
 | D19 | Les extensions n'ajoutent pas de cartes en v1 | [Moteur §1.2](MOTEUR_EFFETS.md#12-ce-quune-extension-peut-faire-en-v1) |
-| D20 | Catalogue cible : 10 médecins, 30 patients, 30 objets/diplômes, 10 salles, 100 maladies | §8 |
+| D20 | Catalogue du paquet de base : 10 médecins, 12 patients, 21 objets/diplômes, 11 salles dont le laboratoire, 103 maladies | §8 |
 | D21 | La page admin sert au démarrage et à la connexion ; le reste est du debug | §7 |
 | D22 | Réputation tenue à la main ; sous un seuil, l'hôpital ferme et tous les joueurs perdent (règle de table, l'appli ne tient pas le total) | [Modèle §7.1](MODELE_DE_JEU.md#71-réputation-et-fermeture-de-lhôpital) |
-| D23 | Salle recherche : motif `recherche` déclaré avant `standard`, action `analyser` avec choix d'une maladie suspectée, révélation de la recette complète du traitement adapté après `recherche.passages` passages (global à la partie), coût = temps + aggravation, aucune pièce | [Modèle §12](MODELE_DE_JEU.md#12-recherche-en-laboratoire) |
-| D24 | Les joueurs jouent à tour de rôle, même avec plusieurs smartphones ; l'appli ne gère ni l'ordre des tours, ni deux diagnostics en parallèle | §1, [Modèle §1](MODELE_DE_JEU.md#1-partage-des-responsabilités) |
-| D25 | Les joueurs peuvent partager leurs diagnostics ou les garder pour eux ; les probabilités sont réglées pour que ne rien mettre en commun rende la défaite commune (réputation à 0) quasi inévitable | [Modèle §8.6](MODELE_DE_JEU.md#86-partage-des-diagnostics-entre-joueurs) |
+| D23 | Salle recherche : motif `recherche` (médecin + patient + salle + accessoire facultatif) ; les actions de tous les motifs reconnus sont réunies puis filtrées par précondition, si bien que le laboratoire ne sert qu'à analyser et qu'aucune autre salle ne permet d'analyser ; action `analyser` avec choix d'une maladie suspectée, révélation de la recette complète du traitement adapté après `recherche.passages` passages (global à la partie), coût = temps + aggravation, aucune pièce | [Modèle §12](MODELE_DE_JEU.md#12-recherche-en-laboratoire) |
+| D24 | Les joueurs jouent à tour de rôle, même avec plusieurs smartphones ; l'appli n'impose aucun ordre de jeu et ne bloque pas deux actions simultanées | §1, [Modèle §1](MODELE_DE_JEU.md#1-partage-des-responsabilités) |
+| D25 | Les joueurs peuvent partager leurs diagnostics ou les garder pour eux ; les probabilités sont réglées pour que ne rien mettre en commun rende la défaite commune (réputation sous le seuil de fermeture) quasi inévitable | [Modèle §8.6](MODELE_DE_JEU.md#86-partage-des-diagnostics-entre-joueurs) |
 
 ## 12. Questions ouvertes
 
@@ -276,8 +276,8 @@ Les choix ci-dessous ont été pris par défaut dans cette version et restent à
 1. **La 4ᵉ carte est-elle facultative ?** Choix actuel : oui, une combinaison standard compte 3 ou 4 cartes.
 2. **Sélection cumulative** (§4.1) : les cartes n'ont pas besoin d'être visibles simultanément. À confirmer après le prototype de détection.
 3. **Choix de l'action** : une combinaison standard propose « Diagnostiquer » et « Traiter » sur l'écran de confirmation.
-4. **Révélation de la maladie** à la sortie du patient (soigné ou mort) : choix actuel, oui.
+4. **Révélation de la maladie** à la sortie du patient (guéri ou mort) : choix actuel, oui.
 5. **PV affichés à l'acteur** après chaque action : choix actuel, oui (les PV ne sont pas une information cachée).
 6. **Valeur de départ et seuil de fermeture** de la réputation : à fixer par simulation (phase 1), éventuellement différents selon le niveau de difficulté.
-7. **Traitement partiel** (stabilisation sans guérison) : niveau intermédiaire introduit pour conserver « gagne des PV sans être soigné ». À garder ou à supprimer.
+7. **Traitement partiel** (stabilisation : gain de PV sans guérison ni aggravation) : niveau intermédiaire introduit pour conserver « gagne des PV sans être guéri ». À garder ou à supprimer.
 8. **Fin de partie** : comment sont comptés les patients encore en jeu ? C'est une règle de table, mais elle peut influencer l'équilibrage.
