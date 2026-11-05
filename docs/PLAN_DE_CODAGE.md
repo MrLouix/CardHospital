@@ -29,7 +29,7 @@ Aucun ne bloque le démarrage. Chacun est tranché au moment du codage, puis rep
 
 | Prérequis | Nécessaire pour | Statut |
 |---|---|---|
-| **Contenu du jeu** : spécialité et capacités de chaque carte, environ 20 maladies pour la phase 1 et 100 pour la phase 5 | Simulateur (phase 1), contenu complet (phase 5) | 6 maladies dans l'exemple. C'est le principal travail non technique : sans contenu, le simulateur n'apprend rien d'utile. |
+| **Contenu du jeu** : spécialité et capacités de chaque carte, environ 20 maladies pour la phase 1 et 100 pour la phase 5 | Simulateur (phase 1), contenu complet (phase 5) | Paquet de base 1.0.0 rédigé : 103 maladies sur 5 spécialités. Il manque 18 patients et 9 objets ou diplômes pour le catalogue cible, et des traitements plus variés au sein de chaque spécialité (§5.4) |
 | **Images des cartes** | Phase 2 et suivantes | Des images provisoires suffisent jusqu'à la phase 4 |
 | **Téléphones de test**, dont un d'entrée de gamme sous API 26–28 | Phase 0 | À réunir |
 | **Impression de la planche de QR** de test, en finition mate et brillante | Phase 0 | Après génération de la planche |
@@ -70,7 +70,8 @@ Dès le premier commit de code :
 - `dart format --set-exit-if-changed` et `dart analyze` (zéro warning) ;
 - `dart test` sur `packages/moteur`, avec mesure de couverture ;
 - validation de `docs/exemples/jeu.exemple.json` contre le schéma ;
-- plus tard : `flutter analyze` et construction de l'APK pour `app/`.
+- `prototypes/detection` (workflow `detection`) : `dart format`, `flutter analyze`, `flutter test`, puis construction de l'APK release, publiée dans la release GitHub `detection-latest` (lien de téléchargement direct pour les testeurs, sans compte GitHub) et en artefact `detection-apk` ;
+- plus tard : la même chose pour `app/`.
 
 ## 5. Démarrage : phases 0 et 1 en parallèle
 
@@ -81,9 +82,9 @@ Les deux phases sont indépendantes : la phase 0 lève le risque matériel (cam�
 Réparti entre le code (Claude) et les essais physiques (l'équipe).
 
 - [x] **Générateur de planche de QR** (`outils/planche_qr`) : PDF A4 avec des QR de 1,5, 2 et 2,5 cm, en correction M et Q, avec une marge de 4 modules et le contenu `MED-001`, `PAT-001`… Chaque QR est étiqueté par sa taille et son niveau de correction.
-- [ ] **Appli de test** (`prototypes/detection`) : flux caméra `mobile_scanner`, liste des QR détectés par image avec horodatage, deux modes (détection simultanée / sélection cumulative selon [SPECIFICATION.md §4.1](SPECIFICATION.md#41-sélection-cumulative)), chronomètre « 4 cartes sélectionnées en X s », export des mesures en CSV.
+- [x] **Appli de test** (`prototypes/detection`, mode d'emploi dans son [README](../prototypes/detection/README.md)) : flux caméra `mobile_scanner`, liste des QR détectés par image avec horodatage, deux modes (détection simultanée / sélection cumulative selon [SPECIFICATION.md §4.1](SPECIFICATION.md#41-sélection-cumulative)), chronomètre « 4 cartes sélectionnées en X s », export des mesures en CSV. S'y ajoutent le choix de la résolution de la caméra, la saisie des conditions de l'essai (finition, taille, correction, éclairage, support, distance, angle), le suivi en direct des critères de sortie et l'enregistrement des essais sur le téléphone. La caméra n'a pas pu être testée dans l'environnement de développement : la logique et les écrans le sont, avec une caméra factice.
 - [ ] **Essais physiques** (équipe) : impression mate et brillante, protocole de la [feuille de route](FEUILLE_DE_ROUTE.md#phase-0--prototype-de-détection), au moins 3 téléphones.
-- [ ] **Bilan** : taille de QR, niveau de correction, finition et mode de sélection arrêtés et reportés dans [SPECIFICATION.md §4](SPECIFICATION.md#4-détection-des-cartes).
+- [ ] **Bilan** : taille de QR, niveau de correction, finition, mode de sélection et résolution de la caméra arrêtés et reportés dans [SPECIFICATION.md §4](SPECIFICATION.md#4-détection-des-cartes). À trancher aussi : `mobile_scanner` ne signale pas les images sans QR, donc la règle « détecté sur 2 images consécutives » (§4.1) est approchée par « 2 détections successives à moins de 300 ms ». Le bilan dira si cette approximation filtre assez les fausses lectures, ou s'il faut une autre règle (par exemple 3 détections).
 
 La caméra ne peut pas être testée depuis l'environnement de développement de Claude : les mesures viennent obligatoirement des essais physiques.
 
@@ -99,17 +100,17 @@ Ordre de réalisation, chaque étape étant livrée avec ses tests :
 6. [x] **Diagnostic probabiliste** : liste des 5 maladies les plus probables, pourcentages de confiance indépendants, couleur et icône de chaque spécialité, bruit corrigé selon le nombre de maladies par spécialité. Tests statistiques sur graine fixe, comparés aux valeurs de [MODELE_DE_JEU.md §8.4](MODELE_DE_JEU.md#84-comportement-attendu). Cette version remplace le premier diagnostic (distribution sur le type, puis liste de noms), dont la liste de noms révélait le type avec certitude (voir §5.4).
 7. [x] **Résultat et état** : formats arrêtés (points P1 et P2), sérialisation et restauration des instantanés.
 8. [x] **Simulateur** (`bin/simuler.dart`) : stratégies simples (traiter au hasard, diagnostiquer jusqu'à X % puis traiter, se fier à la spécialité). Il mesure le taux de guérison, la durée de vie des patients, les pièces et la réputation par action, et produit un rapport reproductible.
-9. [ ] **Paquet de base intermédiaire** : environ 20 maladies, à rédiger avec l'équipe (voir §3).
+9. [x] **Paquet de base** : rédigé par l'équipe, au-delà du paquet intermédiaire prévu. [`contenu/paquet_base.json`](../contenu/paquet_base.json) compte 5 spécialités et 103 maladies, et passe le validateur complet sans erreur ni avertissement (`dart run tool/valider_paquet.dart ../../contenu/paquet_base.json`). Restent à compléter pour le catalogue cible : 18 patients et 9 objets ou diplômes ([MODELE_DE_JEU.md §2.1](MODELE_DE_JEU.md#21-catalogue-cible-du-paquet-de-base)).
 10. [ ] **Salle recherche** (`schema_version` 2) : motif `recherche` prioritaire (déclaré avant `standard`), action `analyser` avec choix de la maladie par le joueur, nouvel effet `rechercher`, champ `recherche.passages` des maladies, capacité `recherche`, spécialité `recherche` réservée aux salles, montée du schéma + migration v1 → v2, proposition d'actions filtrée par précondition de combinaison. Conception : [MOTEUR_EFFETS.md §9](MOTEUR_EFFETS.md#9-salle-recherche-prévu-pour-schema_version-2) et [MODELE_DE_JEU.md §12](MODELE_DE_JEU.md#12-recherche-en-laboratoire). Tests positifs et négatifs.
     Déjà en place dans le moteur, avec leurs tests : le premier motif déclaré l'emporte, et l'aperçu ne propose que les actions dont la précondition est vérifiée, y compris une précondition de combinaison. Une précondition de combinaison non satisfaite donne un message sur les cartes (« Aucune action possible avec ces cartes ») et non sur l'état du patient. Restent à faire : l'état (maladies suspectées par patient, passages restants par maladie, à ajouter au format de sauvegarde P2), le paramètre `maladie_id` de la confirmation, l'effet `rechercher` et la génération des recettes, les champs du résultat propres à l'analyse, le schéma v2 et sa migration.
 
 Critères de fin : ceux de la [feuille de route](FEUILLE_DE_ROUTE.md#phase-1--moteur-deffets-validateur-et-simulateur), soit une couverture ≥ 90 %, un test négatif par règle de validation et un rapport de simulation reproductible.
 
-État des critères (fin de l'étape 8) :
+État des critères :
 
-- **couverture** : 95 % hors code généré, vérifiée en intégration continue avec un seuil de 90 % (`dart run tool/couverture.dart`) ;
+- **couverture** : 97 % hors code généré, vérifiée en intégration continue avec un seuil de 90 % (`dart run tool/couverture.dart`) ;
 - **rapport reproductible** : atteint ; même graine, même rapport, testé. Rapport de référence : [simulations/rapport_exemple.md](simulations/rapport_exemple.md) ;
-- **un test négatif par règle de validation** : partiel. Les règles 4 à 9 sont testées, sauf la règle 3. Restent : la conformité complète au JSON Schema (règle 1 : le validateur ne contrôle encore qu'une partie du schéma, sans la bibliothèque `json_schema` prévue), la règle 2 (une seule version de schéma existe) et la règle 3 (le catalogue embarqué n'existe pas encore).
+- **un test négatif par règle de validation** : atteint. Chacune des 9 règles de [MOTEUR_EFFETS.md §7](MOTEUR_EFFETS.md#7-validation-à-limport) a au moins un test négatif (`packages/moteur/test/validateur_test.dart`). La règle 1 contrôle désormais le JSON Schema complet (bibliothèque `json_schema`), avec plusieurs tests par type d'erreur.
 
 ### 5.3 Utiliser le moteur et le simulateur
 
@@ -118,7 +119,9 @@ Depuis `packages/moteur` :
 ```bash
 dart test
 dart run bin/simuler.dart --parties 2000 --strategies hasard,seuil:70,couleur:70
+dart run bin/simuler.dart --paquet ../../contenu/paquet_base.json --parties 1000
 dart run bin/simuler.dart --help
+dart run tool/valider_paquet.dart ../../contenu/paquet_base.json
 ```
 
 Stratégies disponibles :
@@ -140,7 +143,14 @@ Les stratégies voient ce que voit un joueur (résultats des actions, spécialit
 - les stratégies informées (`seuil:X`, `couleur:X`) guérissent 99 % des patients en Interne et 90 à 94 % en Réanimation, en 1,1 à 1,3 diagnostic. Les paramètres par défaut sont calés pour une centaine de maladies : avec 6, la vraie maladie ressort presque toujours en tête, et le diagnostic est trop facile ;
 - `couleur:X` ne fait pas mieux que `seuil:X`, car un seul diagnostic suffit le plus souvent.
 
-**À refaire avec le paquet intermédiaire** (environ 20 maladies, étape 9) : comparer `seuil:X` et `couleur:X`, vérifier que suivre la couleur est récompensé sans être infaillible, puis régler `verite`, `affinite_type`, `bonus_specialite` et `exclusion` pour la taille réelle du paquet. Le comportement sur le catalogue cible (100 maladies) est déjà mesuré dans [MODELE_DE_JEU.md §8.4](MODELE_DE_JEU.md#84-comportement-attendu). La valeur de départ et le seuil de fermeture de la réputation ne sont à fixer qu'après ce réglage.
+**Sur le paquet de base** (103 maladies, 5 spécialités ; rapport [simulations/rapport_paquet_base.md](simulations/rapport_paquet_base.md)) :
+
+- Le jeu au hasard est puni comme voulu : 5 % de guérison en Interne, 3 % en Réanimation.
+- Les stratégies informées guérissent encore 94 à 98 % des patients en Interne, et 82 à 87 % en Réanimation. Le diagnostic n'est pas en cause : chaque spécialité a **très peu de traitements adaptés distincts**. En psychiatrie, par exemple, 18 maladies sur 20 se soignent de la même façon ; dans les autres spécialités, le traitement le plus courant couvre de 12 à 15 maladies. Connaître la spécialité suffit donc presque à soigner. Diversifier les traitements au sein d'une spécialité (cartes précises, nombre de médecins, salle, accessoire) rendrait le nom de la maladie décisif.
+- `couleur:80` fait un peu mieux que `seuil:80` (97,6 % contre 96,8 % en Interne, 89,8 % contre 87,9 % en Chirurgien) : suivre la couleur est récompensé, modestement.
+- **Correction de moteur liée à ce paquet** : 114 prédicats `compte` du paquet, comme `{ "compte": { "type": "salle", "id": "SAL-001" } }`, n'avaient ni `min` ni `max`, et étaient donc toujours vrais. Un `compte` sans borne exige désormais au moins une carte ([MOTEUR_EFFETS.md §5](MOTEUR_EFFETS.md#5-prédicats)). Ces prédicats ont ainsi le sens voulu par leur auteur, la bonne salle est vraiment exigée, et le jeu au hasard est passé de 38 % à 5 % de guérison.
+
+**Reste à faire au simulateur** : la stratégie « sans partage » demandée par [MODELE_DE_JEU.md §8.6](MODELE_DE_JEU.md#86-partage-des-diagnostics-entre-joueurs), où chaque joueur ne voit que ses propres diagnostics, pour régler le diagnostic de sorte que ne rien mettre en commun mène presque toujours à la défaite. La valeur de départ et le seuil de fermeture de la réputation ne sont à fixer qu'après ce réglage.
 
 ## 6. Après le démarrage
 

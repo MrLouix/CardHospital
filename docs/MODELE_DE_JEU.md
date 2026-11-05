@@ -23,16 +23,18 @@ Règle de table, hors appli : **2 à 3 joueurs**. Chaque joueur reçoit au dépa
 
 ### 2.1 Catalogue cible du paquet de base
 
-| Entité | Nombre | Support |
-|---|---|---|
-| Médecins | 10 | carte |
-| Patients | 30 | carte |
-| Objets et diplômes | 30 | carte |
-| Salles | 10 | carte |
-| Maladies | 100 | virtuelle (dans le JSON) |
-| Spécialités | 5 + extensibles | virtuelle |
+| Entité | Cible | Paquet de base 1.0.0 | Support |
+|---|---|---|---|
+| Médecins | 10 | 10 | carte |
+| Patients | 30 | 12 | carte |
+| Objets et diplômes | 30 | 21 (16 objets, 5 diplômes) | carte |
+| Salles | 10 | 10 | carte |
+| Maladies | 100 | 103 | virtuelle (dans le JSON) |
+| Spécialités | 5 + extensibles | 5 | virtuelle |
 
-Spécialités du paquet de base (`contenu/paquet_base.json`) : `generale`, `cardiologie`, `psychiatrie`, `orthopedie`, `paranormal`. La valeur `generaliste` peut être portée par une carte (salle généraliste, médecin généraliste) mais **n'est jamais le type d'une maladie**. La valeur `recherche` est **réservée aux salles** (laboratoire de recherche, §12) : elle n'est jamais le type d'une maladie, ni portée par un médecin, un objet ou un diplôme.
+Le paquet de base est dans [`contenu/paquet_base.json`](../contenu/paquet_base.json).
+
+Spécialités du paquet de base : `generale` (médecine générale), `cardiologie`, `psychiatrie`, `orthopedie` et `paranormal` (maladies étranges). La valeur `generaliste` peut être portée par une carte (salle généraliste, médecin généraliste) mais **n'est jamais le type d'une maladie**. Elle ne se confond pas avec la spécialité `generale` : un médecin `generaliste` n'est concordant avec aucune maladie, alors qu'un médecin `generale` concorde avec les maladies de médecine générale. La valeur `recherche` est **réservée aux salles** (laboratoire de recherche, §12) : elle n'est jamais le type d'une maladie, ni portée par un médecin, un objet ou un diplôme.
 
 ### 2.2 Cartes
 

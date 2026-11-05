@@ -78,7 +78,10 @@ class Combinaison {
       for (final e in cartes.entries) {
         if (_correspond(e.key, e.value, p.compte!)) compte++;
       }
-      if (p.min != null && compte < p.min!) return false;
+      // Sans aucune borne, un compte exige au moins une carte : sinon il
+      // serait toujours vrai (MOTEUR_EFFETS.md §5).
+      final min = p.min ?? (p.max == null ? 1 : 0);
+      if (compte < min) return false;
       if (p.max != null && compte > p.max!) return false;
       return true;
     }
