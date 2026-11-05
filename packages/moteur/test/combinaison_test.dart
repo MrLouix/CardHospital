@@ -92,6 +92,20 @@ void main() {
       );
     });
 
+    test('compte sans borne : au moins une carte ; max seul : minimum 0', () {
+      final salle = {'type': 'salle', 'id': 'SAL-002'};
+      expect(comb.satisfait(p({'compte': salle})), isTrue);
+      expect(
+        c(['MED-002', 'PAT-001', 'SAL-001']).satisfait(p({'compte': salle})),
+        isFalse,
+        reason: 'sans min ni max, la salle SAL-002 doit être présente',
+      );
+      final objet = {'type': 'objet'};
+      expect(comb.satisfait(p({'compte': objet, 'max': 0})), isTrue);
+      expect(comb.satisfait(p({'compte': objet, 'max': 1})), isTrue);
+      expect(comb.satisfait(p({'compte': objet, 'min': 0})), isTrue);
+    });
+
     test('compte : min et max relus puis réécrits au bon niveau', () {
       final json = {
         'compte': {'type': 'medecin'},

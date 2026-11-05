@@ -8,7 +8,7 @@ Termes utilisés dans l'ensemble de la documentation. En cas de doute, ce glossa
 | **Accessoire** | Carte de type `objet` ou `diplome`. Occupe la 4ᵉ place d'une combinaison standard. |
 | **Diplôme** | Accessoire portant éventuellement une spécialité. Joué comme accessoire, un diplôme de spécialité X compte comme un médecin de spécialité X dans les prédicats `compte` demandant `type: medecin` avec `specialite: X`. |
 | **Maladie** | Pathologie **virtuelle** (aucune carte) tirée au hasard par l'hôte lors de l'admission d'un patient. Elle est cachée aux joueurs. |
-| **Spécialité** | Catégorie médicale (`psychologie`, `chirurgie`, `pharmacie`, extensible). Chaque maladie a **un type** = une spécialité. Les médecins, salles et accessoires peuvent porter une spécialité. |
+| **Spécialité** | Catégorie médicale (dans le paquet de base : `generale`, `cardiologie`, `psychiatrie`, `orthopedie`, `paranormal` ; extensible). Chaque maladie a **un type** = une spécialité. Les médecins, salles et accessoires peuvent porter une spécialité. |
 | **Capacité** | Bonus chiffré porté par une carte (ex. `precision` pour le diagnostic, `soin` pour les PV restaurés). Liste extensible dans le paquet. |
 | **Sélection** | Ensemble des cartes détectées par la caméra et retenues à l'écran, avant appui sur « Valider la sélection ». |
 | **Combinaison** | Sélection validée et reconnue comme conforme à un **motif** d'action. |

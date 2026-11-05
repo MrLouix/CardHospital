@@ -147,7 +147,7 @@ Les prédicats testent les **cartes d'une combinaison**. Ils servent aux traitem
 | Prédicat | Exemple | Vrai si |
 |---|---|---|
 | `carte` | `{ "carte": "OBJ-012" }` | La carte est dans la combinaison |
-| `compte` | `{ "compte": { "type": "medecin", "specialite": "chirurgie" }, "min": 2 }` | Au moins `min` (et au plus `max`, facultatif) cartes correspondent au filtre |
+| `compte` | `{ "compte": { "type": "medecin", "specialite": "chirurgie" }, "min": 2 }` | Au moins `min` (et au plus `max`, facultatif) cartes correspondent au filtre. Sans `min` ni `max`, il faut **au moins une** carte : `{ "compte": { "type": "salle", "id": "SAL-001" } }` signifie « la salle SAL-001 est dans la combinaison ». Avec `max` seul, le minimum est 0 |
 | `tous` | `{ "tous": [ p1, p2 ] }` | Tous les sous-prédicats sont vrais |
 | `un_de` | `{ "un_de": [ p1, p2 ] }` | Au moins un sous-prédicat est vrai |
 | `non` | `{ "non": p }` | Le sous-prédicat est faux |
