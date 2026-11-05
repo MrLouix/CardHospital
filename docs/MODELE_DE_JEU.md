@@ -14,6 +14,10 @@ Toutes les valeurs numériques citées ici sont des **valeurs par défaut du paq
 | | Partage des pièces entre le médecin et l'hôpital, achats (salles, objets, diplômes) |
 | | Pioche des cartes patient, retour des cartes sorties dans la pioche |
 
+### 1.1 Mise en place
+
+Règle de table, hors appli : **2 à 3 joueurs**. Chaque joueur reçoit au départ **1 carte médecin et 1 carte diplôme**. Chaque médecin porte **une seule spécialité** (ou `generaliste`).
+
 ## 2. Entités
 
 ### 2.1 Catalogue cible du paquet de base
@@ -37,7 +41,7 @@ Une carte est une **identité stable** ; elle ne porte aucun état de partie.
 - **Patient** : nom, image. Aucune maladie ni PV imprimés : tout est tiré à l'admission.
 - **Salle** : nom, image, spécialité (ou `generaliste`), capacités (dont la précision de base du diagnostic).
 - **Objet** (stéthoscope, livre, médicament, équipement…) : nom, image, spécialité facultative, capacités.
-- **Diplôme** : nom, image, spécialité facultative, capacités. Un diplôme se joue **comme un accessoire** dans la combinaison : c'est sa présence qui compte.
+- **Diplôme** : nom, image, spécialité facultative, capacités. Un diplôme se joue **comme un accessoire** dans la combinaison : c'est sa présence qui compte. Joué comme accessoire, un diplôme de spécialité X a la même conséquence qu'un médecin de spécialité X dans les prédicats `compte` (voir [MOTEUR_EFFETS.md §5](MOTEUR_EFFETS.md#5-prédicats)).
 
 Les éventuelles restrictions d'achat (« objet réservé aux détenteurs de tel diplôme ») sont des **règles de table**, invisibles pour l'appli.
 
@@ -131,6 +135,8 @@ Les prédicats de traitement portent sur les cartes de la combinaison : présenc
 | Pharmacie | la carte médicament spécifique à la maladie (ex. `OBJ-012`) | un autre médicament de spécialité `pharmacie` |
 | Chirurgie | 2 médecins de spécialité `chirurgie` + une salle `chirurgie` | 1 seul chirurgien en salle `chirurgie` |
 | Psychologie | un médecin `psychologie` (psychiatre) + une salle `psychologie` | un médecin `psychologie` hors salle dédiée |
+
+Dans un prédicat `compte {type: medecin, specialite: X}`, un diplôme de spécialité X joué comme accessoire **compte comme un médecin de spécialité X** (MOTEUR_EFFETS.md §5).
 
 Le validateur de paquet vérifie que **chaque maladie a au moins un traitement adapté réalisable** avec les cartes du catalogue.
 
