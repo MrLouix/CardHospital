@@ -251,6 +251,12 @@ Un paquet est **refusé** s'il comporte au moins une erreur ; les avertissements
 8. identifiants en double ;
 9. `poids` d'une maladie inférieur à 1 (déjà refusé par le JSON Schema, et revérifié par le validateur sémantique, qui donne un message explicite : `maladies[12].poids : une maladie doit avoir un poids d'au moins 1 ; pour l'écarter, retirez-la du paquet`).
 
+Précisions sur la mise en œuvre (`packages/moteur/lib/validation`) :
+
+- **Règle 1** : le paquet est validé contre le fichier `docs/schema/jeu.schema.json` complet (bibliothèque `json_schema`, draft 2020-12). Les messages sont traduits en français. Quand une forme à variantes est en échec (effet, prédicat, condition, valeur), le validateur repère la variante visée grâce à sa clé (`effet`, `carte`, `compte`, `et`…) et donne l'erreur précise : `actions[1].effets[2].valeur : champ obligatoire absent` plutôt que « effet non reconnu ».
+- **Règle 2** : elle est vérifiée avant le schéma, qui ne connaît que la version courante. Le message reste donc explicite pour un paquet trop récent.
+- **Règle 3** : l'appli fournit le catalogue embarqué, c'est-à-dire les cartes du paquet de base avec leur type. Sans catalogue (validation du paquet de base lui-même, outils), la règle n'est pas vérifiée.
+
 **Avertissements** : dossier `images/` non vide, maladie sans traitement partiel, spécialité portée par aucune carte, deux spécialités de même couleur ou de même icône.
 
 ## 8. Versionnement

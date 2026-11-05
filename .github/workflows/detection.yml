@@ -1,0 +1,41 @@
+name: detection
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "prototypes/detection/**"
+      - ".github/workflows/detection.yml"
+  pull_request:
+    paths:
+      - "prototypes/detection/**"
+      - ".github/workflows/detection.yml"
+
+jobs:
+  detection:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: prototypes/detection
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.9"
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: dart format --set-exit-if-changed lib test
+      - run: flutter analyze
+      - run: flutter test
+      - name: APK release (signé avec la clé de debug, pour les essais)
+        run: flutter build apk --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: detection-apk
+          path: prototypes/detection/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
