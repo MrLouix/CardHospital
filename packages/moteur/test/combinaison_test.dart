@@ -52,6 +52,46 @@ void main() {
       expect(comb.satisfait(p({'compte': filtre, 'min': 1, 'max': 2})), isTrue);
     });
 
+    test('un diplôme de spécialité X compte comme un médecin de X', () {
+      final avecDiplome = c(['MED-004', 'PAT-001', 'SAL-001', 'DIP-001']);
+      expect(
+        avecDiplome.satisfait(
+          p({
+            'compte': {'type': 'medecin', 'specialite': 'pharmacie'},
+            'min': 1,
+          }),
+        ),
+        isTrue,
+      );
+      expect(
+        avecDiplome.satisfait(
+          p({
+            'compte': {'type': 'medecin', 'specialite': 'pharmacie'},
+            'min': 2,
+          }),
+        ),
+        isFalse,
+      );
+      expect(
+        avecDiplome.satisfait(
+          p({
+            'compte': {'type': 'medecin', 'specialite': 'chirurgie'},
+            'min': 1,
+          }),
+        ),
+        isFalse,
+      );
+      expect(
+        avecDiplome.satisfait(
+          p({
+            'compte': {'type': 'medecin'},
+            'min': 2,
+          }),
+        ),
+        isFalse,
+      );
+    });
+
     test('compte : min et max relus puis réécrits au bon niveau', () {
       final json = {
         'compte': {'type': 'medecin'},

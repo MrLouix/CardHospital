@@ -154,6 +154,8 @@ Les prédicats testent les **cartes d'une combinaison**. Ils servent aux traitem
 
 Le filtre d'un `compte` accepte `type`, `specialite` et `id`, chacun sous forme d'une valeur ou d'une liste de valeurs acceptées.
 
+Un **diplôme de spécialité X** présent dans la combinaison compte comme un **médecin de spécialité X** quand le filtre demande `type: medecin` avec `specialite: X` : un diplôme joué comme accessoire a la même conséquence qu'un médecin de cette spécialité. Sans filtre de spécialité (ou avec une spécialité différente), le diplôme ne compte pas comme médecin.
+
 ## 6. Effets
 
 Une action est une **liste d'effets exécutés dans l'ordre**. Chaque effet est un objet discriminé par la clé `effet`.

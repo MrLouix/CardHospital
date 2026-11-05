@@ -8,11 +8,16 @@ Toutes les valeurs numériques citées ici sont des **valeurs par défaut du paq
 
 | Géré par l'appli (hôte) | Géré par les joueurs, hors appli |
 |---|---|
-| Maladie cachée de chaque patient, PV, temps du patient, maladies suspectées et passages restants des analyses (§12) | Tour de jeu, ordre des joueurs |
+| Maladie cachée de chaque patient, PV, temps du patient, maladies suspectées et passages restants des analyses (§12) | **Tour de jeu : les joueurs jouent à tour de rôle**, même si plusieurs smartphones sont disponibles dans la partie. L'appli ne gère ni l'ordre des tours, ni deux diagnostics en parallèle : c'est aux joueurs de faire jouer chacun leur tour |
 | Diagnostic probabiliste, issue des traitements | Points de victoire, conditions de victoire et de défaite (dont la **fermeture de l'hôpital**, §7.1) |
 | Calcul des pièces gagnées et de l'impact sur la réputation, **par action** | Cumul des pièces et de la réputation |
 | | Partage des pièces entre le médecin et l'hôpital, achats (salles, objets, diplômes) |
+| | Partage ou non des résultats de diagnostic entre joueurs (§8.6) |
 | | Pioche des cartes patient, retour des cartes sorties dans la pioche |
+
+### 1.1 Mise en place
+
+Règle de table, hors appli : **2 à 3 joueurs**. Chaque joueur reçoit au départ **1 carte médecin et 1 carte diplôme**. Chaque médecin porte **une seule spécialité** (ou `generaliste`).
 
 ## 2. Entités
 
@@ -37,7 +42,7 @@ Une carte est une **identité stable** ; elle ne porte aucun état de partie.
 - **Patient** : nom, image. Aucune maladie ni PV imprimés : tout est tiré à l'admission.
 - **Salle** : nom, image, spécialité (ou `generaliste`), capacités (dont la précision de base du diagnostic).
 - **Objet** (stéthoscope, livre, médicament, équipement…) : nom, image, spécialité facultative, capacités.
-- **Diplôme** : nom, image, spécialité facultative, capacités. Un diplôme se joue **comme un accessoire** dans la combinaison : c'est sa présence qui compte.
+- **Diplôme** : nom, image, spécialité facultative, capacités. Un diplôme se joue **comme un accessoire** dans la combinaison : c'est sa présence qui compte. Joué comme accessoire, un diplôme de spécialité X a la même conséquence qu'un médecin de spécialité X dans les prédicats `compte` (voir [MOTEUR_EFFETS.md §5](MOTEUR_EFFETS.md#5-prédicats)).
 
 Les éventuelles restrictions d'achat (« objet réservé aux détenteurs de tel diplôme ») sont des **règles de table**, invisibles pour l'appli.
 
@@ -131,6 +136,8 @@ Les prédicats de traitement portent sur les cartes de la combinaison : présenc
 | Pharmacie | la carte médicament spécifique à la maladie (ex. `OBJ-012`) | un autre médicament de spécialité `pharmacie` |
 | Chirurgie | 2 médecins de spécialité `chirurgie` + une salle `chirurgie` | 1 seul chirurgien en salle `chirurgie` |
 | Psychologie | un médecin `psychologie` (psychiatre) + une salle `psychologie` | un médecin `psychologie` hors salle dédiée |
+
+Dans un prédicat `compte {type: medecin, specialite: X}`, un diplôme de spécialité X joué comme accessoire **compte comme un médecin de spécialité X** (MOTEUR_EFFETS.md §5).
 
 Le validateur de paquet vérifie que **chaque maladie a au moins un traitement adapté réalisable** avec les cartes du catalogue.
 
@@ -246,6 +253,12 @@ Ces valeurs sont vérifiées par les tests du moteur (`packages/moteur/test/diag
 ### 8.5 Réglage
 
 Ces paramètres sont dans le JSON (`parametres.diagnostic`). Leur réglage se fait avec le **simulateur** prévu à la phase 1 de la [feuille de route](FEUILLE_DE_ROUTE.md), qui remplace en partie un prototype papier. Les valeurs par défaut sont calées pour le catalogue cible : sur un petit paquet (6 maladies dans l'exemple), la vraie maladie ressort presque toujours, et le diagnostic est trop facile.
+
+### 8.6 Partage des diagnostics entre joueurs
+
+Chaque résultat de diagnostic n'apparaît que sur le téléphone du joueur qui a agi : les joueurs peuvent **partager leurs résultats de diagnostic ou les garder pour eux**. Mettre en commun les listes oriente tous les joueurs ; ne rien mettre en commun laisse chacun agir dans le brouillard, au prix de patients qui s'aggravent et d'une réputation qui fond (§7.1).
+
+Les probabilités du diagnostic (§8.3) doivent être calculées et réglées — avec le simulateur, qui devra comporter une stratégie « sans partage » où chaque joueur ne voit que ses propres diagnostics — pour que si les joueurs ne mettent **rien en commun**, la défaite commune (réputation de l'hôpital à 0, §7.1) soit **quasi inévitable**.
 
 ## 9. Ordre de résolution d'une action
 
