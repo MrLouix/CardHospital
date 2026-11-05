@@ -29,7 +29,7 @@ Corrections appliquées à la demande (même branche, après la revue) : **B1 à
 Choix retenus :
 
 - **B2 / B3** : le motif `recherche` est gardé, avec un accessoire facultatif (objet ou diplôme) pour les futurs objets d'aide à la recherche. Le moteur réunit désormais les actions de tous les motifs reconnus, et les préconditions rendent le laboratoire exclusif : il ne sert qu'à analyser, et aucune autre salle ne permet d'analyser. Le laboratoire (`SAL-011`) est dans le paquet de base ; tant que l'action `analyser` n'existe pas (`schema_version` 1), il ne permet aucune action.
-- **B4** : `precision_max` passe de 5 à 4. **Mesure après correction** (paquet de base, précision maximale sans spécialité) : 28 % des diagnostics ont encore une tête à 95 ou plus, fausse dans 0,04 % des cas (contre 33 % des diagnostics et 0 erreur avant). La quasi-certitude recule mais demeure ; le modèle de jeu le dit désormais. Pour la supprimer, il faudra agir aussi sur `par_niveau` ou sur le plafond d'affichage.
+- **B4** : `precision_max` passe de 5 à 4 et `par_niveau` de 1,5 à 0,8. **Mesure après correction** (paquet de base, précision maximale sans spécialité) : 17 % des diagnostics ont une tête à 95 ou plus (33 % avant), fausse dans 0,07 % des cas. Les quasi-certitudes sont deux fois plus rares, mais restent fiables quand elles apparaissent : le modèle de jeu le dit désormais (§8.1 et §8.4). La vraie maladie est en tête dans 55 % des diagnostics (69 % avant). Côté simulateur, les stratégies informées guérissent 90 à 93 % des patients en Interne (94 à 97 % avant) et 69 à 75 % en Réanimation (80 à 84 % avant).
 - **T1** : la valeur neutre s'appelle `polyvalent` ; `generaliste` reste lu, avec un avertissement.
 - **T3, T4, T7** : renommages faits directement en `schema_version` 1, qui peut encore évoluer tant qu'aucun paquet n'est publié (MOTEUR_EFFETS.md §8). `affinite_type` devient aussi `affinite_specialite`.
 - **T5** : l'issue s'appelle « échec » partout ; les clés `pv_echec` et `reputation_echec` ne changent pas.
@@ -45,7 +45,7 @@ Choix retenus :
 | [B1](#b1) | Un `compte` sans `min` est toujours vrai : les salles exigées sont ignorées | Bloquant | Corrigé |
 | [B2](#b2) | Le motif `recherche` déclaré en tête bloquerait les combinaisons standard à 3 cartes | Bloquant | Corrigé |
 | [B3](#b3) | La capacité `recherche` est donnée aux objets et diplômes, mais le motif `recherche` n'accepte pas d'accessoire | Bloquant | Corrigé |
-| [B4](#b4) | « Aucun signal n'est certain » est faux : une tête de liste à 95 % ou plus n'est jamais fausse | Important | Appliqué, insuffisant (voir le suivi) |
+| [B4](#b4) | « Aucun signal n'est certain » est faux : une tête de liste à 95 % ou plus n'est jamais fausse | Important | Corrigé (`precision_max` 4, `par_niveau` 0,8 ; voir le suivi) |
 | [B5](#b5) | Le paquet de base n'est ni validé ni simulé en intégration continue | Important | Corrigé |
 | [T1](#t1) | `generale` et `generaliste` | Important | Corrigé |
 | [T2](#t2) | « Retiré » se lit « supprimé » alors qu'il veut dire « tiré à nouveau » | Mineur | Corrigé |

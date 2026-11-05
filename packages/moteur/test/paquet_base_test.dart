@@ -108,7 +108,8 @@ void main() {
     );
   });
 
-  test('le diagnostic plafonne la précision à 4', () {
+  test('diagnostic : précision plafonnée à 4, bonus par niveau de 0,8', () {
     expect(jeu.parametres.diagnostic.precisionMax, 4);
+    expect(jeu.parametres.diagnostic.parNiveau, 0.8);
   });
 }

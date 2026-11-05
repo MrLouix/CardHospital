@@ -11,7 +11,7 @@
     "diagnostic": {
       "precision_max": 4,
       "verite": 3.0,
-      "par_niveau": 1.5,
+      "par_niveau": 0.8,
       "affinite_specialite": 0.2,
       "bonus_specialite": 0.3,
       "exclusion": 0.75,

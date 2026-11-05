@@ -256,7 +256,7 @@ Valeurs par défaut :
 |---|---|---|
 | `precision_max` | 4 | Plafond du niveau de précision N |
 | `verite` | 3,0 | Bonus de base de la vraie maladie |
-| `par_niveau` | 1,5 | Bonus de la vraie maladie par niveau de précision |
+| `par_niveau` | 0,8 | Bonus de la vraie maladie par niveau de précision |
 | `affinite_specialite` | 0,2 | Bonus de toutes les maladies de la vraie spécialité |
 | `bonus_specialite` | 0,3 | Bonus des maladies de la vraie spécialité si elle est dans la combinaison |
 | `exclusion` | 0,75 | Facteur des maladies d'une spécialité de la combinaison qui n'est pas la vraie |
@@ -269,16 +269,16 @@ Sur le paquet de base (103 maladies sur 5 spécialités), pour une maladie de ca
 
 | Combinaison | N | Vraie maladie en tête | Vraie maladie dans la liste | 1ʳᵉ couleur juste | Couleur dominante juste | Indice de la tête : juste / fausse |
 |---|---|---:|---:|---:|---:|---:|
-| Aucune spécialité (Dr Moreau à la pharmacie) | 1 | 46 % | 63 % | 64 % | 58 % | 83 / 65 |
-| Aucune spécialité (Dr Moreau en radiologie) | 4 | 66 % | 78 % | 77 % | 65 % | 88 / 65 |
-| Spécialité concordante (Dr Benali en salle de cardiologie) | 1 | 51 % | 68 % | 81 % | 81 % | 87 / 70 |
-| Spécialité concordante (Dr Benali en radiologie, stéthoscope) | 4 | 69 % | 81 % | 88 % | 85 % | 92 / 70 |
-| Spécialité discordante (Dr Sauvage en salle de psychiatrie) | 1 | 47 % | 64 % | 67 % | 62 % | 83 / 64 |
+| Aucune spécialité (Dr Moreau à la pharmacie) | 1 | 41 % | 58 % | 61 % | 56 % | 82 / 65 |
+| Aucune spécialité (Dr Moreau en radiologie) | 4 | 55 % | 70 % | 70 % | 61 % | 86 / 65 |
+| Spécialité concordante (Dr Benali en salle de cardiologie) | 1 | 46 % | 64 % | 79 % | 80 % | 86 / 69 |
+| Spécialité concordante (Dr Benali en radiologie, stéthoscope) | 4 | 60 % | 75 % | 84 % | 83 % | 89 / 70 |
+| Spécialité discordante (Dr Sauvage en salle de psychiatrie) | 1 | 42 % | 60 % | 64 % | 60 % | 81 / 64 |
 
 - La **couleur dominante** est la couleur la plus présente dans la liste ; en cas d'égalité, la mieux classée.
 - **Bruit seul** (aucun bonus, catalogue de 100 maladies sur 3 spécialités) : les 5 lignes affichent en moyenne 57, 50, 46, 43 et 41. Un diagnostic flou ressemble à cela.
-- **L'indice informe** : quand la tête est juste, elle affiche en moyenne 83 à 92 ; quand elle est fausse, 64 à 70. Un joueur apprend vite qu'une tête à 95 est presque sûre et qu'une tête à 60 ne prouve rien.
-- **Les têtes très hautes sont presque toujours justes.** À précision maximale sans spécialité (N = 4), 28 % des diagnostics ont une tête à 95 ou plus, fausse dans 0,04 % des cas seulement ; 37 % ont une tête à 90 ou plus, fausse dans 0,3 % des cas. Le passage de `precision_max` de 5 à 4 a réduit la part de ces quasi-certitudes (33 % des diagnostics à 95 ou plus auparavant) sans les supprimer.
+- **L'indice informe** : quand la tête est juste, elle affiche en moyenne 81 à 89 ; quand elle est fausse, 64 à 70. Un joueur apprend vite qu'une tête à 95 est presque sûre et qu'une tête à 60 ne prouve rien.
+- **Les têtes très hautes sont rares, mais presque toujours justes.** À précision maximale sans spécialité (N = 4), 17 % des diagnostics ont une tête à 95 ou plus, fausse dans 0,07 % des cas seulement ; 25 % ont une tête à 90 ou plus, fausse dans 0,5 % des cas. Le passage de `precision_max` de 5 à 4 et de `par_niveau` de 1,5 à 0,8 a divisé par deux la part de ces quasi-certitudes (33 % des diagnostics à 95 ou plus auparavant) ; leur fiabilité, elle, ne change pas, car un indice aussi haut n'est presque jamais atteint par le bruit seul.
 - **La bonne spécialité est récompensée** : avec elle, la couleur dominante est juste environ 8 fois sur 10, contre 6 sur 10 sans spécialité.
 - **La mauvaise spécialité n'est pas éliminée d'un coup** : ses maladies reculent, ce qui améliore un peu la lecture des autres couleurs, mais une seule exclusion ne prouve rien.
 

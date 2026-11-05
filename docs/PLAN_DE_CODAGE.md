@@ -137,16 +137,16 @@ Les stratégies voient ce que voit un joueur (résultats des actions, spécialit
 
 **Sur le paquet d'exemple** (6 maladies, 2 par spécialité), le [rapport](simulations/rapport_exemple.md) n'est **pas représentatif** :
 
-- les stratégies informées (`seuil:X`, `couleur:X`) guérissent 99 % des patients en Interne et 90 à 94 % en Réanimation, en 1,1 à 1,3 diagnostic. Les paramètres par défaut sont calés pour une centaine de maladies : avec 6, la vraie maladie ressort presque toujours en tête, et le diagnostic est trop facile ;
+- les stratégies informées (`seuil:X`, `couleur:X`) guérissent 98 % des patients en Interne et 86 à 90 % en Réanimation, en 1,2 à 1,5 diagnostic. Les paramètres par défaut sont calés pour une centaine de maladies : avec 6, la vraie maladie ressort presque toujours en tête, et le diagnostic est trop facile ;
 - `couleur:X` ne fait pas mieux que `seuil:X`, car un seul diagnostic suffit le plus souvent.
 
 **Sur le paquet de base** (103 maladies sur 5 spécialités, [rapport](simulations/rapport_paquet_base.md)) :
 
-- les stratégies informées guérissent 94 à 97 % des patients en Interne, 80 à 87 % en Chirurgien et 80 à 84 % en Réanimation, avec 1,2 à 2 diagnostics par patient ; le hasard n'en guérit que 3 à 5 % ;
-- suivre la couleur est récompensé sans être infaillible : `couleur:80` guérit 97 % des patients en Interne, contre 95 % pour `seuil:80` ;
+- les stratégies informées guérissent 90 à 93 % des patients en Interne, 73 à 78 % en Chirurgien et 69 à 75 % en Réanimation, avec 1,3 à 2,4 diagnostics par patient ; le hasard n'en guérit que 3 à 5 % ;
+- suivre la couleur est récompensé sans être infaillible : `couleur:80` guérit 93 % des patients en Interne, contre 89 % pour `seuil:80` ;
 - Chirurgien et Réanimation donnent des taux de guérison proches.
 
-**À faire** : régler `verite`, `affinite_specialite`, `bonus_specialite` et `exclusion` sur ce paquet. Le comportement du diagnostic y est mesuré dans [MODELE_DE_JEU.md §8.4](MODELE_DE_JEU.md#84-comportement-attendu). La valeur de départ et le seuil de fermeture de la réputation ne sont à fixer qu'après ce réglage.
+**À faire** : `precision_max` (4) et `par_niveau` (0,8) sont réglés ; restent `verite`, `affinite_specialite`, `bonus_specialite` et `exclusion` sur ce paquet. Le comportement du diagnostic y est mesuré dans [MODELE_DE_JEU.md §8.4](MODELE_DE_JEU.md#84-comportement-attendu). La valeur de départ et le seuil de fermeture de la réputation ne sont à fixer qu'après ce réglage.
 
 ## 6. Après le démarrage
 
