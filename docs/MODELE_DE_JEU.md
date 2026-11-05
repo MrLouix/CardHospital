@@ -30,9 +30,9 @@ Règle de table, hors appli : **2 à 3 joueurs**. Chaque joueur reçoit au dépa
 | Objets et diplômes | 30 | carte |
 | Salles | 10 | carte |
 | Maladies | 100 | virtuelle (dans le JSON) |
-| Spécialités | 3 + extensibles | virtuelle |
+| Spécialités | 5 + extensibles | virtuelle |
 
-Spécialités du paquet de base : `psychologie`, `chirurgie`, `pharmacie`. La valeur `generaliste` peut être portée par une carte (salle généraliste, médecin généraliste) mais **n'est jamais le type d'une maladie**. La valeur `recherche` est **réservée aux salles** (laboratoire de recherche, §12) : elle n'est jamais le type d'une maladie, ni portée par un médecin, un objet ou un diplôme.
+Spécialités du paquet de base (`contenu/paquet_base.json`) : `generale`, `cardiologie`, `psychiatrie`, `orthopedie`, `paranormal`. La valeur `generaliste` peut être portée par une carte (salle généraliste, médecin généraliste) mais **n'est jamais le type d'une maladie**. La valeur `recherche` est **réservée aux salles** (laboratoire de recherche, §12) : elle n'est jamais le type d'une maladie, ni portée par un médecin, un objet ou un diplôme.
 
 ### 2.2 Cartes
 
