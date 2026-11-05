@@ -5,7 +5,7 @@
   "id": "paquet_base",
   "nom": "CardHospital — paquet de base",
   "version": "1.0.0",
-  "description": "Paquet de base complet : 5 spécialités (médecine générale, cardiologie, psychiatrie, orthopédie, dermatologie), 20 maladies par spécialité, 10 médecins, 10 salles (diagnostic et traitement), 12 patients, 16 objets et 5 diplômes.",
+  "description": "Paquet de base complet : 5 spécialités (médecine générale, cardiologie, psychiatrie, orthopédie, paranormal), 20 maladies par spécialité (23 en médecine générale avec les maladies contagieuses), 10 médecins, 10 salles (diagnostic et traitement, dont la salle expérimentale), 12 patients, 16 objets et 5 diplômes.",
   "parametres": {
     "attente_max_defaut": 5,
     "diagnostic": {
@@ -78,8 +78,8 @@
       "nom": "Orthopédie"
     },
     {
-      "id": "dermatologie",
-      "nom": "Dermatologie"
+      "id": "paranormal",
+      "nom": "Paranormal"
     }
   ],
   "capacites": [
@@ -157,15 +157,15 @@
     },
     "MED-009": {
       "type": "medecin",
-      "nom": "Dr Peau",
-      "nom_phrase": "la Dr Peau",
-      "specialite": "dermatologie"
+      "nom": "Dr Obscure",
+      "nom_phrase": "la Dr Obscure",
+      "specialite": "paranormal"
     },
     "MED-010": {
       "type": "medecin",
-      "nom": "Dr Lotion",
-      "nom_phrase": "la Dr Lotion",
-      "specialite": "dermatologie",
+      "nom": "Dr Mystère",
+      "nom_phrase": "la Dr Mystère",
+      "specialite": "paranormal",
       "capacites": {
         "precision": 1
       }
@@ -208,9 +208,9 @@
     },
     "SAL-005": {
       "type": "salle",
-      "nom": "Salle de dermatologie",
-      "nom_phrase": "la salle de dermatologie",
-      "specialite": "dermatologie",
+      "nom": "Salle expérimentale",
+      "nom_phrase": "la salle expérimentale",
+      "specialite": "paranormal",
       "capacites": {
         "precision": 1
       }
@@ -361,15 +361,15 @@
     },
     "OBJ-007": {
       "type": "objet",
-      "nom": "Pommade corticoïde",
-      "nom_phrase": "la pommade corticoïde",
-      "specialite": "dermatologie"
+      "nom": "Amulette de protection",
+      "nom_phrase": "l'amulette de protection",
+      "specialite": "paranormal"
     },
     "OBJ-008": {
       "type": "objet",
-      "nom": "Lampe UV",
-      "nom_phrase": "la lampe UV",
-      "specialite": "dermatologie",
+      "nom": "Grimoire",
+      "nom_phrase": "le grimoire",
+      "specialite": "paranormal",
       "capacites": {
         "precision": 1
       }
@@ -462,9 +462,9 @@
     },
     "DIP-005": {
       "type": "diplome",
-      "nom": "Diplôme de dermatologie",
-      "nom_phrase": "le diplôme de dermatologie",
-      "specialite": "dermatologie"
+      "nom": "Diplôme de parapsychologie",
+      "nom_phrase": "le diplôme de parapsychologie",
+      "specialite": "paranormal"
     }
   },
   "maladies": [
@@ -1408,6 +1408,123 @@
       "recompenses": {
         "reputation_echec": -2
       }
+    },
+    {
+      "id": "rougeole",
+      "nom": "Rougeole",
+      "type": "generale",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-009"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "generale"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "varicelle",
+      "nom": "Varicelle",
+      "type": "generale",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 3,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-009"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "generale"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "gale",
+      "nom": "Gale",
+      "type": "generale",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-009"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "generale"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
     },
     {
       "id": "hypertension_arterielle",
@@ -3969,13 +4086,13 @@
       "attente_max": 5
     },
     {
-      "id": "eczema",
-      "nom": "Eczéma",
-      "type": "dermatologie",
+      "id": "malediction_du_lundi",
+      "nom": "Malédiction du lundi",
+      "type": "paranormal",
       "pv_initial": 8,
       "aggravation": [
         1,
-        1,
+        2,
         2
       ],
       "poids": 2,
@@ -3985,7 +4102,7 @@
             {
               "compte": {
                 "type": "medecin",
-                "specialite": "dermatologie"
+                "specialite": "paranormal"
               },
               "min": 1
             },
@@ -4003,126 +4120,7 @@
         "partiel": {
           "compte": {
             "type": "medecin",
-            "specialite": "dermatologie"
-          },
-          "min": 1
-        }
-      },
-      "attente_max": 6
-    },
-    {
-      "id": "psoriasis",
-      "nom": "Psoriasis",
-      "type": "dermatologie",
-      "pv_initial": 9,
-      "aggravation": [
-        1,
-        1,
-        2
-      ],
-      "poids": 2,
-      "traitement": {
-        "adapte": {
-          "tous": [
-            {
-              "compte": {
-                "type": "medecin",
-                "specialite": "dermatologie"
-              },
-              "min": 1
-            },
-            {
-              "compte": {
-                "type": "salle",
-                "id": "SAL-005"
-              }
-            },
-            {
-              "carte": "OBJ-007"
-            }
-          ]
-        },
-        "partiel": {
-          "compte": {
-            "type": "medecin",
-            "specialite": "dermatologie"
-          },
-          "min": 1
-        }
-      },
-      "attente_max": 7
-    },
-    {
-      "id": "acne_severe",
-      "nom": "Acné sévère",
-      "type": "dermatologie",
-      "pv_initial": 9,
-      "aggravation": [
-        1,
-        1,
-        1
-      ],
-      "poids": 2,
-      "traitement": {
-        "adapte": {
-          "tous": [
-            {
-              "compte": {
-                "type": "medecin",
-                "specialite": "dermatologie"
-              },
-              "min": 1
-            },
-            {
-              "compte": {
-                "type": "salle",
-                "id": "SAL-005"
-              }
-            }
-          ]
-        },
-        "partiel": {
-          "compte": {
-            "type": "medecin",
-            "specialite": "dermatologie"
-          },
-          "min": 1
-        }
-      },
-      "attente_max": 6
-    },
-    {
-      "id": "urticaire",
-      "nom": "Urticaire",
-      "type": "dermatologie",
-      "pv_initial": 6,
-      "aggravation": [
-        1,
-        1
-      ],
-      "poids": 3,
-      "traitement": {
-        "adapte": {
-          "tous": [
-            {
-              "compte": {
-                "type": "medecin",
-                "specialite": "dermatologie"
-              },
-              "min": 1
-            },
-            {
-              "compte": {
-                "type": "salle",
-                "id": "SAL-005"
-              }
-            }
-          ]
-        },
-        "partiel": {
-          "compte": {
-            "type": "medecin",
-            "specialite": "dermatologie"
+            "specialite": "paranormal"
           },
           "min": 1
         }
@@ -4130,168 +4128,14 @@
       "attente_max": 4
     },
     {
-      "id": "verrue_vulgaire",
-      "nom": "Verrue vulgaire",
-      "type": "dermatologie",
-      "pv_initial": 7,
-      "aggravation": [
-        0,
-        1
-      ],
-      "poids": 2,
-      "traitement": {
-        "adapte": {
-          "tous": [
-            {
-              "compte": {
-                "type": "medecin",
-                "specialite": "dermatologie"
-              },
-              "min": 1
-            },
-            {
-              "compte": {
-                "type": "salle",
-                "id": "SAL-005"
-              }
-            }
-          ]
-        },
-        "partiel": {
-          "compte": {
-            "type": "medecin",
-            "specialite": "dermatologie"
-          },
-          "min": 1
-        }
-      },
-      "attente_max": 7
-    },
-    {
-      "id": "verrue_plantaire",
-      "nom": "Verrue plantaire",
-      "type": "dermatologie",
-      "pv_initial": 7,
-      "aggravation": [
-        0,
-        1
-      ],
-      "poids": 2,
-      "traitement": {
-        "adapte": {
-          "tous": [
-            {
-              "compte": {
-                "type": "medecin",
-                "specialite": "dermatologie"
-              },
-              "min": 1
-            },
-            {
-              "compte": {
-                "type": "salle",
-                "id": "SAL-005"
-              }
-            }
-          ]
-        },
-        "partiel": {
-          "compte": {
-            "type": "medecin",
-            "specialite": "dermatologie"
-          },
-          "min": 1
-        }
-      },
-      "attente_max": 7
-    },
-    {
-      "id": "mycose_des_ongles",
-      "nom": "Mycose des ongles",
-      "type": "dermatologie",
-      "pv_initial": 8,
-      "aggravation": [
-        0,
-        1,
-        1
-      ],
-      "poids": 2,
-      "traitement": {
-        "adapte": {
-          "tous": [
-            {
-              "compte": {
-                "type": "medecin",
-                "specialite": "dermatologie"
-              },
-              "min": 1
-            },
-            {
-              "compte": {
-                "type": "salle",
-                "id": "SAL-005"
-              }
-            }
-          ]
-        },
-        "partiel": {
-          "compte": {
-            "type": "medecin",
-            "specialite": "dermatologie"
-          },
-          "min": 1
-        }
-      },
-      "attente_max": 8
-    },
-    {
-      "id": "impetigo",
-      "nom": "Impétigo",
-      "type": "dermatologie",
-      "pv_initial": 7,
-      "aggravation": [
-        1,
-        1,
-        2
-      ],
-      "poids": 2,
-      "traitement": {
-        "adapte": {
-          "tous": [
-            {
-              "compte": {
-                "type": "medecin",
-                "specialite": "dermatologie"
-              },
-              "min": 1
-            },
-            {
-              "compte": {
-                "type": "salle",
-                "id": "SAL-005"
-              }
-            }
-          ]
-        },
-        "partiel": {
-          "compte": {
-            "type": "medecin",
-            "specialite": "dermatologie"
-          },
-          "min": 1
-        }
-      },
-      "attente_max": 5
-    },
-    {
-      "id": "zona",
-      "nom": "Zona",
-      "type": "dermatologie",
+      "id": "possession_legere",
+      "nom": "Possession légère",
+      "type": "paranormal",
       "pv_initial": 10,
       "aggravation": [
         1,
         2,
-        2
+        3
       ],
       "poids": 1,
       "traitement": {
@@ -4300,7 +4144,7 @@
             {
               "compte": {
                 "type": "medecin",
-                "specialite": "dermatologie"
+                "specialite": "paranormal"
               },
               "min": 1
             },
@@ -4309,138 +4153,29 @@
                 "type": "salle",
                 "id": "SAL-005"
               }
-            }
-          ]
-        },
-        "partiel": {
-          "compte": {
-            "type": "medecin",
-            "specialite": "dermatologie"
-          },
-          "min": 1
-        }
-      },
-      "attente_max": 5
-    },
-    {
-      "id": "herpes_labial",
-      "nom": "Herpès labial",
-      "type": "dermatologie",
-      "pv_initial": 6,
-      "aggravation": [
-        0,
-        1
-      ],
-      "poids": 3,
-      "traitement": {
-        "adapte": {
-          "tous": [
-            {
-              "compte": {
-                "type": "medecin",
-                "specialite": "dermatologie"
-              },
-              "min": 1
             },
             {
-              "compte": {
-                "type": "salle",
-                "id": "SAL-005"
-              }
+              "carte": "OBJ-008"
             }
           ]
         },
         "partiel": {
           "compte": {
             "type": "medecin",
-            "specialite": "dermatologie"
+            "specialite": "paranormal"
           },
           "min": 1
         }
       },
-      "attente_max": 6
+      "attente_max": 3,
+      "recompenses": {
+        "reputation_echec": -2
+      }
     },
     {
-      "id": "coup_de_soleil_severe",
-      "nom": "Coup de soleil sévère",
-      "type": "dermatologie",
-      "pv_initial": 7,
-      "aggravation": [
-        1,
-        1,
-        2
-      ],
-      "poids": 2,
-      "traitement": {
-        "adapte": {
-          "tous": [
-            {
-              "compte": {
-                "type": "medecin",
-                "specialite": "dermatologie"
-              },
-              "min": 1
-            },
-            {
-              "compte": {
-                "type": "salle",
-                "id": "SAL-005"
-              }
-            }
-          ]
-        },
-        "partiel": {
-          "compte": {
-            "type": "medecin",
-            "specialite": "dermatologie"
-          },
-          "min": 1
-        }
-      },
-      "attente_max": 5
-    },
-    {
-      "id": "brulure_superficielle",
-      "nom": "Brûlure superficielle",
-      "type": "dermatologie",
-      "pv_initial": 8,
-      "aggravation": [
-        1,
-        2
-      ],
-      "poids": 2,
-      "traitement": {
-        "adapte": {
-          "tous": [
-            {
-              "compte": {
-                "type": "medecin",
-                "specialite": "dermatologie"
-              },
-              "min": 1
-            },
-            {
-              "compte": {
-                "type": "salle",
-                "id": "SAL-005"
-              }
-            }
-          ]
-        },
-        "partiel": {
-          "compte": {
-            "type": "medecin",
-            "specialite": "dermatologie"
-          },
-          "min": 1
-        }
-      },
-      "attente_max": 4
-    },
-    {
-      "id": "escarre",
-      "nom": "Escarre",
-      "type": "dermatologie",
+      "id": "vampirisme_aigu",
+      "nom": "Vampirisme aigu",
+      "type": "paranormal",
       "pv_initial": 9,
       "aggravation": [
         1,
@@ -4454,7 +4189,7 @@
             {
               "compte": {
                 "type": "medecin",
-                "specialite": "dermatologie"
+                "specialite": "paranormal"
               },
               "min": 1
             },
@@ -4469,22 +4204,22 @@
         "partiel": {
           "compte": {
             "type": "medecin",
-            "specialite": "dermatologie"
+            "specialite": "paranormal"
           },
           "min": 1
         }
       },
-      "attente_max": 6
+      "attente_max": 4
     },
     {
-      "id": "alopechie",
-      "nom": "Alopécie",
-      "type": "dermatologie",
-      "pv_initial": 8,
+      "id": "lycanthropie",
+      "nom": "Lycanthropie",
+      "type": "paranormal",
+      "pv_initial": 10,
       "aggravation": [
-        0,
-        1,
-        1
+        2,
+        2,
+        3
       ],
       "poids": 1,
       "traitement": {
@@ -4493,7 +4228,7 @@
             {
               "compte": {
                 "type": "medecin",
-                "specialite": "dermatologie"
+                "specialite": "paranormal"
               },
               "min": 1
             },
@@ -4508,17 +4243,178 @@
         "partiel": {
           "compte": {
             "type": "medecin",
-            "specialite": "dermatologie"
+            "specialite": "paranormal"
           },
           "min": 1
         }
       },
-      "attente_max": 7
+      "attente_max": 3
     },
     {
-      "id": "rougeole",
-      "nom": "Rougeole",
-      "type": "dermatologie",
+      "id": "mauvais_oeil",
+      "nom": "Mauvais œil",
+      "type": "paranormal",
+      "pv_initial": 7,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "paranormal"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            },
+            {
+              "carte": "OBJ-007"
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "paranormal"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "ame_en_double",
+      "nom": "Âme en double",
+      "type": "paranormal",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "paranormal"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "paranormal"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "malediction_des_miroirs",
+      "nom": "Malédiction des miroirs",
+      "type": "paranormal",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "paranormal"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            },
+            {
+              "carte": "OBJ-007"
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "paranormal"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "fievre_des_etoiles",
+      "nom": "Fièvre des étoiles",
+      "type": "paranormal",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "paranormal"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "paranormal"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "murmures_dans_la_tete",
+      "nom": "Murmures dans la tête",
+      "type": "paranormal",
       "pv_initial": 9,
       "aggravation": [
         1,
@@ -4532,61 +4428,25 @@
             {
               "compte": {
                 "type": "medecin",
-                "specialite": "dermatologie"
+                "specialite": "paranormal"
               },
               "min": 1
             },
             {
               "compte": {
                 "type": "salle",
-                "id": "SAL-009"
+                "id": "SAL-005"
               }
-            }
-          ]
-        },
-        "partiel": {
-          "compte": {
-            "type": "medecin",
-            "specialite": "dermatologie"
-          },
-          "min": 1
-        }
-      },
-      "attente_max": 4
-    },
-    {
-      "id": "varicelle",
-      "nom": "Varicelle",
-      "type": "dermatologie",
-      "pv_initial": 8,
-      "aggravation": [
-        1,
-        1,
-        2
-      ],
-      "poids": 3,
-      "traitement": {
-        "adapte": {
-          "tous": [
-            {
-              "compte": {
-                "type": "medecin",
-                "specialite": "dermatologie"
-              },
-              "min": 1
             },
             {
-              "compte": {
-                "type": "salle",
-                "id": "SAL-009"
-              }
+              "carte": "OBJ-008"
             }
           ]
         },
         "partiel": {
           "compte": {
             "type": "medecin",
-            "specialite": "dermatologie"
+            "specialite": "paranormal"
           },
           "min": 1
         }
@@ -4594,14 +4454,53 @@
       "attente_max": 5
     },
     {
-      "id": "gale",
-      "nom": "Gale",
-      "type": "dermatologie",
+      "id": "ombre_qui_suit",
+      "nom": "Ombre qui suit",
+      "type": "paranormal",
       "pv_initial": 8,
       "aggravation": [
         1,
         1,
         2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "paranormal"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "paranormal"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "petrification_partielle",
+      "nom": "Pétrification partielle",
+      "type": "paranormal",
+      "pv_initial": 10,
+      "aggravation": [
+        1,
+        2,
+        3
       ],
       "poids": 1,
       "traitement": {
@@ -4610,45 +4509,7 @@
             {
               "compte": {
                 "type": "medecin",
-                "specialite": "dermatologie"
-              },
-              "min": 1
-            },
-            {
-              "compte": {
-                "type": "salle",
-                "id": "SAL-009"
-              }
-            }
-          ]
-        },
-        "partiel": {
-          "compte": {
-            "type": "medecin",
-            "specialite": "dermatologie"
-          },
-          "min": 1
-        }
-      },
-      "attente_max": 5
-    },
-    {
-      "id": "piqure_d_abeille",
-      "nom": "Piqûre d'abeille",
-      "type": "dermatologie",
-      "pv_initial": 6,
-      "aggravation": [
-        1,
-        1
-      ],
-      "poids": 2,
-      "traitement": {
-        "adapte": {
-          "tous": [
-            {
-              "compte": {
-                "type": "medecin",
-                "specialite": "dermatologie"
+                "specialite": "paranormal"
               },
               "min": 1
             },
@@ -4663,7 +4524,7 @@
         "partiel": {
           "compte": {
             "type": "medecin",
-            "specialite": "dermatologie"
+            "specialite": "paranormal"
           },
           "min": 1
         }
@@ -4671,22 +4532,22 @@
       "attente_max": 4
     },
     {
-      "id": "ongle_incarne",
-      "nom": "Ongle incarné",
-      "type": "dermatologie",
+      "id": "rire_des_cimetieres",
+      "nom": "Rire des cimetières",
+      "type": "paranormal",
       "pv_initial": 7,
       "aggravation": [
         1,
         1
       ],
-      "poids": 2,
+      "poids": 1,
       "traitement": {
         "adapte": {
           "tous": [
             {
               "compte": {
                 "type": "medecin",
-                "specialite": "dermatologie"
+                "specialite": "paranormal"
               },
               "min": 1
             },
@@ -4701,7 +4562,7 @@
         "partiel": {
           "compte": {
             "type": "medecin",
-            "specialite": "dermatologie"
+            "specialite": "paranormal"
           },
           "min": 1
         }
@@ -4709,9 +4570,9 @@
       "attente_max": 5
     },
     {
-      "id": "kyste_sebace",
-      "nom": "Kyste sébacé",
-      "type": "dermatologie",
+      "id": "main_froide_eternelle",
+      "nom": "Main froide éternelle",
+      "type": "paranormal",
       "pv_initial": 7,
       "aggravation": [
         0,
@@ -4725,7 +4586,7 @@
             {
               "compte": {
                 "type": "medecin",
-                "specialite": "dermatologie"
+                "specialite": "paranormal"
               },
               "min": 1
             },
@@ -4740,12 +4601,296 @@
         "partiel": {
           "compte": {
             "type": "medecin",
-            "specialite": "dermatologie"
+            "specialite": "paranormal"
           },
           "min": 1
         }
       },
       "attente_max": 6
+    },
+    {
+      "id": "voix_du_passe",
+      "nom": "Voix du passé",
+      "type": "paranormal",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "paranormal"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            },
+            {
+              "carte": "OBJ-008"
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "paranormal"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "malediction_du_nombre_7",
+      "nom": "Malédiction du nombre 7",
+      "type": "paranormal",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "paranormal"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            },
+            {
+              "carte": "OBJ-007"
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "paranormal"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "nez_qui_saigne_de_l_encre",
+      "nom": "Nez qui saigne de l'encre",
+      "type": "paranormal",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "paranormal"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "paranormal"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "glissement_temporel",
+      "nom": "Glissement temporel",
+      "type": "paranormal",
+      "pv_initial": 11,
+      "aggravation": [
+        2,
+        2,
+        3
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "paranormal"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "paranormal"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 3,
+      "recompenses": {
+        "reputation_echec": -2
+      }
+    },
+    {
+      "id": "doigts_qui_grandissent",
+      "nom": "Doigts qui grandissent",
+      "type": "paranormal",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "paranormal"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "paranormal"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "malediction_du_chat_noir",
+      "nom": "Malédiction du chat noir",
+      "type": "paranormal",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "paranormal"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            },
+            {
+              "carte": "OBJ-007"
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "paranormal"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "ombre_vivante",
+      "nom": "Ombre vivante",
+      "type": "paranormal",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "paranormal"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "paranormal"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 4
     }
   ],
   "motifs": {
