@@ -109,6 +109,9 @@ Les gabarits de chaque format sont dans [`gabarits/`](gabarits/) (`.vctemplate`,
 un par type de tuile). Leurs calques séparent le fond, l'illustration, le
 liseré, le bandeau, le titre, le QR, les logements et la pastille ; le calque
 « Repères » (coupe, zone sûre, cotes) n'est ni imprimé ni exporté.
+[`generer_gabarits.ps1`](generer_gabarits.ps1) les regénère (PowerShell 7,
+VectorCraft, polices Inter et Segoe UI Emoji) : toute cote modifiée ici doit
+l'être aussi dans ce script.
 
 ## 4. Matériau et sous-épaisseurs
 
