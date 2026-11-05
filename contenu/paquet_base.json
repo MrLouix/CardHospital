@@ -1,0 +1,4912 @@
+{
+  "$schema": "../docs/schema/jeu.schema.json",
+  "format": "cardhospital",
+  "schema_version": 1,
+  "id": "paquet_base",
+  "nom": "CardHospital — paquet de base",
+  "version": "1.0.0",
+  "description": "Paquet de base complet : 5 spécialités (médecine générale, cardiologie, psychiatrie, orthopédie, dermatologie), 20 maladies par spécialité, 10 médecins, 10 salles (diagnostic et traitement), 12 patients, 16 objets et 5 diplômes.",
+  "parametres": {
+    "attente_max_defaut": 5,
+    "diagnostic": {
+      "precision_max": 5,
+      "verite": 0.5,
+      "par_niveau": 0.5,
+      "bonus_specialite": 2.0,
+      "exclusion": 0.15,
+      "seuil_affichage": 5,
+      "verite_nom": 3.0,
+      "par_niveau_nom": 1.5,
+      "nb_noms": 3
+    },
+    "recompenses": {
+      "pieces_diagnostic": 1,
+      "pieces_traitement": 3,
+      "pieces_partiel": 1,
+      "reputation_soin": 2,
+      "reputation_echec": -1,
+      "reputation_attente": -1,
+      "reputation_mort": -3,
+      "soin_partiel": 2,
+      "pv_echec": 2
+    }
+  },
+  "difficultes": [
+    {
+      "id": "interne",
+      "nom": "Interne",
+      "modificateurs": {
+        "pv_perdus": 1.0,
+        "pieces": 1.0,
+        "reputation": 1.0
+      }
+    },
+    {
+      "id": "chirurgien",
+      "nom": "Chirurgien",
+      "modificateurs": {
+        "pv_perdus": 1.5,
+        "pieces": 1.2,
+        "reputation": 1.5
+      }
+    },
+    {
+      "id": "reanimation",
+      "nom": "Réanimation",
+      "modificateurs": {
+        "pv_perdus": 2.0,
+        "pieces": 1.5,
+        "reputation": 2.0
+      }
+    }
+  ],
+  "specialites": [
+    {
+      "id": "generale",
+      "nom": "Médecine générale"
+    },
+    {
+      "id": "cardiologie",
+      "nom": "Cardiologie"
+    },
+    {
+      "id": "psychiatrie",
+      "nom": "Psychiatrie"
+    },
+    {
+      "id": "orthopedie",
+      "nom": "Orthopédie"
+    },
+    {
+      "id": "dermatologie",
+      "nom": "Dermatologie"
+    }
+  ],
+  "capacites": [
+    {
+      "id": "precision",
+      "nom": "Précision",
+      "description": "Améliore le niveau de précision des diagnostics."
+    },
+    {
+      "id": "soin",
+      "nom": "Soin",
+      "description": "PV supplémentaires rendus par un traitement partiel."
+    }
+  ],
+  "cartes": {
+    "MED-001": {
+      "type": "medecin",
+      "nom": "Dr Moreau",
+      "nom_phrase": "le Dr Moreau",
+      "specialite": "generaliste",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "MED-002": {
+      "type": "medecin",
+      "nom": "Dr Lefort",
+      "nom_phrase": "le Dr Lefort",
+      "specialite": "generale"
+    },
+    "MED-003": {
+      "type": "medecin",
+      "nom": "Dr Benali",
+      "nom_phrase": "la Dr Benali",
+      "specialite": "cardiologie"
+    },
+    "MED-004": {
+      "type": "medecin",
+      "nom": "Dr Fontaine",
+      "nom_phrase": "le Dr Fontaine",
+      "specialite": "cardiologie",
+      "capacites": {
+        "soin": 1
+      }
+    },
+    "MED-005": {
+      "type": "medecin",
+      "nom": "Dr Sauvage",
+      "nom_phrase": "le Dr Sauvage",
+      "specialite": "psychiatrie"
+    },
+    "MED-006": {
+      "type": "medecin",
+      "nom": "Dr Reyer",
+      "nom_phrase": "la Dr Reyer",
+      "specialite": "psychiatrie",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "MED-007": {
+      "type": "medecin",
+      "nom": "Dr Cassagne",
+      "nom_phrase": "le Dr Cassagne",
+      "specialite": "orthopedie"
+    },
+    "MED-008": {
+      "type": "medecin",
+      "nom": "Dr Vasseur",
+      "nom_phrase": "le Dr Vasseur",
+      "specialite": "orthopedie",
+      "capacites": {
+        "soin": 1
+      }
+    },
+    "MED-009": {
+      "type": "medecin",
+      "nom": "Dr Peau",
+      "nom_phrase": "la Dr Peau",
+      "specialite": "dermatologie"
+    },
+    "MED-010": {
+      "type": "medecin",
+      "nom": "Dr Lotion",
+      "nom_phrase": "la Dr Lotion",
+      "specialite": "dermatologie",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "SAL-001": {
+      "type": "salle",
+      "nom": "Salle de consultation",
+      "nom_phrase": "la salle de consultation",
+      "specialite": "generale",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "SAL-002": {
+      "type": "salle",
+      "nom": "Salle de psychiatrie",
+      "nom_phrase": "la salle de psychiatrie",
+      "specialite": "psychiatrie",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "SAL-003": {
+      "type": "salle",
+      "nom": "Radiologie",
+      "nom_phrase": "la salle de radiologie",
+      "specialite": "generaliste",
+      "capacites": {
+        "precision": 3
+      }
+    },
+    "SAL-004": {
+      "type": "salle",
+      "nom": "Salle de cardiologie",
+      "nom_phrase": "la salle de cardiologie",
+      "specialite": "cardiologie",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "SAL-005": {
+      "type": "salle",
+      "nom": "Salle de dermatologie",
+      "nom_phrase": "la salle de dermatologie",
+      "specialite": "dermatologie",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "SAL-006": {
+      "type": "salle",
+      "nom": "Bloc opératoire",
+      "nom_phrase": "le bloc opératoire",
+      "specialite": "orthopedie",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "SAL-007": {
+      "type": "salle",
+      "nom": "Pharmacie",
+      "nom_phrase": "la pharmacie"
+    },
+    "SAL-008": {
+      "type": "salle",
+      "nom": "Plâtrerie",
+      "nom_phrase": "la plâtrerie",
+      "specialite": "orthopedie"
+    },
+    "SAL-009": {
+      "type": "salle",
+      "nom": "Salle d'isolement",
+      "nom_phrase": "la salle d'isolement",
+      "specialite": "generaliste",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "SAL-010": {
+      "type": "salle",
+      "nom": "Réanimation",
+      "nom_phrase": "la réanimation",
+      "specialite": "generaliste",
+      "capacites": {
+        "precision": 2
+      }
+    },
+    "PAT-001": {
+      "type": "patient",
+      "nom": "Mme Garnier",
+      "nom_phrase": "Mme Garnier"
+    },
+    "PAT-002": {
+      "type": "patient",
+      "nom": "M. Dupont",
+      "nom_phrase": "M. Dupont"
+    },
+    "PAT-003": {
+      "type": "patient",
+      "nom": "Mme Petit",
+      "nom_phrase": "Mme Petit"
+    },
+    "PAT-004": {
+      "type": "patient",
+      "nom": "M. Bernard",
+      "nom_phrase": "M. Bernard"
+    },
+    "PAT-005": {
+      "type": "patient",
+      "nom": "Mme Durand",
+      "nom_phrase": "Mme Durand"
+    },
+    "PAT-006": {
+      "type": "patient",
+      "nom": "M. Leroy",
+      "nom_phrase": "M. Leroy"
+    },
+    "PAT-007": {
+      "type": "patient",
+      "nom": "Mme Roux",
+      "nom_phrase": "Mme Roux"
+    },
+    "PAT-008": {
+      "type": "patient",
+      "nom": "M. Morel",
+      "nom_phrase": "M. Morel"
+    },
+    "PAT-009": {
+      "type": "patient",
+      "nom": "Mme Fournier",
+      "nom_phrase": "Mme Fournier"
+    },
+    "PAT-010": {
+      "type": "patient",
+      "nom": "M. Girard",
+      "nom_phrase": "M. Girard"
+    },
+    "PAT-011": {
+      "type": "patient",
+      "nom": "Mme Bonnet",
+      "nom_phrase": "Mme Bonnet"
+    },
+    "PAT-012": {
+      "type": "patient",
+      "nom": "M. Faure",
+      "nom_phrase": "M. Faure"
+    },
+    "OBJ-001": {
+      "type": "objet",
+      "nom": "Stéthoscope",
+      "nom_phrase": "le stéthoscope",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "OBJ-002": {
+      "type": "objet",
+      "nom": "Traité de médecine",
+      "nom_phrase": "le traité de médecine",
+      "capacites": {
+        "precision": 2
+      }
+    },
+    "OBJ-003": {
+      "type": "objet",
+      "nom": "Défibrillateur",
+      "nom_phrase": "le défibrillateur",
+      "specialite": "cardiologie",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "OBJ-004": {
+      "type": "objet",
+      "nom": "Électrocardiographe",
+      "nom_phrase": "l'électrocardiographe",
+      "specialite": "cardiologie",
+      "capacites": {
+        "precision": 2
+      }
+    },
+    "OBJ-005": {
+      "type": "objet",
+      "nom": "Plâtre",
+      "nom_phrase": "le plâtre",
+      "specialite": "orthopedie"
+    },
+    "OBJ-006": {
+      "type": "objet",
+      "nom": "Attelle",
+      "nom_phrase": "l'attelle",
+      "specialite": "orthopedie"
+    },
+    "OBJ-007": {
+      "type": "objet",
+      "nom": "Pommade corticoïde",
+      "nom_phrase": "la pommade corticoïde",
+      "specialite": "dermatologie"
+    },
+    "OBJ-008": {
+      "type": "objet",
+      "nom": "Lampe UV",
+      "nom_phrase": "la lampe UV",
+      "specialite": "dermatologie",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "OBJ-009": {
+      "type": "objet",
+      "nom": "Livre de psychanalyse",
+      "nom_phrase": "le livre de psychanalyse",
+      "specialite": "psychiatrie",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "OBJ-010": {
+      "type": "objet",
+      "nom": "Antibiotique",
+      "nom_phrase": "l'antibiotique",
+      "specialite": "generale"
+    },
+    "OBJ-011": {
+      "type": "objet",
+      "nom": "Antalgique",
+      "nom_phrase": "l'antalgique",
+      "specialite": "generale"
+    },
+    "OBJ-012": {
+      "type": "objet",
+      "nom": "Anti-inflammatoire",
+      "nom_phrase": "l'anti-inflammatoire",
+      "specialite": "generale"
+    },
+    "OBJ-013": {
+      "type": "objet",
+      "nom": "Ampoules de glucose",
+      "nom_phrase": "les ampoules de glucose",
+      "specialite": "generale"
+    },
+    "OBJ-014": {
+      "type": "objet",
+      "nom": "Thermomètre",
+      "nom_phrase": "le thermomètre",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "OBJ-015": {
+      "type": "objet",
+      "nom": "Tensiomètre",
+      "nom_phrase": "le tensiomètre",
+      "specialite": "cardiologie"
+    },
+    "OBJ-016": {
+      "type": "objet",
+      "nom": "Sirop antitussif",
+      "nom_phrase": "le sirop antitussif",
+      "specialite": "generale"
+    },
+    "DIP-001": {
+      "type": "diplome",
+      "nom": "Diplôme de médecine générale",
+      "nom_phrase": "le diplôme de médecine générale",
+      "specialite": "generale",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "DIP-002": {
+      "type": "diplome",
+      "nom": "Diplôme de cardiologie",
+      "nom_phrase": "le diplôme de cardiologie",
+      "specialite": "cardiologie",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "DIP-003": {
+      "type": "diplome",
+      "nom": "Diplôme de psychiatrie",
+      "nom_phrase": "le diplôme de psychiatrie",
+      "specialite": "psychiatrie",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "DIP-004": {
+      "type": "diplome",
+      "nom": "Diplôme d'orthopédie",
+      "nom_phrase": "le diplôme d'orthopédie",
+      "specialite": "orthopedie"
+    },
+    "DIP-005": {
+      "type": "diplome",
+      "nom": "Diplôme de dermatologie",
+      "nom_phrase": "le diplôme de dermatologie",
+      "specialite": "dermatologie"
+    }
+  },
+  "maladies": [
+    {
+      "id": "angine_bacterienne",
+      "nom": "Angine bactérienne",
+      "type": "generale",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 3,
+      "traitement": {
+        "adapte": {
+          "carte": "OBJ-010"
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "rhume_carabine",
+      "nom": "Rhume carabiné",
+      "type": "generale",
+      "pv_initial": 5,
+      "aggravation": [
+        0,
+        1
+      ],
+      "poids": 3,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-007"
+              }
+            },
+            {
+              "compte": {
+                "type": [
+                  "objet",
+                  "diplome"
+                ],
+                "specialite": "generale"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "gastro_virale",
+      "nom": "Gastro virale",
+      "type": "generale",
+      "pv_initial": 7,
+      "aggravation": [
+        1,
+        1,
+        1
+      ],
+      "poids": 3,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-007"
+              }
+            },
+            {
+              "compte": {
+                "type": [
+                  "objet",
+                  "diplome"
+                ],
+                "specialite": "generale"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "otite_moyenne_aigue",
+      "nom": "Otite moyenne aiguë",
+      "type": "generale",
+      "pv_initial": 7,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-007"
+              }
+            },
+            {
+              "compte": {
+                "type": [
+                  "objet",
+                  "diplome"
+                ],
+                "specialite": "generale"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "infection_urinaire_legere",
+      "nom": "Infection urinaire légère",
+      "type": "generale",
+      "pv_initial": 7,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-007"
+              }
+            },
+            {
+              "compte": {
+                "type": [
+                  "objet",
+                  "diplome"
+                ],
+                "specialite": "generale"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "conjonctivite",
+      "nom": "Conjonctivite",
+      "type": "generale",
+      "pv_initial": 6,
+      "aggravation": [
+        0,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-007"
+              }
+            },
+            {
+              "compte": {
+                "type": [
+                  "objet",
+                  "diplome"
+                ],
+                "specialite": "generale"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "bronchite_aigue",
+      "nom": "Bronchite aiguë",
+      "type": "generale",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "carte": "OBJ-016"
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "sinusite_maxillaire",
+      "nom": "Sinusite maxillaire",
+      "type": "generale",
+      "pv_initial": 7,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-007"
+              }
+            },
+            {
+              "compte": {
+                "type": [
+                  "objet",
+                  "diplome"
+                ],
+                "specialite": "generale"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "piqure_de_moustique_infectee",
+      "nom": "Piqûre de moustique infectée",
+      "type": "generale",
+      "pv_initial": 6,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-007"
+              }
+            },
+            {
+              "compte": {
+                "type": [
+                  "objet",
+                  "diplome"
+                ],
+                "specialite": "generale"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "intoxication_alimentaire",
+      "nom": "Intoxication alimentaire",
+      "type": "generale",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-007"
+              }
+            },
+            {
+              "compte": {
+                "type": [
+                  "objet",
+                  "diplome"
+                ],
+                "specialite": "generale"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "maux_de_tete",
+      "nom": "Maux de tête",
+      "type": "generale",
+      "pv_initial": 6,
+      "aggravation": [
+        1
+      ],
+      "poids": 3,
+      "traitement": {
+        "adapte": {
+          "carte": "OBJ-011"
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "maux_de_gorge",
+      "nom": "Maux de gorge",
+      "type": "generale",
+      "pv_initial": 6,
+      "aggravation": [
+        0,
+        1
+      ],
+      "poids": 3,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-007"
+              }
+            },
+            {
+              "compte": {
+                "type": [
+                  "objet",
+                  "diplome"
+                ],
+                "specialite": "generale"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "torticolis",
+      "nom": "Torticolis",
+      "type": "generale",
+      "pv_initial": 6,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-007"
+              }
+            },
+            {
+              "compte": {
+                "type": [
+                  "objet",
+                  "diplome"
+                ],
+                "specialite": "generale"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "fatigue_chronique_legere",
+      "nom": "Fatigue chronique légère",
+      "type": "generale",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1,
+        1
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-007"
+              }
+            },
+            {
+              "compte": {
+                "type": [
+                  "objet",
+                  "diplome"
+                ],
+                "specialite": "generale"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 7
+    },
+    {
+      "id": "carence_en_vitamine_d",
+      "nom": "Carence en vitamine D",
+      "type": "generale",
+      "pv_initial": 9,
+      "aggravation": [
+        0,
+        1
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-007"
+              }
+            },
+            {
+              "compte": {
+                "type": [
+                  "objet",
+                  "diplome"
+                ],
+                "specialite": "generale"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 8
+    },
+    {
+      "id": "insomnie_passagere",
+      "nom": "Insomnie passagère",
+      "type": "generale",
+      "pv_initial": 7,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-007"
+              }
+            },
+            {
+              "compte": {
+                "type": [
+                  "objet",
+                  "diplome"
+                ],
+                "specialite": "generale"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "migraine_legere",
+      "nom": "Migraine légère",
+      "type": "generale",
+      "pv_initial": 7,
+      "aggravation": [
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "carte": "OBJ-011"
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "hoquet_persistant",
+      "nom": "Hoquet persistant",
+      "type": "generale",
+      "pv_initial": 5,
+      "aggravation": [
+        0,
+        0,
+        1
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-007"
+              }
+            },
+            {
+              "compte": {
+                "type": [
+                  "objet",
+                  "diplome"
+                ],
+                "specialite": "generale"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "hypoglycemie_legere",
+      "nom": "Hypoglycémie légère",
+      "type": "generale",
+      "pv_initial": 7,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "carte": "OBJ-013"
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "fievre_inexpliquee",
+      "nom": "Fièvre inexpliquée",
+      "type": "generale",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-007"
+              }
+            },
+            {
+              "compte": {
+                "type": [
+                  "objet",
+                  "diplome"
+                ],
+                "specialite": "generale"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-001"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 5,
+      "recompenses": {
+        "reputation_echec": -2
+      }
+    },
+    {
+      "id": "hypertension_arterielle",
+      "nom": "Hypertension artérielle",
+      "type": "cardiologie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "arythmie",
+      "nom": "Arythmie",
+      "type": "cardiologie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "carte": "OBJ-004"
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "infarctus_du_myocarde",
+      "nom": "Infarctus du myocarde",
+      "type": "cardiologie",
+      "pv_initial": 12,
+      "aggravation": [
+        2,
+        3,
+        3
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "carte": "OBJ-003"
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 3,
+      "recompenses": {
+        "pieces_traitement": 5,
+        "reputation_echec": -2
+      }
+    },
+    {
+      "id": "angor",
+      "nom": "Angor",
+      "type": "cardiologie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "insuffisance_cardiaque",
+      "nom": "Insuffisance cardiaque",
+      "type": "cardiologie",
+      "pv_initial": 11,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "tachycardie",
+      "nom": "Tachycardie",
+      "type": "cardiologie",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "carte": "OBJ-004"
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "bradycardie",
+      "nom": "Bradycardie",
+      "type": "cardiologie",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "carte": "OBJ-004"
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "fibrillation_auriculaire",
+      "nom": "Fibrillation auriculaire",
+      "type": "cardiologie",
+      "pv_initial": 10,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "carte": "OBJ-004"
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "pericardite",
+      "nom": "Péricardite",
+      "type": "cardiologie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "endocardite",
+      "nom": "Endocardite",
+      "type": "cardiologie",
+      "pv_initial": 11,
+      "aggravation": [
+        2,
+        2,
+        3
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "syndrome_du_coeur_brise",
+      "nom": "Syndrome du cœur brisé",
+      "type": "cardiologie",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "hypotension_orthostatique",
+      "nom": "Hypotension orthostatique",
+      "type": "cardiologie",
+      "pv_initial": 7,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "varices",
+      "nom": "Varices",
+      "type": "cardiologie",
+      "pv_initial": 8,
+      "aggravation": [
+        0,
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 7
+    },
+    {
+      "id": "phlebite",
+      "nom": "Phlébite",
+      "type": "cardiologie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "embolie_pulmonaire",
+      "nom": "Embolie pulmonaire",
+      "type": "cardiologie",
+      "pv_initial": 12,
+      "aggravation": [
+        2,
+        3,
+        3
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "carte": "OBJ-003"
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 3,
+      "recompenses": {
+        "reputation_echec": -2
+      }
+    },
+    {
+      "id": "souffle_au_coeur",
+      "nom": "Souffle au cœur",
+      "type": "cardiologie",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "oedeme_aigu_du_poumon",
+      "nom": "Œdème aigu du poumon",
+      "type": "cardiologie",
+      "pv_initial": 12,
+      "aggravation": [
+        2,
+        3,
+        3
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "carte": "OBJ-003"
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 3,
+      "recompenses": {
+        "reputation_echec": -2
+      }
+    },
+    {
+      "id": "malaise_cardiaque",
+      "nom": "Malaise cardiaque",
+      "type": "cardiologie",
+      "pv_initial": 7,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 3,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "cardiomyopathie",
+      "nom": "Cardiomyopathie",
+      "type": "cardiologie",
+      "pv_initial": 11,
+      "aggravation": [
+        2,
+        2,
+        3
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "suivi_de_greffe_cardiaque",
+      "nom": "Suivi de greffe cardiaque",
+      "type": "cardiologie",
+      "pv_initial": 10,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "specialite": "cardiologie"
+              },
+              "min": 1
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "cardiologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "phobie_des_blouses_blanches",
+      "nom": "Phobie des blouses blanches",
+      "type": "psychiatrie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      }
+    },
+    {
+      "id": "hypocondrie_aigue",
+      "nom": "Hypocondrie aiguë",
+      "type": "psychiatrie",
+      "pv_initial": 7,
+      "aggravation": [
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            },
+            {
+              "non": {
+                "compte": {
+                  "type": "objet"
+                },
+                "min": 1
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 3,
+      "recompenses": {
+        "reputation_echec": -2
+      }
+    },
+    {
+      "id": "crise_d_angoisse",
+      "nom": "Crise d'angoisse",
+      "type": "psychiatrie",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "depression_legere",
+      "nom": "Dépression légère",
+      "type": "psychiatrie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "trouble_du_sommeil",
+      "nom": "Trouble du sommeil",
+      "type": "psychiatrie",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "anxiete_generalisee",
+      "nom": "Anxiété généralisée",
+      "type": "psychiatrie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "attaque_de_panique",
+      "nom": "Attaque de panique",
+      "type": "psychiatrie",
+      "pv_initial": 7,
+      "aggravation": [
+        2,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 3
+    },
+    {
+      "id": "toc_leger",
+      "nom": "Trouble obsessionnel compulsif léger",
+      "type": "psychiatrie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        1,
+        1
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "phobie_des_escaliers",
+      "nom": "Phobie des escaliers",
+      "type": "psychiatrie",
+      "pv_initial": 7,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "syndrome_de_paris",
+      "nom": "Syndrome de Paris",
+      "type": "psychiatrie",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "burn_out",
+      "nom": "Burn-out",
+      "type": "psychiatrie",
+      "pv_initial": 10,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "addiction_aux_ecrans",
+      "nom": "Addiction aux écrans",
+      "type": "psychiatrie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            },
+            {
+              "carte": "OBJ-009"
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "cauchemars_repetes",
+      "nom": "Cauchemars répétés",
+      "type": "psychiatrie",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "mutisme_selectif",
+      "nom": "Mutisme sélectif",
+      "type": "psychiatrie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        1,
+        1
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "trouble_alimentaire_leger",
+      "nom": "Trouble alimentaire léger",
+      "type": "psychiatrie",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "stress_post_traumatique",
+      "nom": "Stress post-traumatique",
+      "type": "psychiatrie",
+      "pv_initial": 10,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "jalousie_delirante",
+      "nom": "Jalousie délirante",
+      "type": "psychiatrie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 4,
+      "recompenses": {
+        "reputation_echec": -2
+      }
+    },
+    {
+      "id": "insomnie_chronique",
+      "nom": "Insomnie chronique",
+      "type": "psychiatrie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "dependance_a_la_cafeine",
+      "nom": "Dépendance à la caféine",
+      "type": "psychiatrie",
+      "pv_initial": 7,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "crise_de_rire_incontrolee",
+      "nom": "Crise de rire incontrôlée",
+      "type": "psychiatrie",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-002"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "fracture_ouverte",
+      "nom": "Fracture ouverte",
+      "type": "orthopedie",
+      "pv_initial": 10,
+      "aggravation": [
+        1,
+        2,
+        2,
+        3
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 2
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-006"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 4,
+      "recompenses": {
+        "pieces_traitement": 4
+      }
+    },
+    {
+      "id": "fracture_fermee",
+      "nom": "Fracture fermée",
+      "type": "orthopedie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-006"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "entorse_de_la_cheville",
+      "nom": "Entorse de la cheville",
+      "type": "orthopedie",
+      "pv_initial": 7,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 3,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "orthopedie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "entorse_du_genou",
+      "nom": "Entorse du genou",
+      "type": "orthopedie",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "orthopedie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "luxation_de_l_epaule",
+      "nom": "Luxation de l'épaule",
+      "type": "orthopedie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-006"
+              }
+            },
+            {
+              "carte": "OBJ-006"
+            }
+          ]
+        },
+        "partiel": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "lumbago",
+      "nom": "Lumbago",
+      "type": "orthopedie",
+      "pv_initial": 7,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 3,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-006"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "sciatique",
+      "nom": "Sciatique",
+      "type": "orthopedie",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-006"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "hernie_discale",
+      "nom": "Hernie discale",
+      "type": "orthopedie",
+      "pv_initial": 10,
+      "aggravation": [
+        1,
+        2,
+        3
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-006"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "fracture_du_poignet",
+      "nom": "Fracture du poignet",
+      "type": "orthopedie",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-006"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "rupture_du_ligament_croise",
+      "nom": "Rupture du ligament croisé",
+      "type": "orthopedie",
+      "pv_initial": 10,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-006"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "scoliose",
+      "nom": "Scoliose",
+      "type": "orthopedie",
+      "pv_initial": 9,
+      "aggravation": [
+        0,
+        1,
+        1
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-006"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 7
+    },
+    {
+      "id": "arthrose_du_genou",
+      "nom": "Arthrose du genou",
+      "type": "orthopedie",
+      "pv_initial": 9,
+      "aggravation": [
+        0,
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-006"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 7
+    },
+    {
+      "id": "syndrome_du_canal_carpien",
+      "nom": "Syndrome du canal carpien",
+      "type": "orthopedie",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-006"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "epaule_gelee",
+      "nom": "Épaule gelée",
+      "type": "orthopedie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        1,
+        1
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-006"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "hallux_valgus",
+      "nom": "Hallux valgus",
+      "type": "orthopedie",
+      "pv_initial": 7,
+      "aggravation": [
+        0,
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-006"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "fracture_du_femur",
+      "nom": "Fracture du fémur",
+      "type": "orthopedie",
+      "pv_initial": 12,
+      "aggravation": [
+        2,
+        2,
+        3,
+        3
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 2
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-006"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 3,
+      "recompenses": {
+        "pieces_traitement": 5,
+        "reputation_echec": -2
+      }
+    },
+    {
+      "id": "periostite_tibiale",
+      "nom": "Périostite tibiale",
+      "type": "orthopedie",
+      "pv_initial": 7,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "orthopedie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "torticolis_congenital",
+      "nom": "Torticolis congénital",
+      "type": "orthopedie",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-006"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "osteoporose",
+      "nom": "Ostéoporose",
+      "type": "orthopedie",
+      "pv_initial": 10,
+      "aggravation": [
+        0,
+        1,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-006"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        }
+      },
+      "attente_max": 8
+    },
+    {
+      "id": "contusion_severe",
+      "nom": "Contusion sévère",
+      "type": "orthopedie",
+      "pv_initial": 7,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-008"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "orthopedie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "eczema",
+      "nom": "Eczéma",
+      "type": "dermatologie",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            },
+            {
+              "carte": "OBJ-007"
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "psoriasis",
+      "nom": "Psoriasis",
+      "type": "dermatologie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            },
+            {
+              "carte": "OBJ-007"
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 7
+    },
+    {
+      "id": "acne_severe",
+      "nom": "Acné sévère",
+      "type": "dermatologie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "urticaire",
+      "nom": "Urticaire",
+      "type": "dermatologie",
+      "pv_initial": 6,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 3,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "verrue_vulgaire",
+      "nom": "Verrue vulgaire",
+      "type": "dermatologie",
+      "pv_initial": 7,
+      "aggravation": [
+        0,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 7
+    },
+    {
+      "id": "verrue_plantaire",
+      "nom": "Verrue plantaire",
+      "type": "dermatologie",
+      "pv_initial": 7,
+      "aggravation": [
+        0,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 7
+    },
+    {
+      "id": "mycose_des_ongles",
+      "nom": "Mycose des ongles",
+      "type": "dermatologie",
+      "pv_initial": 8,
+      "aggravation": [
+        0,
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 8
+    },
+    {
+      "id": "impetigo",
+      "nom": "Impétigo",
+      "type": "dermatologie",
+      "pv_initial": 7,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "zona",
+      "nom": "Zona",
+      "type": "dermatologie",
+      "pv_initial": 10,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "herpes_labial",
+      "nom": "Herpès labial",
+      "type": "dermatologie",
+      "pv_initial": 6,
+      "aggravation": [
+        0,
+        1
+      ],
+      "poids": 3,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "coup_de_soleil_severe",
+      "nom": "Coup de soleil sévère",
+      "type": "dermatologie",
+      "pv_initial": 7,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "brulure_superficielle",
+      "nom": "Brûlure superficielle",
+      "type": "dermatologie",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "escarre",
+      "nom": "Escarre",
+      "type": "dermatologie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "alopechie",
+      "nom": "Alopécie",
+      "type": "dermatologie",
+      "pv_initial": 8,
+      "aggravation": [
+        0,
+        1,
+        1
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 7
+    },
+    {
+      "id": "rougeole",
+      "nom": "Rougeole",
+      "type": "dermatologie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        2,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-009"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "varicelle",
+      "nom": "Varicelle",
+      "type": "dermatologie",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 3,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-009"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "gale",
+      "nom": "Gale",
+      "type": "dermatologie",
+      "pv_initial": 8,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 1,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-009"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "piqure_d_abeille",
+      "nom": "Piqûre d'abeille",
+      "type": "dermatologie",
+      "pv_initial": 6,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 4
+    },
+    {
+      "id": "ongle_incarne",
+      "nom": "Ongle incarné",
+      "type": "dermatologie",
+      "pv_initial": 7,
+      "aggravation": [
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 5
+    },
+    {
+      "id": "kyste_sebace",
+      "nom": "Kyste sébacé",
+      "type": "dermatologie",
+      "pv_initial": 7,
+      "aggravation": [
+        0,
+        1,
+        1
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "dermatologie"
+              },
+              "min": 1
+            },
+            {
+              "compte": {
+                "type": "salle",
+                "id": "SAL-005"
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "dermatologie"
+          },
+          "min": 1
+        }
+      },
+      "attente_max": 6
+    }
+  ],
+  "motifs": {
+    "admission": {
+      "patient": [
+        1,
+        1
+      ],
+      "total": [
+        1,
+        1
+      ]
+    },
+    "standard": {
+      "patient": [
+        1,
+        1
+      ],
+      "medecin": [
+        1,
+        2
+      ],
+      "salle": [
+        1,
+        1
+      ],
+      "objet|diplome": [
+        0,
+        1
+      ],
+      "total": [
+        3,
+        4
+      ]
+    }
+  },
+  "actions": [
+    {
+      "id": "admettre",
+      "libelle": "Admettre",
+      "motif": "admission",
+      "precondition": "patient_hors_jeu",
+      "phrase": "Admission de {patient}.",
+      "effets": [
+        {
+          "effet": "admettre"
+        }
+      ]
+    },
+    {
+      "id": "diagnostiquer",
+      "libelle": "Diagnostiquer",
+      "motif": "standard",
+      "precondition": "patient_en_jeu",
+      "phrase": "Examen de {patient} par {medecin}[ et {medecin2}] dans {salle}[ avec {accessoire}].",
+      "effets": [
+        {
+          "effet": "avancer_temps"
+        },
+        {
+          "effet": "diagnostiquer"
+        },
+        {
+          "effet": "payer",
+          "valeur": "$recompenses.pieces_diagnostic"
+        },
+        {
+          "effet": "aggraver"
+        },
+        {
+          "effet": "si",
+          "condition": "attente_depassee",
+          "alors": [
+            {
+              "effet": "reputation",
+              "valeur": "$recompenses.reputation_attente"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "traiter",
+      "libelle": "Traiter",
+      "motif": "standard",
+      "precondition": "patient_en_jeu",
+      "phrase": "Tentative de soin de {patient} par {medecin}[ et {medecin2}] dans {salle}[ avec {accessoire}].",
+      "effets": [
+        {
+          "effet": "avancer_temps"
+        },
+        {
+          "effet": "si",
+          "condition": "traitement_adapte",
+          "alors": [
+            {
+              "effet": "soigner"
+            },
+            {
+              "effet": "payer",
+              "valeur": "$recompenses.pieces_traitement"
+            },
+            {
+              "effet": "reputation",
+              "valeur": "$recompenses.reputation_soin"
+            }
+          ],
+          "sinon": [
+            {
+              "effet": "si",
+              "condition": "traitement_partiel",
+              "alors": [
+                {
+                  "effet": "gagner_pv",
+                  "valeur": {
+                    "somme": [
+                      "$recompenses.soin_partiel",
+                      "$capacite.soin"
+                    ]
+                  }
+                },
+                {
+                  "effet": "payer",
+                  "valeur": "$recompenses.pieces_partiel"
+                }
+              ],
+              "sinon": [
+                {
+                  "effet": "perdre_pv",
+                  "valeur": "$recompenses.pv_echec"
+                },
+                {
+                  "effet": "reputation",
+                  "valeur": "$recompenses.reputation_echec"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "effet": "si",
+          "condition": {
+            "non": "soigne"
+          },
+          "alors": [
+            {
+              "effet": "aggraver"
+            }
+          ]
+        },
+        {
+          "effet": "si",
+          "condition": "attente_depassee",
+          "alors": [
+            {
+              "effet": "reputation",
+              "valeur": "$recompenses.reputation_attente"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
