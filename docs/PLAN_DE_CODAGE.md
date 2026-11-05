@@ -70,7 +70,7 @@ Dès le premier commit de code :
 - `dart format --set-exit-if-changed` et `dart analyze` (zéro warning) ;
 - `dart test` sur `packages/moteur`, avec mesure de couverture ;
 - validation de `docs/exemples/jeu.exemple.json` contre le schéma ;
-- `prototypes/detection` (workflow `detection`) : `dart format`, `flutter analyze`, `flutter test`, puis construction de l'APK release, publiée en artefact `detection-apk` pour les testeurs ;
+- `prototypes/detection` (workflow `detection`) : `dart format`, `flutter analyze`, `flutter test`, puis construction de l'APK release, publiée dans la release GitHub `detection-latest` (lien de téléchargement direct pour les testeurs, sans compte GitHub) et en artefact `detection-apk` ;
 - plus tard : la même chose pour `app/`.
 
 ## 5. Démarrage : phases 0 et 1 en parallèle

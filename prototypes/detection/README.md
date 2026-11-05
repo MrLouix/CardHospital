@@ -4,7 +4,8 @@ Appli Flutter **jetable** qui mesure la lecture des cartes de test par `mobile_s
 
 ## Installer l'appli
 
-- **APK prêt à installer** : chaque exécution du workflow GitHub `detection` publie un artefact `detection-apk` (onglet *Actions* du dépôt, dernière exécution réussie, section *Artifacts*). Décompressez-le, copiez `app-release.apk` sur le téléphone et ouvrez-le (autoriser l'installation d'applications inconnues).
+- **Sur le téléphone, sans compte GitHub** : ouvrir la page [Prototype de détection (dernière version)](https://github.com/MrLouix/CardHospital/releases/tag/detection-latest) dans le navigateur. Télécharger `cardhospital-detection.apk`, l'ouvrir, et autoriser l'installation d'applications inconnues si Android le demande. Cette release est recréée par le workflow GitHub `detection` à chaque construction.
+- **Artefact de la CI** : chaque exécution du workflow `detection` publie aussi un artefact `detection-apk` (onglet *Actions*, section *Artifacts*). Il faut être connecté à GitHub dans un navigateur ; l'appli mobile GitHub ne télécharge pas les artefacts. Il arrive en `.zip`, à décompresser pour en sortir `app-release.apk`.
 - **Depuis les sources** (Flutter 3.47.9) :
 
   ```bash

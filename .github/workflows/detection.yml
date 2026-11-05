@@ -10,10 +10,19 @@ on:
     paths:
       - "prototypes/detection/**"
       - ".github/workflows/detection.yml"
+  workflow_dispatch:
+
+# Une seule publication de l'APK à la fois.
+concurrency:
+  group: detection-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   detection:
     runs-on: ubuntu-latest
+    permissions:
+      # Publication de l'APK en release (voir la dernière étape).
+      contents: write
     defaults:
       run:
         working-directory: prototypes/detection
@@ -39,3 +48,21 @@ jobs:
           name: detection-apk
           path: prototypes/detection/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
+      # Une release « detection-latest » donne un lien de téléchargement direct
+      # de l'APK, sans connexion à GitHub ni archive zip : c'est ce dont les
+      # testeurs ont besoin sur leur téléphone. Elle est recréée à chaque
+      # construction, sur le commit construit. Les PR venant d'un fork n'ont
+      # pas le droit d'écrire : l'étape est sautée pour elles.
+      - name: Publie l'APK (release detection-latest)
+        if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMIT: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk cardhospital-detection.apk
+          gh release delete detection-latest --cleanup-tag --yes || true
+          gh release create detection-latest cardhospital-detection.apk \
+            --prerelease \
+            --target "$COMMIT" \
+            --title "Prototype de détection (dernière version)" \
+            --notes "APK du prototype de détection multi-QR (phase 0), construit depuis le commit $COMMIT. Sur le téléphone : télécharger cardhospital-detection.apk ci-dessous, l'ouvrir, autoriser l'installation d'applications inconnues si Android le demande. Mode d'emploi : prototypes/detection/README.md."
