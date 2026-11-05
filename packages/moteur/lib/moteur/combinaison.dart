@@ -89,12 +89,23 @@ class Combinaison {
   }
 
   static bool _correspond(String id, Carte carte, Filtre f) {
-    if (f.type != null && !f.type!.contains(carte.type)) return false;
+    if (f.type != null && !_typeCorrespond(carte, f)) return false;
     if (f.specialite != null && !f.specialite!.contains(carte.specialite)) {
       return false;
     }
     if (f.id != null && !f.id!.contains(id)) return false;
     return true;
+  }
+
+  /// Un diplôme de spécialité X, joué comme accessoire, compte comme
+  /// un médecin de spécialité X quand le filtre demande `medecin` avec cette
+  /// spécialité (MOTEUR_EFFETS.md §5).
+  static bool _typeCorrespond(Carte carte, Filtre f) {
+    if (f.type!.contains(carte.type)) return true;
+    return carte.type == TypeCarte.diplome &&
+        f.type!.contains(TypeCarte.medecin) &&
+        f.specialite != null &&
+        f.specialite!.contains(carte.specialite);
   }
 
   /// Remplit une phrase d'action (MOTEUR_EFFETS.md §6.2) : variables
