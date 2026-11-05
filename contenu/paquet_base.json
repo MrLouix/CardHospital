@@ -10,14 +10,13 @@
     "attente_max_defaut": 5,
     "diagnostic": {
       "precision_max": 5,
-      "verite": 0.5,
-      "par_niveau": 0.5,
-      "bonus_specialite": 2.0,
-      "exclusion": 0.15,
-      "seuil_affichage": 5,
-      "verite_nom": 3.0,
-      "par_niveau_nom": 1.5,
-      "nb_noms": 3
+      "verite": 3.0,
+      "par_niveau": 1.5,
+      "affinite_type": 0.2,
+      "bonus_specialite": 0.3,
+      "exclusion": 0.75,
+      "taille_liste": 5,
+      "score_bruit": 50
     },
     "recompenses": {
       "pieces_diagnostic": 1,
@@ -63,23 +62,33 @@
   "specialites": [
     {
       "id": "generale",
-      "nom": "Médecine générale"
+      "nom": "Médecine générale",
+      "couleur": "#1565C0",
+      "icone": "🩺"
     },
     {
       "id": "cardiologie",
-      "nom": "Cardiologie"
+      "nom": "Cardiologie",
+      "couleur": "#C62828",
+      "icone": "❤️"
     },
     {
       "id": "psychiatrie",
-      "nom": "Psychiatrie"
+      "nom": "Psychiatrie",
+      "couleur": "#7B4FBF",
+      "icone": "🧠"
     },
     {
       "id": "orthopedie",
-      "nom": "Orthopédie"
+      "nom": "Orthopédie",
+      "couleur": "#EF6C00",
+      "icone": "🦴"
     },
     {
       "id": "paranormal",
-      "nom": "Paranormal"
+      "nom": "Paranormal",
+      "couleur": "#37474F",
+      "icone": "👻"
     }
   ],
   "capacites": [
