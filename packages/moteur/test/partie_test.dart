@@ -24,11 +24,25 @@ ResultatAction _appliquer(Partie partie, List<String> qrs, String action) {
 
 String _refus(ReponseSelection r) => (r as SelectionRefusee).message;
 
-const _diag = ['MED-001', 'PAT-001', 'SAL-001'];
-const _chirSeul = ['MED-002', 'PAT-001', 'SAL-002'];
-const _chirSoin = ['MED-003', 'PAT-001', 'SAL-002'];
-const _chirDeux = ['MED-002', 'MED-003', 'PAT-001', 'SAL-002'];
-const _psy = ['MED-004', 'PAT-001', 'SAL-001'];
+/// Diagnostic neutre : Dr Moreau (polyvalent) en radiologie (polyvalente).
+const _diag = ['MED-001', 'PAT-001', 'SAL-003'];
+
+/// Un seul orthopédiste au bloc : échec pour la fracture ouverte.
+const _orthoSeul = ['MED-007', 'PAT-001', 'SAL-006'];
+
+/// Un orthopédiste à la plâtrerie : traitement partiel de la fracture
+/// ouverte ; le Dr Vasseur ajoute 1 de stabilisation.
+const _platre = ['MED-007', 'PAT-001', 'SAL-008'];
+const _platreStabilise = ['MED-008', 'PAT-001', 'SAL-008'];
+
+/// Deux orthopédistes au bloc : soigne la fracture ouverte.
+const _orthoDeux = ['MED-007', 'MED-008', 'PAT-001', 'SAL-006'];
+
+/// Un psychiatre en salle de consultation.
+const _psy = ['MED-005', 'PAT-001', 'SAL-001'];
+
+/// Laboratoire de recherche.
+const _labo = ['MED-001', 'PAT-001', 'SAL-011'];
 
 void main() {
   group('moduler (difficulté et arrondi)', () {
@@ -55,7 +69,7 @@ void main() {
   group('admission', () {
     test('un patient seul hors jeu propose « Admettre » avec sa phrase', () {
       final r = _partie().valider(['PAT-001']) as SelectionAcceptee;
-      expect(r.motif, 'admission');
+      expect(r.motifs, ['admission']);
       expect(r.cartes, ['PAT-001']);
       expect(r.actions.single.id, 'admettre');
       expect(r.actions.single.phrase, 'Admission de Mme Garnier.');
@@ -63,7 +77,7 @@ void main() {
     });
 
     test('tirage pondéré de la maladie, PV initiaux, temps 0', () {
-      final partie = _partie(tirages: [tirageAppendicite]);
+      final partie = _partie(tirages: [tirageFractureOuverte]);
       final r = _appliquer(partie, ['PAT-001'], 'admettre');
       expect(r.numero, 1);
       expect(r.pvAvant, isNull);
@@ -75,17 +89,17 @@ void main() {
       expect(r.pieces, 0);
       expect(r.reputation, 0);
       final p = partie.etat.patients['PAT-001']!;
-      expect(p.maladie, 'appendicite');
+      expect(p.maladie, 'fracture_ouverte');
       expect(p.enJeu, isTrue);
     });
 
     test('chaque tirage mène à la maladie attendue', () {
       final attendus = {
-        tirageAppendicite: 'appendicite',
-        tirageFracture: 'fracture_ouverte',
+        tirageFractureOuverte: 'fracture_ouverte',
+        tirageFractureFermee: 'fracture_fermee',
         tirageAngine: 'angine_bacterienne',
-        tirageAllergie: 'allergie_saisonniere',
-        tiragePhobie: 'phobie_des_blouses',
+        tirageMauxDeTete: 'maux_de_tete',
+        tiragePhobie: 'phobie_des_blouses_blanches',
         tirageHypocondrie: 'hypocondrie_aigue',
       };
       attendus.forEach((tirage, maladie) {
@@ -120,14 +134,14 @@ void main() {
   });
 
   group('diagnostic', () {
-    test('temps + 1, pièces, aggravation, distribution, patient en jeu', () {
-      final partie = _partie(tirages: [tirageAppendicite, 0.5]);
+    test('temps + 1, pièces, aggravation, liste, patient en jeu', () {
+      final partie = _partie(tirages: [tirageFractureOuverte, 0.5]);
       _appliquer(partie, ['PAT-001'], 'admettre');
       final apercu = partie.valider([..._diag, 'OBJ-001']) as SelectionAcceptee;
       expect(apercu.actions.map((a) => a.id), ['diagnostiquer', 'traiter']);
       expect(
         apercu.actions.first.phrase,
-        'Examen de Mme Garnier par le Dr Moreau dans la salle de consultation '
+        'Examen de Mme Garnier par le Dr Moreau dans la salle de radiologie '
         'avec le stéthoscope.',
       );
 
@@ -141,16 +155,20 @@ void main() {
       expect(r.reputation, 0);
       expect(r.issue, IssuePatient.enJeu);
       expect(r.diagnostic, isNotNull);
-      expect(r.diagnostic!.niveau, 3);
+      expect(
+        r.diagnostic!.niveau,
+        4,
+        reason: '1 + 3 + 1 = 5, plafonné à precision_max = 4',
+      );
       expect(r.diagnostic!.maladies, hasLength(5));
       expect(
         r.diagnostic!.maladies.map((l) => l.specialite.icone).toSet(),
-        everyElement(isIn(['🧠', '✂️', '💊'])),
+        everyElement(isIn(['🩺', '🧠', '🦴'])),
       );
     });
 
     test('aggravation selon le temps, dernière valeur répétée', () {
-      final partie = _partie(tirages: [tirageFracture, 0.5]);
+      final partie = _partie(tirages: [tirageFractureFermee, 0.5]);
       _appliquer(partie, ['PAT-001'], 'admettre');
       final pertes = [
         for (var i = 0; i < 4; i++)
@@ -161,7 +179,7 @@ void main() {
 
     test('mort par aggravation : PV bornés à 0, pénalités d\'attente et de '
         'mort cumulées', () {
-      final partie = _partie(tirages: [tirageAppendicite, 0.5]);
+      final partie = _partie(tirages: [tirageFractureOuverte, 0.5]);
       _appliquer(partie, ['PAT-001'], 'admettre');
       for (var i = 0; i < 4; i++) {
         _appliquer(partie, _diag, 'diagnostiquer'); // 10 → 9 → 7 → 5 → 2
@@ -172,7 +190,7 @@ void main() {
       expect(r.issue, IssuePatient.mort);
       expect(r.attenteDepassee, isTrue, reason: 'temps 5 > attente_max 4');
       expect(r.reputation, -1 - 3);
-      expect(r.maladieRevelee!.id, 'appendicite');
+      expect(r.maladieRevelee!.id, 'fracture_ouverte');
     });
 
     test('attente dépassée : réputation à chaque action au-delà du seuil', () {
@@ -203,42 +221,51 @@ void main() {
       return partie;
     }
 
-    test('adapté : soigné, récompenses de la maladie, sans aggravation, '
+    test('adapté : guéri, récompenses de la maladie, sans aggravation, '
         'maladie révélée, patient sorti', () {
-      final partie = admise('interne', tirageAppendicite);
-      final r = _appliquer(partie, _chirDeux, 'traiter');
-      expect(r.issue, IssuePatient.soigne);
+      final partie = admise('interne', tirageFractureOuverte);
+      final r = _appliquer(partie, _orthoDeux, 'traiter');
+      expect(r.issue, IssuePatient.gueri);
       expect(r.pvApres, 10, reason: 'pas d\'aggravation');
       expect(r.pieces, 4, reason: 'pieces_traitement propre à la maladie');
       expect(r.reputation, 2);
-      expect(r.maladieRevelee!.id, 'appendicite');
-      expect(r.maladieRevelee!.nom, 'Appendicite');
+      expect(r.maladieRevelee!.id, 'fracture_ouverte');
+      expect(r.maladieRevelee!.nom, 'Fracture ouverte');
       final p = partie.etat.patients['PAT-001']!;
       expect(p.statut, StatutPatient.sorti);
-      expect(p.issue, IssuePatient.soigne);
+      expect(p.issue, IssuePatient.gueri);
       expect(partie.etat.enJeu('PAT-001'), isFalse);
     });
 
-    test('partiel : gain de soin_partiel + capacité soin, plafonné, puis '
-        'aggravation', () {
-      final partie = admise('interne', tirageAppendicite);
+    test('partiel : gain de pv_partiel + capacité stabilisation, plafonné, '
+        'sans aggravation', () {
+      final partie = admise('interne', tirageFractureOuverte);
       _appliquer(partie, _diag, 'diagnostiquer'); // 10 → 9
       _appliquer(partie, _diag, 'diagnostiquer'); // 9 → 7
-      final r = _appliquer(partie, _chirSoin, 'traiter');
-      // temps 3 : 7 + 2 + 1 (soin) = 10, plafonné à 10, puis −2.
-      expect(r.pvAvant, 7);
+      _appliquer(partie, _diag, 'diagnostiquer'); // 7 → 5
+      final r = _appliquer(partie, _platreStabilise, 'traiter');
+      // temps 4 : 5 + 2 + 1 (stabilisation) = 8, sans l'aggravation de 3.
+      expect(r.pvAvant, 5);
       expect(r.pvApres, 8);
       expect(r.pieces, 1);
       expect(r.reputation, 0);
       expect(r.issue, IssuePatient.enJeu);
 
-      final r2 = _appliquer(partie, _chirSeul, 'traiter');
-      // temps 4 : 8 + 2 = 10, puis −3.
-      expect(r2.pvApres, 7);
+      final r2 = _appliquer(partie, _platre, 'traiter');
+      // temps 5 : 8 + 2 = 10, plafonné à pv_initial, sans aggravation.
+      expect(r2.pvApres, 10);
     });
 
-    test('inadapté : perte de PV, réputation, aggravation', () {
-      final partie = admise('interne', tirageAppendicite);
+    test('partiel en Réanimation : le gain n\'est pas modulé, et rien ne '
+        'le reprend', () {
+      final partie = admise('reanimation', tirageFractureOuverte);
+      _appliquer(partie, _diag, 'diagnostiquer'); // 10 − 1 × 2 → 8
+      final r = _appliquer(partie, _platre, 'traiter');
+      expect(r.pvApres, 10, reason: '8 + 2, sans aggravation de 2 × 2');
+    });
+
+    test('échec : perte de PV, réputation, aggravation', () {
+      final partie = admise('interne', tirageFractureOuverte);
       final r = _appliquer(partie, _psy, 'traiter');
       expect(r.pvApres, 10 - 2 - 1);
       expect(r.pieces, 0);
@@ -247,7 +274,7 @@ void main() {
 
     test('récompense surchargée par la maladie (hypocondrie : échec −2)', () {
       final partie = admise('interne', tirageHypocondrie);
-      final r = _appliquer(partie, _chirSeul, 'traiter');
+      final r = _appliquer(partie, _orthoSeul, 'traiter');
       expect(r.reputation, -2);
     });
 
@@ -256,36 +283,41 @@ void main() {
       () {
         final partie = admise('interne', tirageHypocondrie);
         final avecObjet = _appliquer(partie, [
-          'MED-004',
+          'MED-005',
           'PAT-001',
-          'SAL-003',
+          'SAL-002',
           'OBJ-001',
         ], 'traiter');
         expect(avecObjet.issue, IssuePatient.enJeu, reason: 'objet interdit');
         final sansObjet = _appliquer(partie, [
-          'MED-004',
+          'MED-005',
           'PAT-001',
-          'SAL-003',
+          'SAL-002',
         ], 'traiter');
-        expect(sansObjet.issue, IssuePatient.soigne);
+        expect(sansObjet.issue, IssuePatient.gueri);
       },
     );
 
     test('traitement par une carte précise (angine : antibiotique)', () {
       final partie = admise('interne', tirageAngine);
-      final partiel = _appliquer(partie, [..._diag, 'OBJ-011'], 'traiter');
-      expect(partiel.pieces, 1, reason: 'autre médicament : partiel');
+      final partiel = _appliquer(partie, [
+        'MED-002',
+        'PAT-001',
+        'SAL-003',
+        'OBJ-011',
+      ], 'traiter');
+      expect(partiel.pieces, 1, reason: 'médecin de médecine générale');
       final adapte = _appliquer(partie, [..._diag, 'OBJ-010'], 'traiter');
-      expect(adapte.issue, IssuePatient.soigne);
+      expect(adapte.issue, IssuePatient.gueri);
     });
 
     test('mort : PV à 0, pénalité de mort, maladie révélée (Réanimation)', () {
       final partie = admise('reanimation', tirageHypocondrie);
       // PV 7. Échec : −2 × 2 = −4, aggravation −1 × 2 = −2.
-      final r1 = _appliquer(partie, _chirSeul, 'traiter');
+      final r1 = _appliquer(partie, _orthoSeul, 'traiter');
       expect(r1.pvApres, 1);
       expect(r1.reputation, -4);
-      final r2 = _appliquer(partie, _chirSeul, 'traiter');
+      final r2 = _appliquer(partie, _orthoSeul, 'traiter');
       expect(r2.pvApres, 0, reason: 'les PV ne descendent pas sous 0');
       expect(r2.issue, IssuePatient.mort);
       expect(r2.reputation, -4 - 6, reason: 'échec −4, mort −3 × 2');
@@ -294,16 +326,16 @@ void main() {
     });
 
     test('difficulté Chirurgien : pièces ×1,2 et réputation ×1,5', () {
-      final partie = admise('chirurgien', tirageAppendicite);
-      final r = _appliquer(partie, _chirDeux, 'traiter');
+      final partie = admise('chirurgien', tirageFractureOuverte);
+      final r = _appliquer(partie, _orthoDeux, 'traiter');
       expect(r.pieces, 5, reason: '4 × 1,2 = 4,8 → 5');
       expect(r.reputation, 3, reason: '2 × 1,5 = 3');
     });
 
     test('un patient sorti peut être réadmis avec une nouvelle maladie', () {
-      final partie = _partie(tirages: [tirageAppendicite, tirageAngine]);
+      final partie = _partie(tirages: [tirageFractureOuverte, tirageAngine]);
       _appliquer(partie, ['PAT-001'], 'admettre');
-      _appliquer(partie, _chirDeux, 'traiter');
+      _appliquer(partie, _orthoDeux, 'traiter');
       expect(_refus(partie.valider(_diag)), 'Mme Garnier n\'est pas en jeu.');
       final r = _appliquer(partie, ['PAT-001'], 'admettre');
       expect(r.pvAvant, isNull);
@@ -324,9 +356,9 @@ void main() {
     });
 
     test('patient sorti entre l\'aperçu et la confirmation', () {
-      final partie = _partie(tirages: [tirageAppendicite]);
+      final partie = _partie(tirages: [tirageFractureOuverte]);
       _appliquer(partie, ['PAT-001'], 'admettre');
-      _appliquer(partie, _chirDeux, 'traiter');
+      _appliquer(partie, _orthoDeux, 'traiter');
       final r = partie.confirmer(_diag, 'diagnostiquer') as ActionRefusee;
       expect(
         r.message,
@@ -338,7 +370,7 @@ void main() {
     test(
       'chaque scan compte : deux confirmations font avancer le temps de 2',
       () {
-        final partie = _partie(tirages: [tirageAppendicite, 0.5]);
+        final partie = _partie(tirages: [tirageFractureOuverte, 0.5]);
         _appliquer(partie, ['PAT-001'], 'admettre');
         _appliquer(partie, _diag, 'diagnostiquer');
         _appliquer(partie, _diag, 'diagnostiquer');
@@ -365,10 +397,10 @@ void main() {
 
   group('annulation (LIFO, 5 actions)', () {
     test('restaure l\'instantané et renvoie le résultat annulé', () {
-      final partie = _partie(tirages: [tirageAppendicite, 0.5]);
+      final partie = _partie(tirages: [tirageFractureOuverte, 0.5]);
       _appliquer(partie, ['PAT-001'], 'admettre');
       final avant = jsonEncode(partie.etat.toJson());
-      final r = _appliquer(partie, _chirDeux, 'traiter');
+      final r = _appliquer(partie, _orthoDeux, 'traiter');
       final annule = partie.annulerDerniereAction();
       expect(annule!.numero, r.numero);
       expect(annule.pieces, 4);
@@ -377,7 +409,7 @@ void main() {
     });
 
     test('au plus 5 actions annulables, puis plus rien', () {
-      final partie = _partie(tirages: [tirageAllergie, 0.5]);
+      final partie = _partie(tirages: [tirageAngine, 0.5]);
       _appliquer(partie, ['PAT-001'], 'admettre');
       for (var i = 0; i < 6; i++) {
         _appliquer(partie, _diag, 'diagnostiquer');
@@ -396,11 +428,11 @@ void main() {
 
   group('sauvegarde et restauration', () {
     Partie jouee() {
-      final partie = _partie(tirages: [tirageAppendicite, 0.3, 0.6, 0.9]);
+      final partie = _partie(tirages: [tirageFractureOuverte, 0.3, 0.6, 0.9]);
       _appliquer(partie, ['PAT-001'], 'admettre');
       _appliquer(partie, ['PAT-002'], 'admettre');
       _appliquer(partie, [..._diag, 'OBJ-002'], 'diagnostiquer');
-      _appliquer(partie, _chirDeux, 'traiter');
+      _appliquer(partie, _orthoDeux, 'traiter');
       return partie;
     }
 
@@ -440,7 +472,7 @@ void main() {
     test('compatibilité : autre version du paquet, avertissement', () {
       final autre = IdentitePaquet(
         id: _paquet.id,
-        version: '0.2.0',
+        version: '9.9.9',
         empreinte: _paquet.empreinte,
       );
       final c = CompatibiliteEtat.verifier(jouee().etat, _jeu, autre);
@@ -457,7 +489,7 @@ void main() {
       });
       final c = CompatibiliteEtat.verifier(etat, reduit, _paquet);
       expect(c.compatible, isFalse);
-      expect(c.erreurs, contains(contains('appendicite')));
+      expect(c.erreurs, contains(contains('fracture_ouverte')));
       expect(c.erreurs, contains(contains('PAT-002')));
       expect(c.erreurs, contains(contains('interne')));
     });
@@ -493,7 +525,7 @@ void main() {
         'pieces',
         'reputation',
       ]);
-      expect(r['issue'], 'soigne');
+      expect(r['issue'], 'gueri');
       expect(ResultatAction.fromJson(r).toJson(), r);
     });
   });
@@ -511,7 +543,7 @@ void main() {
               'patient_en_jeu',
               {
                 'combinaison': {
-                  'compte': {'type': 'salle', 'specialite': 'psychologie'},
+                  'compte': {'type': 'salle', 'specialite': 'psychiatrie'},
                   'min': 1,
                 },
               },
@@ -535,7 +567,7 @@ void main() {
           a.id,
       ];
       expect(actions(_diag), ['diagnostiquer', 'traiter']);
-      expect(actions(['MED-004', 'PAT-001', 'SAL-003']), [
+      expect(actions(['MED-005', 'PAT-001', 'SAL-002']), [
         'diagnostiquer',
         'traiter',
         'consulter',
@@ -560,7 +592,7 @@ void main() {
                 'patient_en_jeu',
                 {
                   'non': {
-                    'combinaison': {'carte': 'SAL-001'},
+                    'combinaison': {'carte': 'SAL-003'},
                   },
                 },
               ],
@@ -583,9 +615,96 @@ void main() {
           _refus(partie.valider(_diag)),
           'Aucune action possible avec ces cartes.',
         );
-        expect(partie.valider(_chirSeul), isA<SelectionAcceptee>());
+        expect(partie.valider(_orthoSeul), isA<SelectionAcceptee>());
       },
     );
+  });
+
+  group('laboratoire de recherche', () {
+    test('le laboratoire ne sert ni à diagnostiquer ni à traiter', () {
+      final partie = _partie();
+      _appliquer(partie, ['PAT-001'], 'admettre');
+      for (final qrs in [
+        _labo,
+        [..._labo, 'OBJ-001'],
+        ['MED-001', 'MED-002', 'PAT-001', 'SAL-011'],
+      ]) {
+        expect(
+          _refus(partie.valider(qrs)),
+          'Aucune action possible avec ces cartes.',
+        );
+      }
+      expect(
+        (partie.confirmer(_labo, 'diagnostiquer') as ActionRefusee).message,
+        'Cette action n\'est pas possible avec ces cartes — action non '
+        'appliquée.',
+      );
+    });
+
+    test('avec un motif « recherche » déclaré en tête, les combinaisons à '
+        '3 cartes hors laboratoire restent standard, et le laboratoire ne '
+        'propose qu\'« analyser », avec ou sans accessoire', () {
+      final jeu = jeuExemple((brut) {
+        brut['motifs'] = {
+          'recherche': {
+            'patient': [1, 1],
+            'medecin': [1, 1],
+            'salle': [1, 1],
+            'objet|diplome': [0, 1],
+            'total': [3, 4],
+          },
+          ...(brut['motifs'] as Map<String, dynamic>),
+        };
+        (brut['actions'] as List).add({
+          'id': 'analyser',
+          'libelle': 'Analyser',
+          'motif': 'recherche',
+          'precondition': {
+            'et': [
+              'patient_en_jeu',
+              {
+                'combinaison': {
+                  'compte': {'type': 'salle', 'specialite': 'recherche'},
+                  'min': 1,
+                },
+              },
+            ],
+          },
+          'phrase': 'Analyse pour {patient} par {medecin} dans {salle}.',
+          'effets': [
+            {'effet': 'avancer_temps'},
+          ],
+        });
+      });
+      final partie = Partie.nouvelle(
+        jeu: jeu,
+        paquet: _paquet,
+        difficulte: 'interne',
+        alea: Alea(1),
+      );
+      _appliquer(partie, ['PAT-001'], 'admettre');
+      List<String> actions(List<String> qrs) => [
+        for (final a in (partie.valider(qrs) as SelectionAcceptee).actions)
+          a.id,
+      ];
+      expect(actions(_diag), ['diagnostiquer', 'traiter']);
+      expect(actions([..._diag, 'OBJ-001']), ['diagnostiquer', 'traiter']);
+      expect(actions(_orthoDeux), ['diagnostiquer', 'traiter']);
+      expect(actions(_labo), ['analyser']);
+      expect(actions([..._labo, 'OBJ-001']), ['analyser']);
+      expect(
+        _refus(partie.valider(['MED-001', 'MED-002', 'PAT-001', 'SAL-011'])),
+        'Aucune action possible avec ces cartes.',
+        reason: 'deux médecins : seul le motif standard correspond',
+      );
+      final r = _appliquer(partie, _labo, 'analyser');
+      expect(
+        r.phrase,
+        'Analyse pour Mme Garnier par le Dr Moreau dans le '
+        'laboratoire de recherche.',
+      );
+      expect(r.temps, 1);
+    });
   });
 
   group('robustesse face à un paquet mal conçu', () {

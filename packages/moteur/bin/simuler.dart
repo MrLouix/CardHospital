@@ -64,7 +64,13 @@ Future<void> main(List<String> args) async {
       abbr: 'o',
       help: 'Fichier de sortie (défaut : écran).',
     )
-    ..addFlag('aide', abbr: 'h', negatable: false, help: 'Affiche cette aide.');
+    ..addFlag(
+      'aide',
+      abbr: 'h',
+      aliases: ['help'],
+      negatable: false,
+      help: 'Affiche cette aide (aussi --help).',
+    );
 
   final ArgResults o;
   try {

@@ -69,7 +69,7 @@ class Diagnostic {
     required this.precisionMax,
     required this.verite,
     required this.parNiveau,
-    required this.affiniteType,
+    required this.affiniteSpecialite,
     required this.bonusSpecialite,
     required this.exclusion,
     required this.tailleListe,
@@ -89,12 +89,13 @@ class Diagnostic {
   @JsonKey(name: 'par_niveau')
   final double parNiveau;
 
-  /// Bonus de toutes les maladies du vrai type : `× (1 + affinite_type)`.
-  @JsonKey(name: 'affinite_type')
-  final double affiniteType;
+  /// Bonus de toutes les maladies de la vraie spécialité :
+  /// `× (1 + affinite_specialite)`.
+  @JsonKey(name: 'affinite_specialite')
+  final double affiniteSpecialite;
 
   /// Maladies d'une spécialité de la combinaison : `× (1 + bonus_specialite)`
-  /// si c'est le vrai type, `× exclusion` sinon.
+  /// si c'est la vraie spécialité, `× exclusion` sinon.
   @JsonKey(name: 'bonus_specialite')
   final double bonusSpecialite;
   final double exclusion;
@@ -103,8 +104,8 @@ class Diagnostic {
   @JsonKey(name: 'taille_liste')
   final int tailleListe;
 
-  /// Pourcentage affiché pour une maladie dont le poids égale le maximum
-  /// attendu du bruit seul.
+  /// Indice de suspicion affiché pour une maladie dont le poids égale le
+  /// maximum attendu du bruit seul.
   @JsonKey(name: 'score_bruit')
   final int scoreBruit;
 }
@@ -115,11 +116,11 @@ class Recompenses {
     this.piecesDiagnostic,
     this.piecesTraitement,
     this.piecesPartiel,
-    this.reputationSoin,
+    this.reputationGuerison,
     this.reputationEchec,
     this.reputationAttente,
     this.reputationMort,
-    this.soinPartiel,
+    this.pvPartiel,
     this.pvEchec,
   });
 
@@ -134,16 +135,18 @@ class Recompenses {
   final int? piecesTraitement;
   @JsonKey(name: 'pieces_partiel')
   final int? piecesPartiel;
-  @JsonKey(name: 'reputation_soin')
-  final int? reputationSoin;
+  @JsonKey(name: 'reputation_guerison')
+  final int? reputationGuerison;
   @JsonKey(name: 'reputation_echec')
   final int? reputationEchec;
   @JsonKey(name: 'reputation_attente')
   final int? reputationAttente;
   @JsonKey(name: 'reputation_mort')
   final int? reputationMort;
-  @JsonKey(name: 'soin_partiel')
-  final int? soinPartiel;
+
+  /// PV rendus par un traitement partiel, avant la capacité `stabilisation`.
+  @JsonKey(name: 'pv_partiel')
+  final int? pvPartiel;
   @JsonKey(name: 'pv_echec')
   final int? pvEchec;
 }
@@ -268,7 +271,7 @@ class Maladie {
   Maladie({
     required this.id,
     required this.nom,
-    required this.type,
+    required this.specialite,
     required this.pvInitial,
     required this.aggravation,
     required this.traitement,
@@ -284,7 +287,9 @@ class Maladie {
 
   final String id;
   final String nom;
-  final String type;
+
+  /// Spécialité de la maladie (jamais `polyvalent` ni `recherche`).
+  final String specialite;
   @JsonKey(name: 'pv_initial')
   final int pvInitial;
   final List<int> aggravation;

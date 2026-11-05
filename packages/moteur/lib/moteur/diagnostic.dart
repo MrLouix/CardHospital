@@ -47,7 +47,7 @@ class LigneDiagnostic {
   const LigneDiagnostic({
     required this.id,
     required this.nom,
-    required this.pourcentage,
+    required this.indice,
     required this.specialite,
   });
 
@@ -55,7 +55,7 @@ class LigneDiagnostic {
       LigneDiagnostic(
         id: json['id'] as String,
         nom: json['nom'] as String,
-        pourcentage: json['pourcentage'] as int,
+        indice: json['indice'] as int,
         specialite: SpecialiteAffichee.fromJson(
           json['specialite'] as Map<String, dynamic>,
         ),
@@ -64,15 +64,15 @@ class LigneDiagnostic {
   final String id;
   final String nom;
 
-  /// Confiance que cette maladie est la bonne, de 0 à 99 %. Les pourcentages
-  /// des lignes sont indépendants : ils ne somment pas à 100.
-  final int pourcentage;
+  /// Indice de suspicion, de 0 à [indiceMax]. Ce n'est pas une probabilité :
+  /// les indices des lignes sont indépendants et ne somment pas à 100.
+  final int indice;
   final SpecialiteAffichee specialite;
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'nom': nom,
-    'pourcentage': pourcentage,
+    'indice': indice,
     'specialite': specialite.toJson(),
   };
 }
@@ -93,18 +93,19 @@ class ResultatDiagnostic {
   /// Niveau de précision `N` utilisé.
   final int niveau;
 
-  /// Les maladies les plus probables, par pourcentage décroissant.
+  /// Les maladies les plus suspectes, par indice décroissant.
   final List<LigneDiagnostic> maladies;
 
-  /// Spécialité dont les maladies totalisent le plus de pourcentage dans la
-  /// liste (la première rencontrée en cas d'égalité) : la piste que la liste
-  /// suggère de confirmer par un diagnostic avec cette spécialité.
+  /// Couleur dominante : la spécialité qui a le plus de lignes dans la liste
+  /// (« 3 bleus sur 5 »). En cas d'égalité, celle qui apparaît la première,
+  /// donc la mieux classée. C'est la piste que la liste suggère de confirmer
+  /// par un diagnostic avec cette spécialité.
   String get specialiteDominante {
-    final totaux = <String, int>{};
+    final lignes = <String, int>{};
     for (final l in maladies) {
-      totaux[l.specialite.id] = (totaux[l.specialite.id] ?? 0) + l.pourcentage;
+      lignes[l.specialite.id] = (lignes[l.specialite.id] ?? 0) + 1;
     }
-    return totaux.entries.reduce((a, b) => b.value > a.value ? b : a).key;
+    return lignes.entries.reduce((a, b) => b.value > a.value ? b : a).key;
   }
 
   Map<String, dynamic> toJson() => {
@@ -113,27 +114,28 @@ class ResultatDiagnostic {
   };
 }
 
-/// Pourcentage maximal affiché : un diagnostic n'affiche jamais de certitude.
-const pourcentageMax = 99;
+/// Indice de suspicion maximal affiché : un diagnostic n'affiche jamais de
+/// certitude.
+const indiceMax = 99;
 
 /// Calcul du diagnostic probabiliste (MODELE_DE_JEU.md §8.3).
 class Diagnostiqueur {
   factory Diagnostiqueur(Jeu jeu, SourceAleatoire alea) {
     final specialites = {for (final s in jeu.specialites) s.id: s};
-    final parType = <String, int>{};
+    final parSpecialite = <String, int>{};
     for (final m in jeu.maladies) {
-      parType[m.type] = (parType[m.type] ?? 0) + 1;
+      parSpecialite[m.specialite] = (parSpecialite[m.specialite] ?? 0) + 1;
     }
-    final moyenne = jeu.maladies.length / parType.length;
+    final moyenne = jeu.maladies.length / parSpecialite.length;
     final p = jeu.parametres.diagnostic;
     return Diagnostiqueur._(
       jeu,
       alea,
       {
         for (final m in jeu.maladies)
-          m.id: SpecialiteAffichee.depuis(specialites[m.type]!),
+          m.id: SpecialiteAffichee.depuis(specialites[m.specialite]!),
       },
-      {for (final e in parType.entries) e.key: e.value / moyenne},
+      {for (final e in parSpecialite.entries) e.key: e.value / moyenne},
       maximumAttenduBruit(moyenne),
       -math.log(1 - p.scoreBruit / 100),
     );
@@ -152,7 +154,7 @@ class Diagnostiqueur {
   final SourceAleatoire alea;
   final Map<String, SpecialiteAffichee> _specialites;
 
-  /// `n_t / n̄` par type : exposant de la correction du bruit.
+  /// `n_s / n̄` par spécialité : exposant de la correction du bruit.
   final Map<String, double> _exposants;
 
   /// Maximum attendu du bruit seul, `H(n̄)`.
@@ -173,20 +175,20 @@ class Diagnostiqueur {
     final sc = combinaison.specialites;
     final poids = <(Maladie, double)>[];
     for (final m in jeu.maladies) {
-      // 1. Bruit corrigé : le maximum de chaque type suit la même loi que
-      //    celui de n̄ tirages exponentiels, quel que soit son nombre de
+      // 1. Bruit corrigé : le maximum de chaque spécialité suit la même loi
+      //    que celui de n̄ tirages exponentiels, quel que soit son nombre de
       //    maladies.
       var w = -math.log(
-        1 - math.pow(alea.flottant(), _exposants[m.type]!).toDouble(),
+        1 - math.pow(alea.flottant(), _exposants[m.specialite]!).toDouble(),
       );
-      final vraiType = m.type == vraie.type;
-      // 2. Affinité du vrai type.
-      if (vraiType) w *= 1 + _p.affiniteType;
+      final vraieSpecialite = m.specialite == vraie.specialite;
+      // 2. Affinité de la vraie spécialité.
+      if (vraieSpecialite) w *= 1 + _p.affiniteSpecialite;
       // 3. Vraie maladie.
       if (m.id == vraie.id) w *= 1 + _p.verite + _p.parNiveau * n;
       // 4. Spécialités de la combinaison : concordance ou exclusion.
-      if (sc.contains(m.type)) {
-        w *= vraiType ? 1 + _p.bonusSpecialite : _p.exclusion;
+      if (sc.contains(m.specialite)) {
+        w *= vraieSpecialite ? 1 + _p.bonusSpecialite : _p.exclusion;
       }
       poids.add((m, w));
     }
@@ -203,17 +205,17 @@ class Diagnostiqueur {
           LigneDiagnostic(
             id: poids[i].$1.id,
             nom: poids[i].$1.nom,
-            pourcentage: pourcentage(poids[i].$2),
+            indice: indice(poids[i].$2),
             specialite: _specialites[poids[i].$1.id]!,
           ),
       ],
     );
   }
 
-  /// 6. Pourcentage affiché pour un poids : `100 × (1 − e^(−k·w/H))`,
-  /// arrondi, plafonné à [pourcentageMax].
-  int pourcentage(double poids) => math.min(
-    pourcentageMax,
+  /// 6. Indice de suspicion affiché pour un poids : `100 × (1 − e^(−k·w/H))`,
+  /// arrondi, plafonné à [indiceMax].
+  int indice(double poids) => math.min(
+    indiceMax,
     (100 * (1 - math.exp(-_pente * poids / _reference))).round(),
   );
 }

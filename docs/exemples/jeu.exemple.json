@@ -4,15 +4,15 @@
   "schema_version": 1,
   "id": "base_exemple",
   "nom": "CardHospital — exemple réduit",
-  "version": "0.1.0",
-  "description": "Extrait illustratif du paquet de base : quelques cartes et maladies par spécialité. Les valeurs sont celles par défaut du modèle de jeu.",
+  "version": "0.2.0",
+  "description": "Sous-ensemble du paquet de base (contenu/paquet_base.json) : mêmes cartes, mêmes maladies et mêmes règles, réduits à 3 spécialités, 18 cartes et 6 maladies. Sert d'exemple dans la documentation et de jeu d'essai aux tests du moteur.",
   "parametres": {
     "attente_max_defaut": 5,
     "diagnostic": {
-      "precision_max": 5,
+      "precision_max": 4,
       "verite": 3.0,
       "par_niveau": 1.5,
-      "affinite_type": 0.2,
+      "affinite_specialite": 0.2,
       "bonus_specialite": 0.3,
       "exclusion": 0.75,
       "taille_liste": 5,
@@ -22,138 +22,474 @@
       "pieces_diagnostic": 1,
       "pieces_traitement": 3,
       "pieces_partiel": 1,
-      "reputation_soin": 2,
+      "reputation_guerison": 2,
       "reputation_echec": -1,
       "reputation_attente": -1,
       "reputation_mort": -3,
-      "soin_partiel": 2,
+      "pv_partiel": 2,
       "pv_echec": 2
     }
   },
   "difficultes": [
-    { "id": "interne", "nom": "Interne", "modificateurs": { "pv_perdus": 1.0, "pieces": 1.0, "reputation": 1.0 } },
-    { "id": "chirurgien", "nom": "Chirurgien", "modificateurs": { "pv_perdus": 1.5, "pieces": 1.2, "reputation": 1.5 } },
-    { "id": "reanimation", "nom": "Réanimation", "modificateurs": { "pv_perdus": 2.0, "pieces": 1.5, "reputation": 2.0 } }
+    {
+      "id": "interne",
+      "nom": "Interne",
+      "modificateurs": {
+        "pv_perdus": 1.0,
+        "pieces": 1.0,
+        "reputation": 1.0
+      }
+    },
+    {
+      "id": "chirurgien",
+      "nom": "Chirurgien",
+      "modificateurs": {
+        "pv_perdus": 1.5,
+        "pieces": 1.2,
+        "reputation": 1.5
+      }
+    },
+    {
+      "id": "reanimation",
+      "nom": "Réanimation",
+      "modificateurs": {
+        "pv_perdus": 2.0,
+        "pieces": 1.5,
+        "reputation": 2.0
+      }
+    }
   ],
   "specialites": [
-    { "id": "psychologie", "nom": "Psychologie", "couleur": "#7B4FBF", "icone": "🧠" },
-    { "id": "chirurgie", "nom": "Chirurgie", "couleur": "#C62828", "icone": "✂️" },
-    { "id": "pharmacie", "nom": "Pharmacie", "couleur": "#2E7D32", "icone": "💊" }
+    {
+      "id": "generale",
+      "nom": "Médecine générale",
+      "couleur": "#1565C0",
+      "icone": "🩺"
+    },
+    {
+      "id": "psychiatrie",
+      "nom": "Psychiatrie",
+      "couleur": "#7B4FBF",
+      "icone": "🧠"
+    },
+    {
+      "id": "orthopedie",
+      "nom": "Orthopédie",
+      "couleur": "#EF6C00",
+      "icone": "🦴"
+    }
   ],
   "capacites": [
-    { "id": "precision", "nom": "Précision", "description": "Améliore le niveau de précision des diagnostics." },
-    { "id": "soin", "nom": "Soin", "description": "PV supplémentaires rendus par un traitement partiel." }
+    {
+      "id": "precision",
+      "nom": "Précision",
+      "description": "Améliore le niveau de précision des diagnostics."
+    },
+    {
+      "id": "stabilisation",
+      "nom": "Stabilisation",
+      "description": "PV supplémentaires rendus par un traitement partiel."
+    }
   ],
   "cartes": {
-    "MED-001": { "type": "medecin", "nom": "Dr Moreau", "nom_phrase": "le Dr Moreau", "specialite": "generaliste", "capacites": { "precision": 1 } },
-    "MED-002": { "type": "medecin", "nom": "Dr Lefort", "nom_phrase": "le Dr Lefort", "specialite": "chirurgie" },
-    "MED-003": { "type": "medecin", "nom": "Dr Benali", "nom_phrase": "la Dr Benali", "specialite": "chirurgie", "capacites": { "soin": 1 } },
-    "MED-004": { "type": "medecin", "nom": "Dr Sauvage", "nom_phrase": "le Dr Sauvage", "specialite": "psychologie" },
-    "PAT-001": { "type": "patient", "nom": "Mme Garnier", "nom_phrase": "Mme Garnier" },
-    "PAT-002": { "type": "patient", "nom": "M. Dupont", "nom_phrase": "M. Dupont" },
-    "SAL-001": { "type": "salle", "nom": "Salle de consultation", "nom_phrase": "la salle de consultation", "specialite": "generaliste", "capacites": { "precision": 1 } },
-    "SAL-002": { "type": "salle", "nom": "Bloc opératoire", "nom_phrase": "le bloc opératoire", "specialite": "chirurgie", "capacites": { "precision": 1 } },
-    "SAL-003": { "type": "salle", "nom": "Unité de psychiatrie", "nom_phrase": "l'unité de psychiatrie", "specialite": "psychologie", "capacites": { "precision": 1 } },
-    "OBJ-001": { "type": "objet", "nom": "Stéthoscope", "nom_phrase": "le stéthoscope", "capacites": { "precision": 1 } },
-    "OBJ-002": { "type": "objet", "nom": "Traité de médecine", "nom_phrase": "le traité de médecine", "capacites": { "precision": 2 } },
-    "OBJ-010": { "type": "objet", "nom": "Antibiotique", "nom_phrase": "l'antibiotique", "specialite": "pharmacie" },
-    "OBJ-011": { "type": "objet", "nom": "Antihistaminique", "nom_phrase": "l'antihistaminique", "specialite": "pharmacie" },
-    "DIP-001": { "type": "diplome", "nom": "Diplôme de pharmacologie", "nom_phrase": "le diplôme de pharmacologie", "specialite": "pharmacie", "capacites": { "precision": 1 } }
+    "MED-001": {
+      "type": "medecin",
+      "nom": "Dr Moreau",
+      "nom_phrase": "le Dr Moreau",
+      "specialite": "polyvalent",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "MED-002": {
+      "type": "medecin",
+      "nom": "Dr Lefort",
+      "nom_phrase": "le Dr Lefort",
+      "specialite": "generale"
+    },
+    "MED-005": {
+      "type": "medecin",
+      "nom": "Dr Sauvage",
+      "nom_phrase": "le Dr Sauvage",
+      "specialite": "psychiatrie"
+    },
+    "MED-007": {
+      "type": "medecin",
+      "nom": "Dr Cassagne",
+      "nom_phrase": "le Dr Cassagne",
+      "specialite": "orthopedie"
+    },
+    "MED-008": {
+      "type": "medecin",
+      "nom": "Dr Vasseur",
+      "nom_phrase": "le Dr Vasseur",
+      "specialite": "orthopedie",
+      "capacites": {
+        "stabilisation": 1
+      }
+    },
+    "SAL-001": {
+      "type": "salle",
+      "nom": "Salle de consultation",
+      "nom_phrase": "la salle de consultation",
+      "specialite": "generale",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "SAL-002": {
+      "type": "salle",
+      "nom": "Salle de psychiatrie",
+      "nom_phrase": "la salle de psychiatrie",
+      "specialite": "psychiatrie",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "SAL-003": {
+      "type": "salle",
+      "nom": "Radiologie",
+      "nom_phrase": "la salle de radiologie",
+      "specialite": "polyvalent",
+      "capacites": {
+        "precision": 3
+      }
+    },
+    "SAL-006": {
+      "type": "salle",
+      "nom": "Bloc opératoire",
+      "nom_phrase": "le bloc opératoire",
+      "specialite": "orthopedie",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "SAL-008": {
+      "type": "salle",
+      "nom": "Plâtrerie",
+      "nom_phrase": "la plâtrerie",
+      "specialite": "orthopedie"
+    },
+    "SAL-011": {
+      "type": "salle",
+      "nom": "Laboratoire de recherche",
+      "nom_phrase": "le laboratoire de recherche",
+      "specialite": "recherche"
+    },
+    "PAT-001": {
+      "type": "patient",
+      "nom": "Mme Garnier",
+      "nom_phrase": "Mme Garnier"
+    },
+    "PAT-002": {
+      "type": "patient",
+      "nom": "M. Dupont",
+      "nom_phrase": "M. Dupont"
+    },
+    "OBJ-001": {
+      "type": "objet",
+      "nom": "Stéthoscope",
+      "nom_phrase": "le stéthoscope",
+      "capacites": {
+        "precision": 1
+      }
+    },
+    "OBJ-002": {
+      "type": "objet",
+      "nom": "Traité de médecine",
+      "nom_phrase": "le traité de médecine",
+      "capacites": {
+        "precision": 2
+      }
+    },
+    "OBJ-010": {
+      "type": "objet",
+      "nom": "Antibiotique",
+      "nom_phrase": "l'antibiotique",
+      "specialite": "generale"
+    },
+    "OBJ-011": {
+      "type": "objet",
+      "nom": "Antalgique",
+      "nom_phrase": "l'antalgique",
+      "specialite": "generale"
+    },
+    "DIP-001": {
+      "type": "diplome",
+      "nom": "Diplôme de médecine générale",
+      "nom_phrase": "le diplôme de médecine générale",
+      "specialite": "generale",
+      "capacites": {
+        "precision": 1
+      }
+    }
   },
   "maladies": [
     {
-      "id": "appendicite",
-      "nom": "Appendicite",
-      "type": "chirurgie",
-      "pv_initial": 10,
-      "aggravation": [1, 2, 2, 3],
-      "attente_max": 4,
-      "poids": 2,
-      "traitement": {
-        "adapte": { "tous": [
-          { "compte": { "type": "medecin", "specialite": "chirurgie" }, "min": 2 },
-          { "compte": { "type": "salle", "specialite": "chirurgie" }, "min": 1 }
-        ] },
-        "partiel": { "tous": [
-          { "compte": { "type": "medecin", "specialite": "chirurgie" }, "min": 1 },
-          { "compte": { "type": "salle", "specialite": "chirurgie" }, "min": 1 }
-        ] }
-      },
-      "recompenses": { "pieces_traitement": 4 }
-    },
-    {
       "id": "fracture_ouverte",
       "nom": "Fracture ouverte",
-      "type": "chirurgie",
-      "pv_initial": 8,
-      "aggravation": [1, 1, 2],
+      "specialite": "orthopedie",
+      "pv_initial": 10,
+      "aggravation": [
+        1,
+        2,
+        2,
+        3
+      ],
+      "poids": 2,
       "traitement": {
-        "adapte": { "tous": [
-          { "compte": { "type": "medecin", "specialite": "chirurgie" }, "min": 1 },
-          { "compte": { "type": "salle", "specialite": "chirurgie" }, "min": 1 }
-        ] }
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 2
+            },
+            {
+              "carte": "SAL-006"
+            }
+          ]
+        },
+        "partiel": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "carte": "SAL-008"
+            }
+          ]
+        }
+      },
+      "attente_max": 4,
+      "recompenses": {
+        "pieces_traitement": 4
       }
+    },
+    {
+      "id": "fracture_fermee",
+      "nom": "Fracture fermée",
+      "specialite": "orthopedie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "carte": "SAL-006"
+            }
+          ]
+        },
+        "partiel": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "orthopedie"
+              },
+              "min": 1
+            },
+            {
+              "carte": "SAL-008"
+            }
+          ]
+        }
+      },
+      "attente_max": 5
     },
     {
       "id": "angine_bacterienne",
       "nom": "Angine bactérienne",
-      "type": "pharmacie",
+      "specialite": "generale",
       "pv_initial": 8,
-      "aggravation": [1],
-      "attente_max": 6,
+      "aggravation": [
+        1,
+        1
+      ],
       "poids": 3,
       "traitement": {
-        "adapte": { "carte": "OBJ-010" },
-        "partiel": { "compte": { "type": ["objet", "diplome"], "specialite": "pharmacie" }, "min": 1 }
-      }
-    },
-    {
-      "id": "allergie_saisonniere",
-      "nom": "Allergie saisonnière",
-      "type": "pharmacie",
-      "pv_initial": 6,
-      "aggravation": [0, 1],
-      "poids": 3,
-      "traitement": {
-        "adapte": { "carte": "OBJ-011" },
-        "partiel": { "compte": { "type": ["objet", "diplome"], "specialite": "pharmacie" }, "min": 1 }
+        "adapte": {
+          "carte": "OBJ-010"
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "carte": "SAL-001"
+            }
+          ]
+        }
       },
-      "recompenses": { "pieces_traitement": 2 }
+      "attente_max": 6
     },
     {
-      "id": "phobie_des_blouses",
-      "nom": "Phobie des blouses blanches",
-      "type": "psychologie",
-      "pv_initial": 9,
-      "aggravation": [1, 1, 2],
+      "id": "maux_de_tete",
+      "nom": "Maux de tête",
+      "specialite": "generale",
+      "pv_initial": 6,
+      "aggravation": [
+        1
+      ],
+      "poids": 3,
       "traitement": {
-        "adapte": { "tous": [
-          { "compte": { "type": "medecin", "specialite": "psychologie" }, "min": 1 },
-          { "compte": { "type": "salle", "specialite": "psychologie" }, "min": 1 }
-        ] },
-        "partiel": { "compte": { "type": "medecin", "specialite": "psychologie" }, "min": 1 }
+        "adapte": {
+          "carte": "OBJ-011"
+        },
+        "partiel": {
+          "un_de": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "generale"
+              },
+              "min": 1
+            },
+            {
+              "carte": "SAL-001"
+            }
+          ]
+        }
+      },
+      "attente_max": 6
+    },
+    {
+      "id": "phobie_des_blouses_blanches",
+      "nom": "Phobie des blouses blanches",
+      "specialite": "psychiatrie",
+      "pv_initial": 9,
+      "aggravation": [
+        1,
+        1,
+        2
+      ],
+      "poids": 2,
+      "traitement": {
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "carte": "SAL-002"
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
       }
     },
     {
       "id": "hypocondrie_aigue",
       "nom": "Hypocondrie aiguë",
-      "type": "psychologie",
+      "specialite": "psychiatrie",
       "pv_initial": 7,
-      "aggravation": [1],
-      "attente_max": 3,
+      "aggravation": [
+        1
+      ],
+      "poids": 2,
       "traitement": {
-        "adapte": { "tous": [
-          { "compte": { "type": "medecin", "specialite": "psychologie" }, "min": 1 },
-          { "compte": { "type": "salle", "specialite": "psychologie" }, "min": 1 },
-          { "non": { "compte": { "type": "objet" }, "min": 1 } }
-        ] }
+        "adapte": {
+          "tous": [
+            {
+              "compte": {
+                "type": "medecin",
+                "specialite": "psychiatrie"
+              },
+              "min": 1
+            },
+            {
+              "carte": "SAL-002"
+            },
+            {
+              "non": {
+                "compte": {
+                  "type": "objet"
+                },
+                "min": 1
+              }
+            }
+          ]
+        },
+        "partiel": {
+          "compte": {
+            "type": "medecin",
+            "specialite": "psychiatrie"
+          },
+          "min": 1
+        }
       },
-      "recompenses": { "reputation_echec": -2 }
+      "attente_max": 3,
+      "recompenses": {
+        "reputation_echec": -2
+      }
     }
   ],
   "motifs": {
-    "admission": { "patient": [1, 1], "total": [1, 1] },
-    "standard": { "patient": [1, 1], "medecin": [1, 2], "salle": [1, 1], "objet|diplome": [0, 1], "total": [3, 4] }
+    "admission": {
+      "patient": [
+        1,
+        1
+      ],
+      "total": [
+        1,
+        1
+      ]
+    },
+    "standard": {
+      "patient": [
+        1,
+        1
+      ],
+      "medecin": [
+        1,
+        2
+      ],
+      "salle": [
+        1,
+        1
+      ],
+      "objet|diplome": [
+        0,
+        1
+      ],
+      "total": [
+        3,
+        4
+      ]
+    }
   },
   "actions": [
     {
@@ -162,51 +498,158 @@
       "motif": "admission",
       "precondition": "patient_hors_jeu",
       "phrase": "Admission de {patient}.",
-      "effets": [{ "effet": "admettre" }]
+      "effets": [
+        {
+          "effet": "admettre"
+        }
+      ]
     },
     {
       "id": "diagnostiquer",
       "libelle": "Diagnostiquer",
       "motif": "standard",
-      "precondition": "patient_en_jeu",
+      "precondition": {
+        "et": [
+          "patient_en_jeu",
+          {
+            "non": {
+              "combinaison": {
+                "compte": {
+                  "type": "salle",
+                  "specialite": "recherche"
+                },
+                "min": 1
+              }
+            }
+          }
+        ]
+      },
       "phrase": "Examen de {patient} par {medecin}[ et {medecin2}] dans {salle}[ avec {accessoire}].",
       "effets": [
-        { "effet": "avancer_temps" },
-        { "effet": "diagnostiquer" },
-        { "effet": "payer", "valeur": "$recompenses.pieces_diagnostic" },
-        { "effet": "aggraver" },
-        { "effet": "si", "condition": "attente_depassee",
-          "alors": [{ "effet": "reputation", "valeur": "$recompenses.reputation_attente" }] }
+        {
+          "effet": "avancer_temps"
+        },
+        {
+          "effet": "diagnostiquer"
+        },
+        {
+          "effet": "payer",
+          "valeur": "$recompenses.pieces_diagnostic"
+        },
+        {
+          "effet": "aggraver"
+        },
+        {
+          "effet": "si",
+          "condition": "attente_depassee",
+          "alors": [
+            {
+              "effet": "reputation",
+              "valeur": "$recompenses.reputation_attente"
+            }
+          ]
+        }
       ]
     },
     {
       "id": "traiter",
       "libelle": "Traiter",
       "motif": "standard",
-      "precondition": "patient_en_jeu",
+      "precondition": {
+        "et": [
+          "patient_en_jeu",
+          {
+            "non": {
+              "combinaison": {
+                "compte": {
+                  "type": "salle",
+                  "specialite": "recherche"
+                },
+                "min": 1
+              }
+            }
+          }
+        ]
+      },
       "phrase": "Tentative de soin de {patient} par {medecin}[ et {medecin2}] dans {salle}[ avec {accessoire}].",
       "effets": [
-        { "effet": "avancer_temps" },
-        { "effet": "si", "condition": "traitement_adapte",
+        {
+          "effet": "avancer_temps"
+        },
+        {
+          "effet": "si",
+          "condition": "traitement_adapte",
           "alors": [
-            { "effet": "soigner" },
-            { "effet": "payer", "valeur": "$recompenses.pieces_traitement" },
-            { "effet": "reputation", "valeur": "$recompenses.reputation_soin" }
+            {
+              "effet": "soigner"
+            },
+            {
+              "effet": "payer",
+              "valeur": "$recompenses.pieces_traitement"
+            },
+            {
+              "effet": "reputation",
+              "valeur": "$recompenses.reputation_guerison"
+            }
           ],
           "sinon": [
-            { "effet": "si", "condition": "traitement_partiel",
+            {
+              "effet": "si",
+              "condition": "traitement_partiel",
               "alors": [
-                { "effet": "gagner_pv", "valeur": { "somme": ["$recompenses.soin_partiel", "$capacite.soin"] } },
-                { "effet": "payer", "valeur": "$recompenses.pieces_partiel" }
+                {
+                  "effet": "gagner_pv",
+                  "valeur": {
+                    "somme": [
+                      "$recompenses.pv_partiel",
+                      "$capacite.stabilisation"
+                    ]
+                  }
+                },
+                {
+                  "effet": "payer",
+                  "valeur": "$recompenses.pieces_partiel"
+                }
               ],
               "sinon": [
-                { "effet": "perdre_pv", "valeur": "$recompenses.pv_echec" },
-                { "effet": "reputation", "valeur": "$recompenses.reputation_echec" }
-              ] }
-          ] },
-        { "effet": "si", "condition": { "non": "soigne" }, "alors": [{ "effet": "aggraver" }] },
-        { "effet": "si", "condition": "attente_depassee",
-          "alors": [{ "effet": "reputation", "valeur": "$recompenses.reputation_attente" }] }
+                {
+                  "effet": "perdre_pv",
+                  "valeur": "$recompenses.pv_echec"
+                },
+                {
+                  "effet": "reputation",
+                  "valeur": "$recompenses.reputation_echec"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "effet": "si",
+          "condition": {
+            "non": {
+              "ou": [
+                "gueri",
+                "traitement_partiel"
+              ]
+            }
+          },
+          "alors": [
+            {
+              "effet": "aggraver"
+            }
+          ]
+        },
+        {
+          "effet": "si",
+          "condition": "attente_depassee",
+          "alors": [
+            {
+              "effet": "reputation",
+              "valeur": "$recompenses.reputation_attente"
+            }
+          ]
+        }
       ]
     }
   ]

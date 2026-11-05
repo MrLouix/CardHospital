@@ -13,7 +13,7 @@ void main() {
     final jeu = Jeu.fromJson(brut);
     expect(jeu.format, 'cardhospital');
     expect(jeu.schemaVersion, 1);
-    expect(jeu.cartes.length, 14);
+    expect(jeu.cartes.length, 18);
     expect(jeu.maladies.length, 6);
     expect(jeu.motifs.keys, containsAll(['admission', 'standard']));
     expect(
@@ -43,7 +43,7 @@ void main() {
 
   test('une spécialité non déclarée est refusée', () {
     final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
-    (copie['maladies'] as List)[0]['type'] = 'cardiologie';
+    (copie['maladies'] as List)[0]['specialite'] = 'cardiologie';
     final rapport = Validateur().validerJson(copie);
     expect(rapport.erreurs, contains(contains('cardiologie')));
   });
@@ -77,13 +77,95 @@ void main() {
     expect(rapport.erreurs, contains(contains('dermatologie')));
   });
 
-  test('combinaisons standard énumérées sans doublon de carte', () {
+  test('combinaisons de traitement énumérées sans doublon de carte, '
+      'laboratoire exclu', () {
     final combinaisons = Validateur.combinaisonsPossibles(Jeu.fromJson(brut));
-    // 1 médecin : 4 × 3 salles × (1 + 5 accessoires) ; 2 médecins : 6 × 3.
-    expect(combinaisons, hasLength(4 * 3 * 6 + 6 * 3));
+    // 5 salles hors laboratoire. 1 médecin : 5 × 5 × (1 + 5 accessoires) ;
+    // 2 médecins : 10 paires × 5.
+    expect(combinaisons, hasLength(5 * 5 * 6 + 10 * 5));
     for (final c in combinaisons) {
       expect(c.ids.toSet(), hasLength(c.ids.length));
+      expect(c.ids, isNot(contains('SAL-011')));
     }
+  });
+
+  test('un traitement réalisable seulement au laboratoire est refusé', () {
+    final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
+    ((copie['maladies'] as List)[2]['traitement'] as Map)['adapte'] = {
+      'carte': 'SAL-011',
+    };
+    final rapport = Validateur().validerJson(copie, jeu: Jeu.fromJson(copie));
+    expect(rapport.erreurs, contains(contains('Angine bactérienne')));
+  });
+
+  test('traitement toujours vrai ou sans échec possible : avertissement', () {
+    final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
+    final maladies = copie['maladies'] as List;
+    (maladies[2]['traitement'] as Map)['adapte'] = {
+      'compte': {'type': 'medecin'},
+      'max': 5,
+    };
+    (maladies[3]['traitement'] as Map)['partiel'] = {
+      'non': {'carte': 'SAL-011'},
+    };
+    final rapport = Validateur().validerJson(copie, jeu: Jeu.fromJson(copie));
+    expect(rapport.valide, isTrue);
+    expect(
+      rapport.avertissements,
+      containsAll([
+        startsWith('maladies[2].traitement.adapte : toutes les combinaisons'),
+        startsWith(
+          'maladies[3].traitement : aucune combinaison ne mène à un '
+          'échec',
+        ),
+      ]),
+    );
+  });
+
+  test('valeurs réservées : polyvalent, generaliste, recherche', () {
+    final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
+    (copie['maladies'] as List)[0]['specialite'] = 'polyvalent';
+    (copie['cartes'] as Map)['OBJ-001']['specialite'] = 'recherche';
+    (copie['specialites'] as List).add({
+      'id': 'recherche',
+      'nom': 'Recherche',
+      'couleur': '#000000',
+      'icone': '🔬',
+    });
+    final rapport = Validateur().validerJson(copie, jeu: Jeu.fromJson(copie));
+    expect(
+      rapport.erreurs,
+      contains(startsWith('specialites[3].id : « recherche » est une valeur')),
+    );
+
+    final copie2 = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
+    (copie2['maladies'] as List)[0]['specialite'] = 'polyvalent';
+    (copie2['cartes'] as Map)['OBJ-001']['specialite'] = 'recherche';
+    final rapport2 = Validateur().validerJson(
+      copie2,
+      jeu: Jeu.fromJson(copie2),
+    );
+    expect(
+      rapport2.erreurs,
+      containsAll([
+        startsWith('maladies[0].specialite : « polyvalent » est une valeur'),
+        startsWith(
+          'cartes.OBJ-001.specialite : « recherche » est réservée '
+          'aux salles',
+        ),
+      ]),
+    );
+  });
+
+  test('« generaliste » est accepté, avec un avertissement', () {
+    final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
+    (copie['cartes'] as Map)['MED-001']['specialite'] = 'generaliste';
+    final rapport = Validateur().validerJson(copie, jeu: Jeu.fromJson(copie));
+    expect(rapport.valide, isTrue);
+    expect(
+      rapport.avertissements,
+      contains(startsWith('cartes.MED-001.specialite : « generaliste »')),
+    );
   });
 
   test('un traitement adapté irréalisable est refusé', () {
@@ -110,11 +192,11 @@ void main() {
   test('un traitement exigeant trop de médecins est refusé', () {
     final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
     ((copie['maladies'] as List)[0]['traitement'] as Map)['adapte'] = {
-      'compte': {'type': 'medecin', 'specialite': 'chirurgie'},
+      'compte': {'type': 'medecin', 'specialite': 'orthopedie'},
       'min': 3,
     };
     final rapport = Validateur().validerJson(copie, jeu: Jeu.fromJson(copie));
-    expect(rapport.erreurs, contains(contains('Appendicite')));
+    expect(rapport.erreurs, contains(contains('Fracture ouverte')));
   });
 
   test('le modèle complet fait l\'aller-retour JSON sans perte', () {
@@ -129,31 +211,26 @@ void main() {
         {
           'compte': {
             'type': ['medecin'],
-            'specialite': ['chirurgie'],
+            'specialite': ['orthopedie'],
           },
           'min': 2,
         },
-        {
-          'compte': {
-            'type': ['salle'],
-            'specialite': ['chirurgie'],
-          },
-          'min': 1,
-        },
+        {'carte': 'SAL-006'},
       ],
     });
+    expect(relu['maladies'][0]['specialite'], 'orthopedie');
     expect(relu['actions'][2]['effets'][1]['condition'], 'traitement_adapte');
   });
 
   test('un identifiant en double est refusé', () {
     final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
-    (copie['maladies'] as List)[1]['id'] = 'appendicite';
+    (copie['maladies'] as List)[1]['id'] = 'fracture_ouverte';
     (copie['actions'] as List)[2]['id'] = 'diagnostiquer';
     final rapport = Validateur().validerJson(copie, jeu: Jeu.fromJson(copie));
     expect(
       rapport.erreurs,
       containsAll([
-        'maladies[1].id : l\'identifiant « appendicite » est déjà utilisé',
+        'maladies[1].id : l\'identifiant « fracture_ouverte » est déjà utilisé',
         'actions[2].id : l\'identifiant « diagnostiquer » est déjà utilisé',
       ]),
     );
@@ -187,10 +264,36 @@ void main() {
     expect(
       rapport.avertissements,
       containsAll([
-        startsWith('specialites[1].couleur : même couleur que « psychologie »'),
-        startsWith('specialites[2].icone : même icone que « psychologie »'),
+        startsWith('specialites[1].couleur : même couleur que « generale »'),
+        startsWith('specialites[2].icone : même icone que « generale »'),
       ]),
     );
+  });
+
+  test('l\'exemple est un sous-ensemble exact du paquet de base', () {
+    final base = jsonDecode(
+      File('../../contenu/paquet_base.json').readAsStringSync(),
+    ) as Map<String, dynamic>;
+    for (final cle in ['parametres', 'difficultes', 'capacites', 'motifs']) {
+      expect(jsonEncode(brut[cle]), jsonEncode(base[cle]), reason: cle);
+    }
+    expect(jsonEncode(brut['actions']), jsonEncode(base['actions']));
+    final cartes = base['cartes'] as Map<String, dynamic>;
+    (brut['cartes'] as Map<String, dynamic>).forEach((id, carte) {
+      expect(jsonEncode(carte), jsonEncode(cartes[id]), reason: id);
+    });
+    final maladies = {
+      for (final m in base['maladies'] as List) (m as Map)['id']: m,
+    };
+    for (final m in brut['maladies'] as List) {
+      expect(jsonEncode(m), jsonEncode(maladies[(m as Map)['id']]));
+    }
+    final specialites = {
+      for (final s in base['specialites'] as List) (s as Map)['id']: s,
+    };
+    for (final s in brut['specialites'] as List) {
+      expect(jsonEncode(s), jsonEncode(specialites[(s as Map)['id']]));
+    }
   });
 
   test('l\'exemple porte une couleur et une icône par spécialité', () {
@@ -198,9 +301,9 @@ void main() {
     expect(
       {for (final s in jeu.specialites) s.id: (s.couleur, s.icone)},
       {
-        'psychologie': ('#7B4FBF', '🧠'),
-        'chirurgie': ('#C62828', '✂️'),
-        'pharmacie': ('#2E7D32', '💊'),
+        'generale': ('#1565C0', '🩺'),
+        'psychiatrie': ('#7B4FBF', '🧠'),
+        'orthopedie': ('#EF6C00', '🦴'),
       },
     );
     expect(jeu.parametres.diagnostic.tailleListe, 5);

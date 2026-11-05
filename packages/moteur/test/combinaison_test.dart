@@ -10,11 +10,11 @@ void main() {
 
   group('composition', () {
     test('doublons retirés, inconnus ignorés, ordre conservé', () {
-      final comb = c(['MED-002', 'PAT-001', 'MED-002', 'XXX-999', 'SAL-002']);
-      expect(comb.ids, ['MED-002', 'PAT-001', 'SAL-002']);
+      final comb = c(['MED-007', 'PAT-001', 'MED-007', 'XXX-999', 'SAL-006']);
+      expect(comb.ids, ['MED-007', 'PAT-001', 'SAL-006']);
       expect(comb.patient, 'PAT-001');
-      expect(comb.medecins, ['MED-002']);
-      expect(comb.salle, 'SAL-002');
+      expect(comb.medecins, ['MED-007']);
+      expect(comb.salle, 'SAL-006');
       expect(comb.accessoire, isNull);
     });
 
@@ -22,42 +22,84 @@ void main() {
       expect(c(['DIP-001', 'PAT-001']).accessoire, 'DIP-001');
     });
 
-    test('S(C) : spécialités hors patient et hors généraliste', () {
-      final comb = c(['MED-001', 'MED-004', 'PAT-001', 'SAL-002', 'OBJ-010']);
-      expect(comb.specialites, {'psychologie', 'chirurgie', 'pharmacie'});
-      expect(c(['MED-001', 'PAT-001', 'SAL-001']).specialites, isEmpty);
+    test('S(C) : spécialités hors patient et hors valeurs réservées', () {
+      final comb = c(['MED-001', 'MED-005', 'PAT-001', 'SAL-006', 'OBJ-010']);
+      expect(comb.specialites, {'psychiatrie', 'orthopedie', 'generale'});
+      expect(
+        c(['MED-001', 'PAT-001', 'SAL-003']).specialites,
+        isEmpty,
+        reason: 'Dr Moreau et la radiologie sont polyvalents',
+      );
+      expect(
+        c(['MED-001', 'PAT-001', 'SAL-011']).specialites,
+        isEmpty,
+        reason: '« recherche » est réservée au laboratoire',
+      );
+      expect(c(['MED-001', 'PAT-001', 'SAL-001']).specialites, {
+        'generale',
+      }, reason: 'la salle de consultation est de médecine générale');
+    });
+
+    test('« generaliste », ancien nom de « polyvalent », reste neutre', () {
+      final ancien = jeuExemple(
+        (brut) =>
+            (brut['cartes'] as Map)['SAL-003']['specialite'] = 'generaliste',
+      );
+      expect(
+        Combinaison(ancien, ['MED-001', 'PAT-001', 'SAL-003']).specialites,
+        isEmpty,
+      );
     });
 
     test('capacité totale hors patient', () {
-      final comb = c(['MED-001', 'PAT-001', 'SAL-001', 'OBJ-002']);
-      expect(comb.capacite('precision'), 4);
-      expect(comb.capacite('soin'), 0);
-      expect(c(['MED-003', 'PAT-001']).capacite('soin'), 1);
+      final comb = c(['MED-001', 'PAT-001', 'SAL-003', 'OBJ-002']);
+      expect(comb.capacite('precision'), 6);
+      expect(comb.capacite('stabilisation'), 0);
+      expect(c(['MED-008', 'PAT-001']).capacite('stabilisation'), 1);
     });
   });
 
   group('prédicats', () {
-    final comb = c(['MED-002', 'MED-003', 'PAT-001', 'SAL-002']);
+    final comb = c(['MED-007', 'MED-008', 'PAT-001', 'SAL-006']);
 
     test('carte', () {
-      expect(comb.satisfait(p({'carte': 'MED-002'})), isTrue);
+      expect(comb.satisfait(p({'carte': 'MED-007'})), isTrue);
       expect(comb.satisfait(p({'carte': 'OBJ-010'})), isFalse);
     });
 
     test('compte avec min et max au niveau du prédicat', () {
-      final filtre = {'type': 'medecin', 'specialite': 'chirurgie'};
+      final filtre = {'type': 'medecin', 'specialite': 'orthopedie'};
       expect(comb.satisfait(p({'compte': filtre, 'min': 2})), isTrue);
       expect(comb.satisfait(p({'compte': filtre, 'min': 3})), isFalse);
       expect(comb.satisfait(p({'compte': filtre, 'max': 1})), isFalse);
       expect(comb.satisfait(p({'compte': filtre, 'min': 1, 'max': 2})), isTrue);
     });
 
+    test('compte sans min ni max : au moins une carte, jamais vrai '
+        'd\'office', () {
+      final platrerie = p({
+        'compte': {'type': 'salle', 'id': 'SAL-008'},
+      });
+      expect(comb.satisfait(platrerie), isFalse, reason: 'salle absente');
+      expect(c(['MED-007', 'PAT-001', 'SAL-008']).satisfait(platrerie), isTrue);
+      expect(
+        comb.satisfait(
+          p({
+            'compte': {'type': 'objet'},
+            'max': 0,
+          }),
+        ),
+        isTrue,
+        reason: 'avec max seul, min vaut 0',
+      );
+    });
+
     test('un diplôme de spécialité X compte comme un médecin de X', () {
-      final avecDiplome = c(['MED-004', 'PAT-001', 'SAL-001', 'DIP-001']);
+      final avecDiplome = c(['MED-005', 'PAT-001', 'SAL-001', 'DIP-001']);
       expect(
         avecDiplome.satisfait(
           p({
-            'compte': {'type': 'medecin', 'specialite': 'pharmacie'},
+            'compte': {'type': 'medecin', 'specialite': 'generale'},
             'min': 1,
           }),
         ),
@@ -66,7 +108,7 @@ void main() {
       expect(
         avecDiplome.satisfait(
           p({
-            'compte': {'type': 'medecin', 'specialite': 'pharmacie'},
+            'compte': {'type': 'medecin', 'specialite': 'generale'},
             'min': 2,
           }),
         ),
@@ -75,7 +117,7 @@ void main() {
       expect(
         avecDiplome.satisfait(
           p({
-            'compte': {'type': 'medecin', 'specialite': 'chirurgie'},
+            'compte': {'type': 'medecin', 'specialite': 'orthopedie'},
             'min': 1,
           }),
         ),
@@ -89,6 +131,7 @@ void main() {
           }),
         ),
         isFalse,
+        reason: 'sans spécialité, le diplôme ne compte pas comme médecin',
       );
     });
 
@@ -129,7 +172,7 @@ void main() {
           comb.satisfait(
             p({
               'compte': {
-                'specialite': ['psychologie', 'pharmacie'],
+                'specialite': ['psychiatrie', 'generale'],
               },
               'min': 1,
             }),
@@ -140,7 +183,7 @@ void main() {
           comb.satisfait(
             p({
               'compte': {
-                'id': ['MED-002', 'MED-004'],
+                'id': ['MED-007', 'MED-005'],
               },
               'min': 1,
               'max': 1,
@@ -152,7 +195,7 @@ void main() {
     );
 
     test('tous, un_de, non', () {
-      final vrai = {'carte': 'MED-002'};
+      final vrai = {'carte': 'MED-007'};
       final faux = {'carte': 'OBJ-010'};
       expect(
         comb.satisfait(
@@ -190,13 +233,63 @@ void main() {
       expect(comb.satisfait(p({'non': vrai})), isFalse);
     });
 
-    test('traitements de l\'exemple : 2 chirurgiens au bloc pour '
-        'l\'appendicite, pas un seul', () {
-      final appendicite = jeu.maladies.first;
-      expect(comb.satisfait(appendicite.traitement.adapte), isTrue);
-      final seul = c(['MED-002', 'PAT-001', 'SAL-002']);
-      expect(seul.satisfait(appendicite.traitement.adapte), isFalse);
-      expect(seul.satisfait(appendicite.traitement.partiel!), isTrue);
+    test('traitements de l\'exemple : 2 orthopédistes au bloc pour la '
+        'fracture ouverte, pas un seul', () {
+      final fracture = jeu.maladies.first;
+      expect(fracture.id, 'fracture_ouverte');
+      expect(comb.satisfait(fracture.traitement.adapte), isTrue);
+      final seul = c(['MED-007', 'PAT-001', 'SAL-006']);
+      expect(seul.satisfait(fracture.traitement.adapte), isFalse);
+      expect(
+        seul.satisfait(fracture.traitement.partiel!),
+        isFalse,
+        reason: 'le traitement partiel se fait à la plâtrerie',
+      );
+      expect(
+        c(['MED-007', 'PAT-001', 'SAL-008'])
+            .satisfait(fracture.traitement.partiel!),
+        isTrue,
+      );
+    });
+  });
+
+  group('cartes et préconditions', () {
+    final horsLabo = Condition.fromJson({
+      'et': [
+        'patient_en_jeu',
+        {
+          'non': {
+            'combinaison': {
+              'compte': {'type': 'salle', 'specialite': 'recherche'},
+              'min': 1,
+            },
+          },
+        },
+      ],
+    });
+
+    test('les conditions d\'état sont tenues pour favorables', () {
+      expect(c(['MED-001', 'PAT-001', 'SAL-006']).permet(horsLabo), isTrue);
+      expect(c(['MED-001', 'PAT-001', 'SAL-011']).permet(horsLabo), isFalse);
+      final comb = c(['MED-001', 'PAT-001', 'SAL-006']);
+      expect(comb.permet(Condition.fromJson('patient_hors_jeu')), isTrue);
+      expect(
+        comb.permet(Condition.fromJson({'non': 'patient_hors_jeu'})),
+        isTrue,
+      );
+      expect(
+        comb.permet(
+          Condition.fromJson({
+            'ou': [
+              'gueri',
+              {
+                'combinaison': {'carte': 'OBJ-010'},
+              },
+            ],
+          }),
+        ),
+        isTrue,
+      );
     });
   });
 
@@ -223,8 +316,8 @@ void main() {
 
     test('second médecin, dans l\'ordre de sélection', () {
       expect(
-        c(['MED-003', 'PAT-002', 'MED-002', 'SAL-002']).phrase(modele),
-        'Examen de M. Dupont par la Dr Benali et le Dr Lefort dans le bloc '
+        c(['MED-008', 'PAT-002', 'MED-007', 'SAL-006']).phrase(modele),
+        'Examen de M. Dupont par le Dr Vasseur et le Dr Cassagne dans le bloc '
         'opératoire.',
       );
     });
@@ -232,7 +325,7 @@ void main() {
     test('première lettre en majuscule ; phrase vide', () {
       expect(
         c(['SAL-003', 'PAT-001']).phrase('{salle} accueille {patient}.'),
-        'L\'unité de psychiatrie accueille Mme Garnier.',
+        'La salle de radiologie accueille Mme Garnier.',
       );
       expect(c(['PAT-001']).phrase(''), '');
     });

@@ -151,8 +151,8 @@ class StrategieHasard extends Strategie {
 }
 
 /// Diagnostiquer sans spécialité, avec la meilleure précision, jusqu'à ce
-/// que la maladie en tête de liste (non encore essayée) atteigne [seuil] %,
-/// puis la traiter. Un traitement qui échoue relance le diagnostic.
+/// que la maladie en tête de liste (non encore essayée) atteigne l'indice de
+/// suspicion [seuil], puis la traiter. Un traitement qui échoue relance le diagnostic.
 class StrategieSeuil extends Strategie {
   StrategieSeuil(this.seuil);
 
@@ -178,7 +178,7 @@ class StrategieSeuil extends Strategie {
     final candidate = historique.lastOrNull?.diagnostic?.maladies
         .where((l) => !_essayees.contains(l.id))
         .firstOrNull;
-    if (candidate != null && candidate.pourcentage >= seuil) {
+    if (candidate != null && candidate.indice >= seuil) {
       final combinaisons = catalogue.adaptees(candidate.id);
       if (combinaisons.isNotEmpty) {
         _essayees.add(candidate.id);
@@ -200,8 +200,8 @@ class StrategieSeuil extends Strategie {
 
 /// Suivre la couleur : comme [StrategieSeuil], mais après un premier
 /// diagnostic sans spécialité, chaque diagnostic se fait avec la spécialité
-/// dominante de la dernière liste (somme des pourcentages par spécialité),
-/// pour la confirmer ou l'écarter.
+/// dominante de la dernière liste (la couleur qui a le plus de lignes), pour
+/// la confirmer ou l'écarter.
 class StrategieCouleur extends StrategieSeuil {
   StrategieCouleur(super.seuil);
 

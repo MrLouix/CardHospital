@@ -11,19 +11,19 @@ import '../modeles/jeu.dart';
 enum StatutPatient { enJeu, sorti }
 
 /// Issue d'un patient à la fin d'une action.
-enum IssuePatient { enJeu, soigne, mort }
+enum IssuePatient { enJeu, gueri, mort }
 
 const _statuts = {StatutPatient.enJeu: 'en_jeu', StatutPatient.sorti: 'sorti'};
 const _issues = {
   IssuePatient.enJeu: 'en_jeu',
-  IssuePatient.soigne: 'soigne',
+  IssuePatient.gueri: 'gueri',
   IssuePatient.mort: 'mort',
 };
 
 T _decoder<T>(Map<T, String> table, Object? valeur) =>
     table.entries.firstWhere((e) => e.value == valeur).key;
 
-/// Nom JSON d'une issue (`en_jeu`, `soigne`, `mort`).
+/// Nom JSON d'une issue (`en_jeu`, `gueri`, `mort`).
 String nomIssue(IssuePatient issue) => _issues[issue]!;
 
 /// Issue lue depuis son nom JSON.
@@ -56,7 +56,7 @@ class EtatPatient {
   int pv;
   int temps;
 
-  /// Issue de la sortie (`soigne` ou `mort`), quand le patient est sorti.
+  /// Issue de la sortie (`gueri` ou `mort`), quand le patient est sorti.
   IssuePatient? issue;
 
   bool get enJeu => statut == StatutPatient.enJeu;

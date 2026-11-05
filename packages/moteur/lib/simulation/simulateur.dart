@@ -39,13 +39,13 @@ class ParametresSimulation {
 /// Mesures par maladie.
 class StatsMaladie {
   int patients = 0;
-  int soignes = 0;
+  int gueris = 0;
   int morts = 0;
   int actions = 0;
 
   Map<String, dynamic> toJson() => {
     'patients': patients,
-    'soignes': soignes,
+    'gueris': gueris,
     'morts': morts,
     'actions': actions,
   };
@@ -59,7 +59,7 @@ class StatsStrategie {
   final String difficulte;
 
   int patients = 0;
-  int soignes = 0;
+  int gueris = 0;
   int morts = 0;
   int abandons = 0;
 
@@ -76,7 +76,7 @@ class StatsStrategie {
 
   final parMaladie = <String, StatsMaladie>{};
 
-  double get tauxGuerison => patients == 0 ? 0 : soignes / patients;
+  double get tauxGuerison => patients == 0 ? 0 : gueris / patients;
   double get tauxMort => patients == 0 ? 0 : morts / patients;
   double get actionsParPatient => patients == 0 ? 0 : actions / patients;
   double get piecesParAction => actions == 0 ? 0 : pieces / actions;
@@ -87,7 +87,7 @@ class StatsStrategie {
     'strategie': strategie,
     'difficulte': difficulte,
     'patients': patients,
-    'soignes': soignes,
+    'gueris': gueris,
     'morts': morts,
     'abandons': abandons,
     'actions': actions,
@@ -186,7 +186,7 @@ class RapportSimulation {
     final duNiveau = resultats.where((r) => r.difficulte == premier).toList();
     b
       ..writeln(
-        '| Maladie | Type | Poids | ${duNiveau.map((r) => r.strategie).join(' | ')} |',
+        '| Maladie | Spécialité | Poids | ${duNiveau.map((r) => r.strategie).join(' | ')} |',
       )
       ..writeln('|---|---|---:|${duNiveau.map((_) => '---:').join('|')}|');
     for (final m in jeu.maladies) {
@@ -195,7 +195,7 @@ class RapportSimulation {
           _cellule(r.parMaladie[m.id] ?? StatsMaladie()),
       ];
       b.writeln(
-        '| ${m.nom} | ${m.type} | ${m.poids ?? 1} | ${cellules.join(' | ')} |',
+        '| ${m.nom} | ${m.specialite} | ${m.poids ?? 1} | ${cellules.join(' | ')} |',
       );
     }
     return b.toString();
@@ -206,7 +206,7 @@ class RapportSimulation {
 
   static String _cellule(StatsMaladie s) => s.patients == 0
       ? '—'
-      : '${_pct(s.soignes / s.patients)} en ${_dec(s.actions / s.patients)}';
+      : '${_pct(s.gueris / s.patients)} en ${_dec(s.actions / s.patients)}';
 }
 
 /// Simulateur de parties automatiques (phase 1 de la feuille de route).
@@ -311,9 +311,9 @@ class Simulateur {
           if (cumul < minimum) minimum = cumul;
           issue = r.issue ?? IssuePatient.enJeu;
         }
-        if (issue == IssuePatient.soigne) {
-          stats.soignes++;
-          parMaladie.soignes++;
+        if (issue == IssuePatient.gueri) {
+          stats.gueris++;
+          parMaladie.gueris++;
         } else if (issue == IssuePatient.mort) {
           stats.morts++;
           parMaladie.morts++;

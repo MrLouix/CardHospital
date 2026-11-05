@@ -58,8 +58,10 @@ class Validateur {
     erreurs.addAll(_verifierDoublons(j));
     erreurs.addAll(_verifierReferences(j));
     erreurs.addAll(_verifierPhrases(j));
-    erreurs.addAll(_verifierRealisabilite(j));
+    final combinaisons = combinaisonsPossibles(j);
+    erreurs.addAll(_verifierRealisabilite(j, combinaisons));
     avertissements.addAll(_avertissements(j));
+    avertissements.addAll(_avertissementsTraitements(j, combinaisons));
 
     return RapportValidation(erreurs: erreurs, avertissements: avertissements);
   }
@@ -112,6 +114,12 @@ class Validateur {
           '(${couleur ?? 'absente'})',
         );
       }
+      if (specialitesReservees.contains(sp['id'])) {
+        erreurs.add(
+          'specialites[$i].id : « ${sp['id']} » est une valeur réservée, '
+          'implicite, qui ne se déclare pas',
+        );
+      }
       final icone = sp['icone'];
       if (icone is! String || icone.isEmpty || icone.runes.length > 8) {
         erreurs.add(
@@ -158,7 +166,10 @@ class Validateur {
 
   List<String> _verifierReferences(Jeu j) {
     final erreurs = <String>[];
-    final specialites = {'generaliste', ...j.specialites.map((s) => s.id)};
+    final specialites = {
+      ...specialitesReservees,
+      ...j.specialites.map((s) => s.id),
+    };
     final capacites = j.capacites.map((c) => c.id).toSet();
     final idsCartes = j.cartes.keys.toSet();
     final idsMotifs = j.motifs.keys.toSet();
@@ -180,6 +191,13 @@ class Validateur {
           '$chemin.specialite : la spécialité « ${carte.specialite} » n\'est pas déclarée',
         );
       }
+      if (carte.specialite == specialiteRecherche &&
+          carte.type != TypeCarte.salle) {
+        erreurs.add(
+          '$chemin.specialite : « recherche » est réservée aux salles '
+          '(laboratoire de recherche)',
+        );
+      }
       for (final cap in carte.capacites?.keys ?? const <String>[]) {
         if (!capacites.contains(cap)) {
           erreurs.add(
@@ -189,14 +207,19 @@ class Validateur {
       }
     }
 
-    final typesMaladies = <String>{};
+    final specialitesMaladies = <String>{};
     for (var i = 0; i < j.maladies.length; i++) {
       final m = j.maladies[i];
       final chemin = 'maladies[$i]';
-      typesMaladies.add(m.type);
-      if (!specialites.contains(m.type)) {
+      specialitesMaladies.add(m.specialite);
+      if (specialitesReservees.contains(m.specialite)) {
         erreurs.add(
-          '$chemin.type : la spécialité « ${m.type} » n\'est pas déclarée',
+          '$chemin.specialite : « ${m.specialite} » est une valeur réservée, '
+          'jamais spécialité d\'une maladie',
+        );
+      } else if (!specialites.contains(m.specialite)) {
+        erreurs.add(
+          '$chemin.specialite : la spécialité « ${m.specialite} » n\'est pas déclarée',
         );
       }
       if (m.poids != null && m.poids! < 1) {
@@ -231,9 +254,9 @@ class Validateur {
     }
 
     for (final s in j.specialites) {
-      if (!typesMaladies.contains(s.id)) {
+      if (!specialitesMaladies.contains(s.id)) {
         erreurs.add(
-          'specialites : « ${s.id} » n\'est le type d\'aucune maladie',
+          'specialites : « ${s.id} » n\'est la spécialité d\'aucune maladie',
         );
       }
     }
@@ -317,11 +340,11 @@ class Validateur {
             'pieces_diagnostic',
             'pieces_traitement',
             'pieces_partiel',
-            'reputation_soin',
+            'reputation_guerison',
             'reputation_echec',
             'reputation_attente',
             'reputation_mort',
-            'soin_partiel',
+            'pv_partiel',
             'pv_echec',
           };
           if (!valides.contains(parties[1])) {
@@ -368,7 +391,7 @@ class Validateur {
       'traitement_adapte',
       'traitement_partiel',
       'attente_depassee',
-      'soigne',
+      'gueri',
       'patient_en_jeu',
       'patient_hors_jeu',
     };
@@ -459,16 +482,15 @@ class Validateur {
   }
 
   /// Règle 7 : chaque traitement adapté doit être satisfait par au moins une
-  /// combinaison reconnue des cartes du paquet (recherche exhaustive), parmi
-  /// les motifs des actions qui testent `traitement_adapte`.
-  List<String> _verifierRealisabilite(Jeu j) {
-    final combinaisons = combinaisonsPossibles(j);
+  /// des [combinaisons] avec lesquelles une action de traitement peut être
+  /// proposée (recherche exhaustive).
+  List<String> _verifierRealisabilite(Jeu j, List<Combinaison> combinaisons) {
     final erreurs = <String>[];
     for (var i = 0; i < j.maladies.length; i++) {
       final m = j.maladies[i];
       if (!combinaisons.any((c) => c.satisfait(m.traitement.adapte))) {
         erreurs.add(
-          'maladies[$i].traitement.adapte : aucune combinaison standard ne '
+          'maladies[$i].traitement.adapte : aucune combinaison ne '
           'satisfait le traitement adapté de « ${m.nom} »',
         );
       }
@@ -477,8 +499,11 @@ class Validateur {
   }
 
   /// Toutes les combinaisons d'un patient et de cartes non patient du paquet
-  /// reconnues par un motif d'action qui teste `traitement_adapte` (tous les
-  /// motifs si aucune action ne le teste). Le patient étant indifférent aux
+  /// avec lesquelles une action qui teste `traitement_adapte` peut être
+  /// proposée : reconnues par son motif, et permises par la partie
+  /// `combinaison` de sa précondition (le laboratoire, par exemple, ne
+  /// permet pas de traiter). Sans action qui teste `traitement_adapte`,
+  /// toutes les combinaisons reconnues. Le patient étant indifférent aux
   /// prédicats, un seul suffit.
   static List<Combinaison> combinaisonsPossibles(Jeu j) {
     final patient = j.cartes.entries
@@ -491,13 +516,20 @@ class Validateur {
         .map((e) => e.key)
         .toList();
 
-    final motifsTraitement = {
+    final actionsTraitement = [
       for (final a in j.actions)
-        if (a.effets.any(_testeTraitementAdapte)) a.motif,
-    };
-    final motifs = motifsTraitement.isEmpty
+        if (a.effets.any(_testeTraitementAdapte)) a,
+    ];
+    final motifs = actionsTraitement.isEmpty
         ? j.motifs.keys.toSet()
-        : motifsTraitement;
+        : {for (final a in actionsTraitement) a.motif};
+    bool proposee(Combinaison c, List<String> reconnus) =>
+        actionsTraitement.isEmpty ||
+        actionsTraitement.any(
+          (a) =>
+              reconnus.contains(a.motif) &&
+              (a.precondition == null || c.permet(a.precondition!)),
+        );
     var taille = 0;
     for (final id in motifs) {
       final total = j.motifs[id]?.intervalles['total']?.max ?? 5;
@@ -511,8 +543,9 @@ class Validateur {
       if (choisis.isNotEmpty) {
         final ids = [patient, ...choisis];
         final r = reconnaissance.reconnaitre(ids);
-        if (r is Apercu && motifs.contains(r.motif)) {
-          resultat.add(Combinaison(j, ids));
+        if (r is Apercu) {
+          final c = Combinaison(j, ids);
+          if (proposee(c, r.motifs)) resultat.add(c);
         }
       }
       if (choisis.length == taille) return;
@@ -559,6 +592,14 @@ class Validateur {
         }
       }
     }
+    for (final MapEntry(key: id, value: carte) in j.cartes.entries) {
+      if (carte.specialite == ancienNomPolyvalent) {
+        avertissements.add(
+          'cartes.$id.specialite : « generaliste » est l\'ancien nom de '
+          '« polyvalent » ; remplacez-le',
+        );
+      }
+    }
     for (final m in j.maladies) {
       if (m.traitement.partiel == null) {
         avertissements.add(
@@ -574,6 +615,37 @@ class Validateur {
       if (!specialitesPortees.contains(s.id)) {
         avertissements.add(
           'specialites : « ${s.id} » n\'est portée par aucune carte',
+        );
+      }
+    }
+    return avertissements;
+  }
+
+  /// Traitements suspects, sur les [combinaisons] de traitement : un
+  /// traitement adapté satisfait par toutes (prédicat toujours vrai), ou une
+  /// maladie qu'aucune ne traite en échec (ni adapté ni partiel).
+  List<String> _avertissementsTraitements(
+    Jeu j,
+    List<Combinaison> combinaisons,
+  ) {
+    if (combinaisons.isEmpty) return const [];
+    final avertissements = <String>[];
+    for (var i = 0; i < j.maladies.length; i++) {
+      final m = j.maladies[i];
+      final partiel = m.traitement.partiel;
+      if (combinaisons.every((c) => c.satisfait(m.traitement.adapte))) {
+        avertissements.add(
+          'maladies[$i].traitement.adapte : toutes les combinaisons soignent '
+          '« ${m.nom} » ; le prédicat est-il toujours vrai ?',
+        );
+      } else if (combinaisons.every(
+        (c) =>
+            c.satisfait(m.traitement.adapte) ||
+            (partiel != null && c.satisfait(partiel)),
+      )) {
+        avertissements.add(
+          'maladies[$i].traitement : aucune combinaison ne mène à un échec '
+          'pour « ${m.nom} » ; le traitement partiel est-il toujours vrai ?',
         );
       }
     }

@@ -98,13 +98,13 @@ class ResultatAction {
   /// Le temps du patient dépasse-t-il son attente maximale ?
   final bool attenteDepassee;
 
-  /// Issue pour le patient : en jeu, soigné ou mort.
+  /// Issue pour le patient : en jeu, guéri ou mort.
   final IssuePatient? issue;
 
   /// Diagnostic, pour une action qui en comporte un.
   final ResultatDiagnostic? diagnostic;
 
-  /// Maladie révélée, si le patient est sorti (soigné ou mort).
+  /// Maladie révélée, si le patient est sorti (guéri ou mort).
   final MaladieRevelee? maladieRevelee;
 
   /// Pièces gagnées par l'acteur.

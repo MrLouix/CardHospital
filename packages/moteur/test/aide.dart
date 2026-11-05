@@ -29,11 +29,17 @@ class SequenceFixe implements SourceAleatoire {
   double flottant() => valeurs[_i++ % valeurs.length];
 }
 
+/// Paquet de base du dépôt (`contenu/paquet_base.json`).
+Jeu jeuBase() => Jeu.fromJson(
+  jsonDecode(File('../../contenu/paquet_base.json').readAsStringSync())
+      as Map<String, dynamic>,
+);
+
 /// Valeurs de tirage d'admission menant à chaque maladie de l'exemple
-/// (poids 2, 1, 3, 3, 1, 1 : total 11).
-const tirageAppendicite = 0.0;
-const tirageFracture = 0.25;
+/// (poids 2, 2, 3, 3, 2, 2 : total 14).
+const tirageFractureOuverte = 0.0;
+const tirageFractureFermee = 0.2;
 const tirageAngine = 0.4;
-const tirageAllergie = 0.7;
-const tiragePhobie = 0.85;
+const tirageMauxDeTete = 0.6;
+const tiragePhobie = 0.8;
 const tirageHypocondrie = 0.95;

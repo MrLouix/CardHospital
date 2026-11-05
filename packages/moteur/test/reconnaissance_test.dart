@@ -12,12 +12,16 @@ void main() {
   final jeu = Jeu.fromJson(brut);
   final reco = ReconnaissanceCombinaisons(jeu);
 
+  List<String> ids(Reconnaissance r) => [
+    for (final a in (r as Apercu).actions) a.id,
+  ];
+
   test('admission : un patient seul propose admettre', () {
     final resultat = reco.reconnaitre(['PAT-001']);
     expect(resultat, isA<Apercu>());
     final apercu = resultat as Apercu;
-    expect(apercu.motif, 'admission');
-    expect(apercu.actions.map((a) => a.id), ['admettre']);
+    expect(apercu.motifs, ['admission']);
+    expect(ids(apercu), ['admettre']);
   });
 
   test(
@@ -25,12 +29,8 @@ void main() {
     () {
       final resultat = reco.reconnaitre(['MED-001', 'PAT-001', 'SAL-001']);
       expect(resultat, isA<Apercu>());
-      final apercu = resultat as Apercu;
-      expect(apercu.motif, 'standard');
-      expect(
-        apercu.actions.map((a) => a.id),
-        containsAll(['diagnostiquer', 'traiter']),
-      );
+      expect((resultat as Apercu).motifs, ['standard']);
+      expect(ids(resultat), containsAll(['diagnostiquer', 'traiter']));
     },
   );
 
@@ -42,7 +42,7 @@ void main() {
       'OBJ-001',
     ]);
     expect(resultat, isA<Apercu>());
-    expect((resultat as Apercu).motif, 'standard');
+    expect((resultat as Apercu).motifs, ['standard']);
   });
 
   test('standard avec second médecin à la place de l’accessoire', () {
@@ -53,13 +53,13 @@ void main() {
       'SAL-001',
     ]);
     expect(resultat, isA<Apercu>());
-    expect((resultat as Apercu).motif, 'standard');
+    expect((resultat as Apercu).motifs, ['standard']);
   });
 
   test('un même QR scanné deux fois ne compte qu’une fois', () {
     final resultat = reco.reconnaitre(['PAT-001', 'PAT-001']);
     expect(resultat, isA<Apercu>());
-    expect((resultat as Apercu).motif, 'admission');
+    expect((resultat as Apercu).motifs, ['admission']);
   });
 
   test('refus : il manque une salle', () {
@@ -79,7 +79,7 @@ void main() {
     expect((resultat as Refus).message, 'Une seule carte patient par action.');
   });
 
-  test('refus : 4 cartes maximum (second médecin + accessoire)', () {
+  test('refus : 4 cartes au maximum (second médecin + accessoire)', () {
     final resultat = reco.reconnaitre([
       'MED-001',
       'MED-002',
@@ -88,7 +88,7 @@ void main() {
       'OBJ-001',
     ]);
     expect(resultat, isA<Refus>());
-    expect((resultat as Refus).message, contains('maximum'));
+    expect((resultat as Refus).message, '4 cartes au maximum.');
   });
 
   test('refus : aucune carte reconnue', () {
@@ -108,7 +108,8 @@ void main() {
     expect((resultat as Refus).message, 'Une seule carte salle par action.');
   });
 
-  test('plusieurs motifs correspondent : le premier déclaré l\'emporte', () {
+  test('plusieurs motifs correspondent : leurs actions sont réunies, dans '
+      'l\'ordre de déclaration des actions', () {
     final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
     final motifs = copie['motifs'] as Map<String, dynamic>;
     copie['motifs'] = {
@@ -116,23 +117,33 @@ void main() {
         'patient': [1, 1],
         'medecin': [1, 1],
         'salle': [1, 1],
-        'total': [3, 3],
+        'objet|diplome': [0, 1],
+        'total': [3, 4],
       },
       ...motifs,
     };
+    (copie['actions'] as List).add({
+      'id': 'analyser',
+      'libelle': 'Analyser',
+      'motif': 'recherche',
+      'phrase': 'Analyse pour {patient}.',
+      'effets': [
+        {'effet': 'avancer_temps'},
+      ],
+    });
     final r = ReconnaissanceCombinaisons(Jeu.fromJson(copie));
-    expect(
-      (r.reconnaitre(['MED-001', 'PAT-001', 'SAL-001']) as Apercu).motif,
-      'recherche',
-    );
-    expect(
-      (r.reconnaitre([
-        'MED-001',
-        'PAT-001',
-        'SAL-001',
-        'OBJ-001',
-      ]) as Apercu).motif,
-      'standard',
-    );
+    final trois = r.reconnaitre(['MED-001', 'PAT-001', 'SAL-001']);
+    expect((trois as Apercu).motifs, ['recherche', 'standard']);
+    expect(ids(trois), ['diagnostiquer', 'traiter', 'analyser']);
+    final quatre = r.reconnaitre(['MED-001', 'PAT-001', 'SAL-001', 'OBJ-001']);
+    expect((quatre as Apercu).motifs, ['recherche', 'standard']);
+    final deuxMedecins = r.reconnaitre([
+      'MED-001',
+      'MED-002',
+      'PAT-001',
+      'SAL-001',
+    ]);
+    expect((deuxMedecins as Apercu).motifs, ['standard']);
+    expect(ids(deuxMedecins), ['diagnostiquer', 'traiter']);
   });
 }

@@ -52,7 +52,7 @@ void main() {
     expect(rapport.resultats, hasLength(3 * 3));
     for (final r in rapport.resultats) {
       expect(r.patients, 40 * 5);
-      expect(r.soignes + r.morts + r.abandons, r.patients);
+      expect(r.gueris + r.morts + r.abandons, r.patients);
       expect(r.reputationFinale, hasLength(40));
       expect(r.reputationMin, hasLength(40));
       for (var i = 0; i < 40; i++) {
@@ -79,7 +79,7 @@ void main() {
   });
 
   test('abandon au-delà du nombre maximal d\'actions', () {
-    // Aucune aggravation et un traitement inadapté sans perte : le hasard
+    // Aucune aggravation et un échec de traitement sans perte : le hasard
     // ne tue jamais, il finit par abandonner ou par soigner.
     final immortel = jeuExemple((brut) {
       for (final m in brut['maladies'] as List) {
@@ -146,17 +146,19 @@ void main() {
   group('catalogue de combinaisons', () {
     final catalogue = CatalogueCombinaisons(jeu);
 
-    test('combinaisons hors patient et traitements adaptés', () {
-      expect(catalogue.length, 90);
+    test('combinaisons hors patient, hors laboratoire, et traitements '
+        'adaptés', () {
+      expect(catalogue.length, 200);
       for (final cartes in catalogue.cartes) {
         expect(cartes.any((id) => id.startsWith('PAT')), isFalse);
+        expect(cartes, isNot(contains('SAL-011')));
       }
-      final appendicite = catalogue.adaptees('appendicite');
-      expect(appendicite, isNotEmpty);
-      for (final i in appendicite) {
+      final fracture = catalogue.adaptees('fracture_ouverte');
+      expect(fracture, isNotEmpty);
+      for (final i in fracture) {
         expect(
           catalogue.cartes[i],
-          containsAll(['MED-002', 'MED-003', 'SAL-002']),
+          containsAll(['MED-007', 'MED-008', 'SAL-006']),
         );
       }
       expect(catalogue.adaptees('inconnue'), isEmpty);
@@ -168,13 +170,13 @@ void main() {
         expect(c.specialites, isEmpty);
         expect(
           c.capacite('precision'),
-          4,
-          reason: 'Dr Moreau + salle + traité',
+          greaterThanOrEqualTo(4),
+          reason: 'Dr Moreau + radiologie, au plafond precision_max = 4',
         );
       }
-      for (final i in catalogue.meilleursDiagnostics({'psychologie'})) {
+      for (final i in catalogue.meilleursDiagnostics({'psychiatrie'})) {
         final c = Combinaison(jeu, catalogue.cartes[i]);
-        expect(c.specialites, {'psychologie'});
+        expect(c.specialites, {'psychiatrie'});
       }
       expect(
         catalogue.meilleursDiagnostics({'astrologie'}),
@@ -205,13 +207,13 @@ void main() {
           diagnostic: ResultatDiagnostic(
             niveau: 1,
             maladies: [
-              for (final (id, type, pct) in lignes)
+              for (final (id, specialite, indice) in lignes)
                 LigneDiagnostic(
                   id: id,
                   nom: id,
-                  pourcentage: pct,
+                  indice: indice,
                   specialite: SpecialiteAffichee.depuis(
-                    jeu.specialites.firstWhere((s) => s.id == type),
+                    jeu.specialites.firstWhere((s) => s.id == specialite),
                   ),
                 ),
             ],
@@ -219,18 +221,18 @@ void main() {
         );
 
     final flou = diagnostic([
-      ('angine_bacterienne', 'pharmacie', 60),
-      ('appendicite', 'chirurgie', 55),
-      ('fracture_ouverte', 'chirurgie', 52),
-      ('phobie_des_blouses', 'psychologie', 50),
-      ('allergie_saisonniere', 'pharmacie', 30),
+      ('angine_bacterienne', 'generale', 60),
+      ('fracture_ouverte', 'orthopedie', 55),
+      ('fracture_fermee', 'orthopedie', 52),
+      ('phobie_des_blouses_blanches', 'psychiatrie', 50),
+      ('entorse_de_la_cheville', 'orthopedie', 30),
     ]);
     final net = diagnostic([
-      ('appendicite', 'chirurgie', 95),
-      ('angine_bacterienne', 'pharmacie', 50),
-      ('fracture_ouverte', 'chirurgie', 45),
-      ('phobie_des_blouses', 'psychologie', 40),
-      ('allergie_saisonniere', 'pharmacie', 30),
+      ('fracture_ouverte', 'orthopedie', 95),
+      ('angine_bacterienne', 'generale', 50),
+      ('fracture_fermee', 'orthopedie', 45),
+      ('phobie_des_blouses_blanches', 'psychiatrie', 40),
+      ('maux_de_tete', 'generale', 30),
     ]);
 
     test('seuil : traite la tête si elle atteint le seuil, sinon diagnostique '
@@ -248,23 +250,27 @@ void main() {
           traiter.cartes,
         ).satisfait(jeu.maladies.first.traitement.adapte),
         isTrue,
-        reason: 'combinaison adaptée à l\'appendicite',
+        reason: 'combinaison adaptée à la fracture ouverte',
       );
       expect(
         s.choisir([net], catalogue, Alea(1)).action,
         actionDiagnostiquer,
-        reason: 'appendicite déjà essayée, la suivante est sous le seuil',
+        reason: 'fracture déjà essayée, la suivante est sous le seuil',
       );
     });
 
     test('couleur : diagnostique avec la spécialité dominante', () {
-      expect(flou.diagnostic!.specialiteDominante, 'chirurgie');
+      expect(
+        flou.diagnostic!.specialiteDominante,
+        'orthopedie',
+        reason: '3 lignes sur 5',
+      );
       final s = StrategieCouleur(80)..debutPatient();
       final premier = s.choisir([], catalogue, Alea(1));
       expect(Combinaison(jeu, premier.cartes).specialites, isEmpty);
       final suivant = s.choisir([flou], catalogue, Alea(1));
       expect(suivant.action, actionDiagnostiquer);
-      expect(Combinaison(jeu, suivant.cartes).specialites, {'chirurgie'});
+      expect(Combinaison(jeu, suivant.cartes).specialites, {'orthopedie'});
     });
   });
 }

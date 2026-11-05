@@ -60,6 +60,7 @@
     "entier_positif": { "type": "integer", "minimum": 1 },
     "entier_positif_ou_nul": { "type": "integer", "minimum": 0 },
     "type_carte": { "enum": ["medecin", "patient", "salle", "objet", "diplome"] },
+    "specialite_reservee": { "enum": ["polyvalent", "generaliste", "recherche"] },
 
     "parametres": {
       "type": "object",
@@ -70,12 +71,12 @@
         "diagnostic": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["precision_max", "verite", "par_niveau", "affinite_type", "bonus_specialite", "exclusion", "taille_liste", "score_bruit"],
+          "required": ["precision_max", "verite", "par_niveau", "affinite_specialite", "bonus_specialite", "exclusion", "taille_liste", "score_bruit"],
           "properties": {
             "precision_max": { "$ref": "#/$defs/entier_positif_ou_nul" },
             "verite": { "type": "number", "minimum": 0 },
             "par_niveau": { "type": "number", "minimum": 0 },
-            "affinite_type": { "type": "number", "minimum": 0 },
+            "affinite_specialite": { "type": "number", "minimum": 0 },
             "bonus_specialite": { "type": "number", "minimum": 0 },
             "exclusion": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
             "taille_liste": { "$ref": "#/$defs/entier_positif" },
@@ -85,7 +86,7 @@
         "recompenses": {
           "allOf": [
             { "$ref": "#/$defs/recompenses" },
-            { "required": ["pieces_diagnostic", "pieces_traitement", "pieces_partiel", "reputation_soin", "reputation_echec", "reputation_attente", "reputation_mort", "soin_partiel", "pv_echec"] }
+            { "required": ["pieces_diagnostic", "pieces_traitement", "pieces_partiel", "reputation_guerison", "reputation_echec", "reputation_attente", "reputation_mort", "pv_partiel", "pv_echec"] }
           ]
         }
       }
@@ -98,11 +99,11 @@
         "pieces_diagnostic": { "$ref": "#/$defs/entier_positif_ou_nul" },
         "pieces_traitement": { "$ref": "#/$defs/entier_positif_ou_nul" },
         "pieces_partiel": { "$ref": "#/$defs/entier_positif_ou_nul" },
-        "reputation_soin": { "type": "integer" },
+        "reputation_guerison": { "type": "integer" },
         "reputation_echec": { "type": "integer" },
         "reputation_attente": { "type": "integer" },
         "reputation_mort": { "type": "integer" },
-        "soin_partiel": { "$ref": "#/$defs/entier_positif_ou_nul" },
+        "pv_partiel": { "$ref": "#/$defs/entier_positif_ou_nul" },
         "pv_echec": { "$ref": "#/$defs/entier_positif_ou_nul" }
       }
     },
@@ -132,7 +133,7 @@
       "additionalProperties": false,
       "required": ["id", "nom", "couleur", "icone"],
       "properties": {
-        "id": { "allOf": [{ "$ref": "#/$defs/identifiant" }, { "not": { "const": "generaliste" } }] },
+        "id": { "allOf": [{ "$ref": "#/$defs/identifiant" }, { "not": { "$ref": "#/$defs/specialite_reservee" } }] },
         "nom": { "$ref": "#/$defs/texte" },
         "couleur": { "type": "string", "pattern": "^#[0-9A-Fa-f]{6}$", "description": "Couleur d'affichage des maladies de cette spécialité dans un diagnostic." },
         "icone": { "type": "string", "minLength": 1, "maxLength": 8, "description": "Emoji ou symbole court qui double la couleur (daltonisme)." }
@@ -158,7 +159,7 @@
         "type": { "$ref": "#/$defs/type_carte" },
         "nom": { "$ref": "#/$defs/texte" },
         "nom_phrase": { "$ref": "#/$defs/texte" },
-        "specialite": { "$ref": "#/$defs/identifiant" },
+        "specialite": { "$ref": "#/$defs/identifiant", "description": "Spécialité déclarée, ou valeur réservée : « polyvalent » (sans spécialité, comme l'absence du champ ; « generaliste » est son ancien nom) ou « recherche » (salles seulement)." },
         "capacites": {
           "type": "object",
           "propertyNames": { "$ref": "#/$defs/identifiant" },
@@ -172,11 +173,11 @@
     "maladie": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "nom", "type", "pv_initial", "aggravation", "traitement"],
+      "required": ["id", "nom", "specialite", "pv_initial", "aggravation", "traitement"],
       "properties": {
         "id": { "$ref": "#/$defs/identifiant" },
         "nom": { "$ref": "#/$defs/texte" },
-        "type": { "$ref": "#/$defs/identifiant" },
+        "specialite": { "allOf": [{ "$ref": "#/$defs/identifiant" }, { "not": { "$ref": "#/$defs/specialite_reservee" } }] },
         "pv_initial": { "$ref": "#/$defs/entier_positif" },
         "aggravation": {
           "type": "array",
@@ -251,7 +252,7 @@
           "type": "object", "additionalProperties": false, "required": ["compte"],
           "properties": {
             "compte": { "$ref": "#/$defs/filtre" },
-            "min": { "$ref": "#/$defs/entier_positif_ou_nul" },
+            "min": { "$ref": "#/$defs/entier_positif_ou_nul", "description": "Nombre minimal de cartes. Sans min ni max, il vaut 1 ; avec max seul, 0." },
             "max": { "$ref": "#/$defs/entier_positif_ou_nul" }
           }
         },
@@ -272,7 +273,7 @@
 
     "condition": {
       "oneOf": [
-        { "enum": ["traitement_adapte", "traitement_partiel", "attente_depassee", "soigne", "patient_en_jeu", "patient_hors_jeu"] },
+        { "enum": ["traitement_adapte", "traitement_partiel", "attente_depassee", "gueri", "patient_en_jeu", "patient_hors_jeu"] },
         {
           "type": "object", "additionalProperties": false, "required": ["et"],
           "properties": { "et": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/condition" } } }

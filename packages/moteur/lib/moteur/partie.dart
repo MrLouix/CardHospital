@@ -36,13 +36,15 @@ sealed class ReponseSelection {
 final class SelectionAcceptee extends ReponseSelection {
   const SelectionAcceptee({
     required this.cartes,
-    required this.motif,
+    required this.motifs,
     required this.actions,
   });
 
   /// Cartes reconnues, dans l'ordre de sélection, sans doublon.
   final List<String> cartes;
-  final String motif;
+
+  /// Motifs reconnus, dans l'ordre de déclaration.
+  final List<String> motifs;
   final List<ActionProposee> actions;
 }
 
@@ -176,7 +178,7 @@ class Partie {
     switch (reconnaissance) {
       case Refus(:final message):
         return SelectionRefusee(message);
-      case Apercu(:final motif, :final actions):
+      case Apercu(:final motifs, :final actions):
         final combinaison = Combinaison(jeu, qrs);
         final possibles = [
           for (final a in actions)
@@ -199,7 +201,7 @@ class Partie {
         }
         return SelectionAcceptee(
           cartes: combinaison.ids.toList(),
-          motif: motif,
+          motifs: motifs,
           actions: possibles,
         );
     }
@@ -297,7 +299,7 @@ class _Execution {
 
   int pieces = 0;
   int reputation = 0;
-  bool soigne = false;
+  bool gueri = false;
   ResultatDiagnostic? diagnostic;
 
   Jeu get jeu => partie.jeu;
@@ -329,8 +331,8 @@ class _Execution {
     if (p != null && m != null) {
       attenteDepassee = _attenteDepassee(p, m);
       issue = IssuePatient.enJeu;
-      if (soigne) {
-        issue = IssuePatient.soigne;
+      if (gueri) {
+        issue = IssuePatient.gueri;
       } else if (p.pv <= 0) {
         p.pv = 0;
         issue = IssuePatient.mort;
@@ -392,7 +394,7 @@ class _Execution {
           _perdrePv(p, m.aggravation[i]);
         }
       case 'soigner':
-        if (patient != null) soigne = true;
+        if (patient != null) gueri = true;
       case 'gagner_pv':
         final p = patient;
         final m = maladie;
@@ -459,8 +461,8 @@ class _Execution {
           final p = patient;
           final m = maladie;
           return p != null && m != null && _attenteDepassee(p, m);
-        case 'soigne':
-          return soigne;
+        case 'gueri':
+          return gueri;
         case 'patient_en_jeu':
           return patient != null;
         case 'patient_hors_jeu':

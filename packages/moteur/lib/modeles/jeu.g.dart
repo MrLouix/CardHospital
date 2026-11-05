@@ -73,7 +73,7 @@ Diagnostic _$DiagnosticFromJson(Map<String, dynamic> json) => Diagnostic(
   precisionMax: (json['precision_max'] as num).toInt(),
   verite: (json['verite'] as num).toDouble(),
   parNiveau: (json['par_niveau'] as num).toDouble(),
-  affiniteType: (json['affinite_type'] as num).toDouble(),
+  affiniteSpecialite: (json['affinite_specialite'] as num).toDouble(),
   bonusSpecialite: (json['bonus_specialite'] as num).toDouble(),
   exclusion: (json['exclusion'] as num).toDouble(),
   tailleListe: (json['taille_liste'] as num).toInt(),
@@ -85,7 +85,7 @@ Map<String, dynamic> _$DiagnosticToJson(Diagnostic instance) =>
       'precision_max': instance.precisionMax,
       'verite': instance.verite,
       'par_niveau': instance.parNiveau,
-      'affinite_type': instance.affiniteType,
+      'affinite_specialite': instance.affiniteSpecialite,
       'bonus_specialite': instance.bonusSpecialite,
       'exclusion': instance.exclusion,
       'taille_liste': instance.tailleListe,
@@ -96,11 +96,11 @@ Recompenses _$RecompensesFromJson(Map<String, dynamic> json) => Recompenses(
   piecesDiagnostic: (json['pieces_diagnostic'] as num?)?.toInt(),
   piecesTraitement: (json['pieces_traitement'] as num?)?.toInt(),
   piecesPartiel: (json['pieces_partiel'] as num?)?.toInt(),
-  reputationSoin: (json['reputation_soin'] as num?)?.toInt(),
+  reputationGuerison: (json['reputation_guerison'] as num?)?.toInt(),
   reputationEchec: (json['reputation_echec'] as num?)?.toInt(),
   reputationAttente: (json['reputation_attente'] as num?)?.toInt(),
   reputationMort: (json['reputation_mort'] as num?)?.toInt(),
-  soinPartiel: (json['soin_partiel'] as num?)?.toInt(),
+  pvPartiel: (json['pv_partiel'] as num?)?.toInt(),
   pvEchec: (json['pv_echec'] as num?)?.toInt(),
 );
 
@@ -109,11 +109,11 @@ Map<String, dynamic> _$RecompensesToJson(Recompenses instance) =>
       'pieces_diagnostic': instance.piecesDiagnostic,
       'pieces_traitement': instance.piecesTraitement,
       'pieces_partiel': instance.piecesPartiel,
-      'reputation_soin': instance.reputationSoin,
+      'reputation_guerison': instance.reputationGuerison,
       'reputation_echec': instance.reputationEchec,
       'reputation_attente': instance.reputationAttente,
       'reputation_mort': instance.reputationMort,
-      'soin_partiel': instance.soinPartiel,
+      'pv_partiel': instance.pvPartiel,
       'pv_echec': instance.pvEchec,
     };
 
@@ -212,7 +212,7 @@ Map<String, dynamic> _$TraitementToJson(Traitement instance) =>
 Maladie _$MaladieFromJson(Map<String, dynamic> json) => Maladie(
   id: json['id'] as String,
   nom: json['nom'] as String,
-  type: json['type'] as String,
+  specialite: json['specialite'] as String,
   pvInitial: (json['pv_initial'] as num).toInt(),
   aggravation: (json['aggravation'] as List<dynamic>)
       .map((e) => (e as num).toInt())
@@ -228,7 +228,7 @@ Maladie _$MaladieFromJson(Map<String, dynamic> json) => Maladie(
 Map<String, dynamic> _$MaladieToJson(Maladie instance) => <String, dynamic>{
   'id': instance.id,
   'nom': instance.nom,
-  'type': instance.type,
+  'specialite': instance.specialite,
   'pv_initial': instance.pvInitial,
   'aggravation': instance.aggravation,
   'attente_max': instance.attenteMax,
