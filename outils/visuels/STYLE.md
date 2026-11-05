@@ -1,33 +1,42 @@
-# CardHospital — Style guide visuel des cartes et du matériel
+# CardHospital — Style guide visuel des tuiles et du matériel
 
 Référence unique pour la génération des visuels (API cloud ou ComfyUI).
 Toute image produite pour le jeu doit respecter ce document. En cas de doute,
 se référer aux visuels de référence validés (dossier `references/`).
 
-## 1. Format physique des cartes
+Le jeu se joue en **tuiles cartonnées**, pas en cartes. Chaque tuile ne porte
+que **trois éléments imprimés** : le titre, le QR code et une illustration.
+Aucun texte de règles n'est imprimé (les règles vivent dans le paquet JSON).
 
-- **Taille** : 63 × 88 mm (format poker standard), ratio ~ 1 : 1,4.
-- **Résolution** : 300 dpi minimum → **746 × 1039 px** (prévoir 3 mm de fond perdu :
-  canvas de **781 × 1074 px**, zone imprimable au centre).
-- **Coins** : arrondis, rayon 3 mm (≈ 35 px à 300 dpi).
-- **Fond perdu** : 3 mm sur tous les côtés ; aucun élément essentiel (QR, texte,
-  icône) dans les 5 mm extérieurs.
-- **Couleur d'impression** : CMJN ; les valeurs ci-dessous sont données en
-  hexadécimal (sRGB de travail).
+## 1. Formats des tuiles
+
+| Élément | Forme | Dimensions | Équivalent 300 dpi | Tuiles / feuille A4 |
+|---|---|---|---|---|
+| Médecin | rectangle | **60 × 85 mm** | 709 × 1004 px | 9 |
+| Patient | rectangle | **60 × 85 mm** (même gabarit) | 709 × 1004 px | 9 |
+| Objet / Diplôme | carré | **45 × 45 mm** | 531 × 531 px | 24 |
+| Salle | hexagone plat (flat-top) | **côté 70 mm** → 140 × 121 mm hors tout | 1654 × 1429 px | ~4–5 (nid d'abeille) |
+
+- **Résolution** : 300 dpi minimum. Prévoir 3 mm de fond perdu sur les
+  rectangles/carrés (canvas + ~35 px de chaque côté).
+- **Coins** : rectangles et carrés à coins arrondis, rayon 3 mm (≈ 35 px).
+- **Fond perdu** : 3 mm ; aucun élément essentiel (QR, titre) dans les 5 mm
+  extérieurs.
+- **Couleur d'impression** : CMJN ; valeurs hexadécimales en sRGB de travail.
 
 ## 2. Codes couleur
 
-### 2.1 Par type de carte (liseré de la carte et bandeau supérieur)
+### 2.1 Par type de tuile (liseré et bandeau titre)
 
-| Type | ID JSON | Couleur | Hex |
-|---|---|---|---|
-| Médecin | `medecin` | bleu hôpital | `#1565C0` |
-| Patient | `patient` | orange doux | `#EF6C00` |
-| Salle | `salle` | gris ardoise | `#455A64` |
-| Objet | `objet` | brun clair | `#8D6E63` |
-| Diplôme | `diplome` | or | `#C9A227` |
+| Type | ID JSON | Hex |
+|---|---|---|
+| Médecin | `medecin` | `#1565C0` |
+| Patient | `patient` | `#EF6C00` |
+| Salle | `salle` | `#455A64` |
+| Objet | `objet` | `#8D6E63` |
+| Diplôme | `diplome` | `#C9A227` |
 
-### 2.2 Par spécialité (pastille et icône, repris du paquet de base)
+### 2.2 Par spécialité (pastille, repris du paquet de base)
 
 | Spécialité | Hex | Icône |
 |---|---|---|
@@ -37,65 +46,80 @@ se référer aux visuels de référence validés (dossier `references/`).
 | `generaliste` | `#607D8B` | ➕ |
 | `recherche` (salles uniquement) | `#00838F` | 🔬 |
 
-La couleur de spécialité n'écrase jamais celle du type de carte : le liséré
-reste celui du type, la spécialité n'apparaît que dans la pastille.
+Le liséré reste celui du type ; la spécialité n'apparaît que dans la pastille.
 
-## 3. Mise en page type (gabarit commun)
+## 3. Mise en page des tuiles
 
-Toutes les cartes partagent la même grille, générée **une seule fois** puis
-réutilisée (template) :
+### 3.1 Médecin / Patient (60 × 85 mm) — portrait
 
-1. **Bandeau supérieur** (hauteur ~ 12 % de la carte) : couleur du type de
-   carte, icône du type à gauche, nom de la carte en capitales lisibles.
-2. **Zone d'illustration** (hauteur ~ 55 %) : illustration centrée, fond uni
-   très clair (`#FAFAFA`) ou dégradé pastel de la couleur du type.
-3. **Bande inférieure** (hauteur ~ 20 %) : fond blanc, icône(s) de spécialité
-   et capacités à gauche.
-4. **Zone QR** : carré réservé de **20 × 20 mm minimum** (phase 0 : tester
-   1,5 / 2 / 2,5 cm), fond blanc pur, marge de 4 modules, **toujours ajouté en
-   post-traitement** (voir §6), jamais généré par l'IA. Position : coin
-   inférieur droit de la bande inférieure.
+1. **Bandeau titre** (haut, ~10 mm) : couleur du type, titre en capitales.
+2. **Illustration** (centre, ~60 × 50 mm).
+3. **QR** (20 × 20 mm, coin inférieur droit) + pastille de spécialité à côté.
 
-Le nom de la carte et les valeurs sont aussi ajoutés en post-traitement.
+### 3.2 Objet / Diplôme (45 × 45 mm) — carré
 
-## 4. Style d'illustration
+1. **Bandeau titre** (haut, ~8 mm) : titre court, ~10–12 caractères max.
+2. **Illustration** (centre, ~25 × 17 mm) : icône simple, lisible en flat.
+3. **QR** (20 × 20 mm, coin inférieur droit). Si l'espace manque, le QR peut
+   descendre à **15 mm** (taille testée en phase 0), jamais en dessous.
 
-- **Style** : illustration vectorielle flat / cartoon médical, contours nets
-  (2–3 px), ombres portées douces, **pas de photoréalisme**.
-- **Palette** : pastel dominant + la couleur du type de carte en accent ;
-  arrière-plan uni ou très légèrement texturé.
-- **Personnages** : silhouettes identifiables (blouse blanche, stéthoscope
-  pour les médecins ; lit/brancard pour les patients ; équipement médical pour
-  les salles, objets et diplômes). Visages simples, expressifs, inclusifs.
-- **Ambiance** : sobre et professionnelle, légèrement ludique (jeu de société),
-  jamais anxiogène (pas de sang, pas de patient en détresse graphique).
-- **Cohérence** : même traitement de la lumière (source en haut à gauche),
-  mêmes proportions de personnages, même épaisseur de contour sur toutes les
-  cartes.
+### 3.3 Salle (hexagone plat, côté 70 mm → 140 × 121 mm)
 
-## 5. Autres éléments du matériel
+Géométrie des logements (sous-épaisseur, voir §4) :
 
-- **Dos de carte** : unique pour toutes les cartes, motif géométrique discret
-  (croix médicale stylisée) dans les bleus hôpital (`#1565C0` sur
-  `#E3F2FD`), sans texte ni QR.
-- **Plateau (salles de l'hôpital)** : même grille de couleurs que les cartes
-  salle ; chaque salle du plateau reprend la couleur de sa spécialité et son
-  icône, fond `#ECEFF1`.
-- **Pions / jetons** (pièces, réputation, PV) : ronds, couleurs :
-  pièces `#C9A227`, réputation `#C62828`, PV `#2E7D32`.
-- **Boîte** : fond `#1565C0`, logo croix médicale blanche, illustration
-  d'équipe médicale dans le style des cartes.
+- **Encoche centrale** : logement **86 × 61 mm** au centre de l'hexagone pour
+  le patient posé en paysage (tuile 60 × 85 + 0,5 mm de jeu).
+- **Encoches latérales partielles** (arêtes inclinées gauche/droite, 70 mm de
+  long) : 1 à 2 médecins, largeur d'encoche **60,5 mm**, profondeur ~40 mm —
+  la tuile dépasse de moitié, tenue par la sous-épaisseur.
+- **Encoche haute partielle** (arête du haut, 70 mm) : objet/diplôme en
+  option, largeur **45,5 mm**, profondeur ~25 mm, décalée à droite pour
+  laisser le titre en haut à gauche.
+- **QR salle** : **20 × 20 mm centré en bas**, sur l'arête inférieure.
+- **Titre** : en haut à gauche, à côté de l'encoche objet.
+- Le reste de la surface accueille 2–3 petites illustrations d'équipement.
 
-## 6. Règles absolues (anti-dérive)
+## 4. Matériau et sous-épaisseurs
 
-1. **L'IA ne génère jamais de texte ni de QR code.** Noms, valeurs, QR sont
-   composités en post-traitement (Pillow / SVG), police fixe du projet.
-2. **Un seed fixe par carte** : la même carte regénérée avec le même prompt +
-   le même seed doit donner la même image.
-3. **Le template de mise en page est fixe** : seule la zone d'illustration
-   varie d'une carte à l'autre (ControlNet / img2img fort sur le gabarit).
-4. **Toute image passe par relecture humaine** avant impression : check-list
-   lisibilité du QR (test d'impression phase 0), contraste du nom, cohérence
-   de la pastille de spécialité.
-5. Ne jamais mélanger les styles (ex. : une carte photoréaliste parmi des
-   cartes flat).
+- **Tuiles médecin / patient / objet** : carton gris **2 mm** (ou print 300 g
+  collé sur carton 1,5 mm) → épaisseur finie ≈ 2 mm.
+- **Tuiles salle** : carton gris **3 mm** ; logements découpés à **2 mm de
+  profondeur** dans la couche supérieure (cutter + gabarit carton), les tuiles
+  de 2 mm s'y insèrent avec ~1 mm de marge et tiennent par friction.
+- Variante plus rigide : carton plume 5 mm + couche découpée de 2 mm collée
+  dessus (colle vinylique).
+
+## 5. Style d'illustration
+
+- **Style** : vectoriel flat / cartoon médical, contours nets (2–3 px), ombres
+  portées douces, **pas de photoréalisme**.
+- **Palette** : pastel dominant + couleur du type en accent ; fond uni très
+  clair (`#FAFAFA`).
+- **Sujets** : médecins en blouse avec stéthoscope ; patients calmes sur lit ou
+  fauteuil ; salles = intérieur médical épuré ; objets = icône isolée ; diplômes
+  = parchemin à sceau. Visages simples, inclusifs.
+- **Ambiance** : sobre, professionnelle, légèrement ludique ; jamais
+  anxiogène (pas de sang, pas de détresse graphique).
+- **Cohérence** : lumière en haut à gauche, mêmes proportions de personnages,
+  même épaisseur de contour partout.
+
+## 6. Autres éléments du matériel
+
+- **Plateau** : dalles hexagonales mêmes cotes que les salles (140 × 121 mm),
+  fond `#ECEFF1`, chaque salle reprend la couleur de sa spécialité.
+- **Pions** (pièces `#C9A227`, réputation `#C62828`, PV `#2E7D32`) : ronds.
+- **Boîte** : fond `#1565C0`, croix médicale blanche, illustration d'équipe
+  dans le style des tuiles.
+
+## 7. Règles absolues (anti-dérive)
+
+1. **L'IA ne génère jamais de texte ni de QR code.** Titres et QR sont
+   composés en post-traitement (Pillow / SVG), police fixe du projet.
+2. **Un seed fixe par tuile** : même prompt + même seed = même image.
+3. **Le gabarit est fixe** : seule la zone d'illustration varie (ControlNet /
+   img2img fort sur le template).
+4. **Relecture humaine obligatoire** avant impression : lisibilité du QR (test
+   d'impression phase 0, finition **mate**), contraste du titre, cohérence de
+   la pastille de spécialité.
+5. Ne jamais mélanger les styles (ex. : une tuile photoréaliste parmi des
+   tuiles flat).

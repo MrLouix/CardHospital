@@ -4,103 +4,93 @@ Prompt de référence à copier dans tout générateur d'images (API cloud ou
 ComfyUI). Les blocs entre `{{...}}` sont à remplacer. Les règles de
 [STYLE.md](STYLE.md) priment sur toute interprétation du modèle.
 
+Rappel : les tuiles ne portent que **titre + QR + illustration** — aucun texte
+de règles n'est imprimé.
+
 ## 1. Bloc commun (préfixe de TOUS les prompts)
 
 ```
-Board game card illustration for "CardHospital", a hospital-themed card game.
+Board game tile illustration for "CardHospital", a hospital-themed board game.
 Flat vector cartoon style, clean 2-3px outlines, soft drop shadows, light from
 top-left, plain very light background (#FAFAFA), pastel palette, professional
 yet playful mood, no photorealism, no blood, no text, no letters, no numbers,
-no QR code, no watermark. High quality, 746x1039 px, 300 dpi equivalent.
+no QR code, no watermark. High quality, 300 dpi equivalent.
 Negative prompt: text, letters, numbers, QR code, watermark, signature,
 photorealistic, blurry, low quality, deformed hands, extra fingers, dark scary
 atmosphere, gore.
 ```
 
-## 2. Par type de carte
+## 2. Par type de tuile
 
-Remplacer `{{TYPE}}`, `{{COULEUR_TYPE}}`, `{{SUJET}}`, `{{SPECIALITE}}`,
-`{{COULEUR_SPECIALITE}}` et fixer `{{SEED}}` (un entier unique et stable par
-carte, ex. : hash de l'identifiant `MED-001`).
+Remplacer `{{SUJET}}`, `{{SPECIALITE}}`, `{{COULEUR_SPECIALITE}}` et fixer
+`{{SEED}}` (entier unique et stable par tuile, ex. : hash de l'identifiant
+`MED-001`).
 
-### Médecin (type `medecin`, bandeau #1565C0)
+### Médecin (60 × 85 mm portrait → 709 × 1004 px, bandeau #1565C0)
 
 ```
 {{BLOC_COMMUN}} Portrait of a doctor character, white coat and stethoscope,
-friendly confident expression, bust view centered in the illustration area,
-accent color #1565C0. Specialty badge hint: {{SPECIALITE}} ({{COULEUR_SPECIALITE}}).
-Style: {{SUJET}}. Seed: {{SEED}}.
+friendly confident expression, centered in a 60x50 mm area, accent color
+#1565C0, specialty badge hint: {{SPECIALITE}} ({{COULEUR_SPECIALITE}}).
+Subject: {{SUJET}}. Seed: {{SEED}}.
 ```
 
-### Patient (type `patient`, bandeau #EF6C00)
+### Patient (60 × 85 mm portrait → 709 × 1004 px, bandeau #EF6C00)
 
 ```
-{{BLOC_COMMUN}} A patient character sitting or lying on a hospital bed or
-armchair, blanket, calm neutral expression, simple hospital gown, bust/scene
-view centered, accent color #EF6C00. No illness shown graphically.
-Style: {{SUJET}}. Seed: {{SEED}}.
+{{BLOC_COMMUN}} A calm patient sitting on a hospital bed or armchair, blanket,
+neutral kind expression, simple hospital gown, centered in a 60x50 mm area,
+accent color #EF6C00. No illness shown graphically.
+Subject: {{SUJET}}. Seed: {{SEED}}.
 ```
 
-### Salle (type `salle`, bandeau #455A64)
+### Objet / Diplôme (45 × 45 mm carré → 531 × 531 px)
 
 ```
-{{BLOC_COMMUN}} Interior of a hospital room: {{SUJET}} (e.g. operating block,
-psychiatry unit, consultation room), clean modern medical equipment, calm
-lighting, no people, centered composition, accent color #455A64, specialty
-color {{COULEUR_SPECIALITE}} on furniture details.
+{{BLOC_COMMUN}} A single icon isolated on the light background, centered in a
+25x17 mm area: {{SUJET}} (stethoscope, medicine bottle, syringe, diploma
+scroll with seal), simple bold shape readable at small size, soft shadow,
+accent color #8D6E63 (objet) or #C9A227 (diplôme). No text.
 Seed: {{SEED}}.
 ```
 
-### Objet (type `objet`, bandeau #8D6E63)
+### Salle (hexagone plat côté 70 mm → 1654 × 1429 px, contour #455A64)
 
 ```
-{{BLOC_COMMUN}} A single medical object isolated on the light background:
-{{SUJET}} (e.g. stethoscope, medicine bottle, book, syringe), product-illustration
-style, centered, soft shadow underneath, accent color #8D6E63.
-Seed: {{SEED}}.
-```
-
-### Diplôme (type `diplome`, bandeau #C9A227)
-
-```
-{{BLOC_COMMUN}} A diploma / certificate scroll with ribbon and seal, medical
-emblem (Rod of Asclepius style) embossed, elegant but simple, centered on the
-light background, gold accents #C9A227, specialty color {{COULEUR_SPECIALITE}}
-on the ribbon. No text on the diploma.
-Seed: {{SEED}}.
-```
-
-### Dos de carte (unique)
-
-```
-{{BLOC_COMMUN}} Card back pattern: subtle geometric pattern with a stylized
-medical cross at the center, colors #1565C0 on #E3F2FD, seamless, centered,
-no text, no QR code. Seed: 42.
+{{BLOC_COMMUN}} Top-down / slightly isometric view of a hospital room interior
+filling a hexagon (140x121 mm): {{SUJET}} (bloc opératoire, unité de
+psychiatrie, salle de consultation, laboratoire), clean modern medical
+equipment, calm lighting, no people, centered composition, accent #455A64,
+specialty color {{COULEUR_SPECIALITE}} on furniture details. Leave a clear
+central band (~86x61 mm) and a centered bottom strip (~20 mm) visually calm
+for overlays. Seed: {{SEED}}.
 ```
 
 ## 3. Consignes de cohérence à appliquer partout
 
-- **Même seed + même prompt = même image** : ne changer le seed que pour
-  une nouvelle carte, jamais pour « retoucher » une carte existante (on
-  relance plutôt le prompt).
-- **Image de référence** : joindre le visuel validé du type de carte
-  (médecin de référence, etc.) en *image prompt* / IP-Adapter (ComfyUI) pour
-  verrouiller le style.
-- **Gabarit** : en ComfyUI, poser le template de mise en page en ControlNet
-  (canny/segmentation) + LoRA entraîné sur les visuels validés ; en API cloud,
-  utiliser l'*image prompt* du template avec forte pondération.
-- **Batch** : générer d'abord les 5 visuels de référence (un par type), les
-  valider, puis lancer le batch des ~100 cartes avec le même bloc commun.
+- **Même seed + même prompt = même image** : ne changer le seed que pour une
+  nouvelle tuile.
+- **Image de référence** : joindre le visuel validé du type (médecin de
+  référence, etc.) en *image prompt* / IP-Adapter (ComfyUI).
+- **Gabarit** : en ComfyUI, template de mise en page en ControlNet + LoRA
+  entraîné sur les visuels validés ; en API cloud, *image prompt* du template
+  à forte pondération.
+- **Batch** : générer d'abord 5 visuels de référence (un par type), valider,
+  puis lancer le batch des ~100 tuiles avec le même bloc commun.
 
 ## 4. Post-traitement (obligatoire, hors IA)
 
-Script (Pillow) à exécuter sur chaque image générée, avant impression :
+Script (Pillow) sur chaque image générée, avant impression :
 
-1. Recadrer au gabarit 746 × 1039 px (fond perdu 781 × 1074 px).
-2. Coller le liséré/bandeau de la couleur du type (si le modèle a dévié).
-3. Ajouter la pastille de spécialité (couleur + icône emoji en police
-   Noto Color Emoji).
-4. Composer le nom de la carte (police fixe du projet, contraste vérifié).
-5. Générer et coller le QR code (20 × 20 mm min, correction Q, marge 4
-   modules) en coin inférieur droit — cf. `outils/planche_qr`.
-6. Export CMJN + PDF d'impression avec fonds perdus.
+1. Recadrer aux gabarits : 709 × 1004 px (médecin/patient), 531 × 531 px
+   (objet), hexagone 1654 × 1429 px (salle), + fond perdu 3 mm.
+2. Liséré / bandeau titre de la couleur du type (si le modèle a dévié).
+3. Pastille de spécialité (couleur + icône emoji, police Noto Color Emoji).
+4. Titre de la tuile (police fixe du projet, contraste vérifié).
+5. QR code (20 × 20 mm, correction Q, marge 4 modules ; 15 mm mini pour les
+   objets) — généré par `outils/planche_qr`, jamais par l'IA. Salle : QR
+   centré en bas de l'hexagone.
+6. Découpe des logements des salles (sous-épaisseur 2 mm dans carton 3 mm) :
+   encoche centrale 86 × 61 mm, encoches latérales 60,5 mm × 40 mm, encoche
+   haute 45,5 mm × 25 mm — gabarit carton + cutter.
+7. Export CMJN + PDF d'impression (A4/A3 standard, finition mate).
