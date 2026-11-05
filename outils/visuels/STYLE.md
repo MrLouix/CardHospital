@@ -15,7 +15,8 @@ Aucun texte de règles n'est imprimé (les règles vivent dans le paquet JSON).
 | Médecin | rectangle | **60 × 85 mm** | 709 × 1004 px | 9 |
 | Patient | rectangle | **60 × 85 mm** (même gabarit) | 709 × 1004 px | 9 |
 | Objet / Diplôme | carré | **45 × 45 mm** | 531 × 531 px | 24 |
-| Salle | hexagone plat (flat-top) | **côté 70 mm** → 140 × 121 mm hors tout | 1654 × 1429 px | ~4–5 (nid d'abeille) |
+| Salle standard | rectangle paysage | **140 × 100 mm** | 1654 × 1181 px | 2 (8 en A3) |
+| Bloc (grande salle, ex. chirurgie) | rectangle | **150 × 160 mm** | 1772 × 1890 px | 1 (2 en A3) |
 
 - **Résolution** : 300 dpi minimum. Prévoir 3 mm de fond perdu sur les
   rectangles/carrés (canvas + ~35 px de chaque côté).
@@ -66,21 +67,29 @@ spécialité) ; la spécialité n'apparaît que dans la pastille.
 3. **QR** (20 × 20 mm, coin inférieur droit). Si l'espace manque, le QR peut
    descendre à **15 mm** (taille testée en phase 0), jamais en dessous.
 
-### 3.3 Salle (hexagone plat, côté 70 mm → 140 × 121 mm)
+### 3.3 Salle standard (rectangle 140 × 100 mm, paysage)
 
 Géométrie des logements (sous-épaisseur, voir §4) :
 
-- **Encoche centrale** : logement **86 × 61 mm** au centre de l'hexagone pour
-  le patient posé en paysage (tuile 60 × 85 + 0,5 mm de jeu).
-- **Encoches latérales partielles** (arêtes inclinées gauche/droite, 70 mm de
-  long) : 1 à 2 médecins, largeur d'encoche **60,5 mm**, profondeur ~40 mm —
-  la tuile dépasse de moitié, tenue par la sous-épaisseur.
-- **Encoche haute partielle** (arête du haut, 70 mm) : objet/diplôme en
-  option, largeur **45,5 mm**, profondeur ~25 mm, décalée à droite pour
-  laisser le titre en haut à gauche.
-- **QR salle** : **20 × 20 mm centré en bas**, sur l'arête inférieure.
-- **Titre** : en haut à gauche, à côté de l'encoche objet.
-- Le reste de la surface accueille 2–3 petites illustrations d'équipement.
+- **Bandeau haut, 22 mm** : nom de la salle à gauche, **QR 20 × 20 mm à
+  droite**.
+- **Encoche latérale gauche partielle** : médecin, ouverture **60,5 mm**,
+  profondeur **40 mm** — la tuile dépasse de moitié.
+- **Encoche latérale droite partielle** : patient, idem (60,5 × 40 mm).
+- **Encoche interne carrée** : objet/diplôme, **46 × 46 mm**, en haut au centre
+  entre les deux encoches latérales.
+- **Illustration** : au centre, ~60 × 30 mm sous l'encoche carrée.
+
+### 3.4 Bloc / grande salle (rectangle 150 × 160 mm, ex. bloc de chirurgie)
+
+- **Bandeau haut, 22 mm** : nom à gauche, **QR 20 × 20 mm à droite**.
+- **Encoche centrale** : patient en portrait, logement **61 × 86 mm** au centre.
+- **Deux encoches latérales partielles** : médecins, 60,5 × 40 mm chacune
+  (40 + 61 + 40 = 141 mm ≤ 150 mm de large).
+- **Encoche interne carrée** : objet/diplôme, **46 × 46 mm**, en haut à droite
+  sous le bandeau.
+- **Illustration** : dans l'espace restant (~52 mm de hauteur en bas et
+  bandes latérales).
 
 ## 4. Matériau et sous-épaisseurs
 
@@ -108,8 +117,9 @@ Géométrie des logements (sous-épaisseur, voir §4) :
 
 ## 6. Autres éléments du matériel
 
-- **Plateau** : dalles hexagonales mêmes cotes que les salles (140 × 121 mm),
-  fond `#ECEFF1`, chaque salle reprend la couleur de sa spécialité.
+- **Plateau** : dalles rectangulaires aux mêmes cotes que les salles
+  (140 × 100 mm), fond `#ECEFF1`, chaque salle reprend la couleur de sa
+  spécialité.
 - **Pions** (pièces `#C9A227`, réputation `#C62828`, PV `#2E7D32`) : ronds.
 - **Boîte** : fond `#0D47A1`, croix médicale blanche, illustration d'équipe
   dans le style des tuiles.

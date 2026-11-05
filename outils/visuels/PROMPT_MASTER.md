@@ -54,16 +54,26 @@ accent color #8D6E63 (objet) or #C9A227 (diplôme). No text.
 Seed: {{SEED}}.
 ```
 
-### Salle (hexagone plat côté 70 mm → 1654 × 1429 px, contour #455A64)
+### Salle standard (rectangle 140 × 100 mm → 1654 × 1181 px, bandeau #455A64)
 
 ```
-{{BLOC_COMMUN}} Top-down / slightly isometric view of a hospital room interior
-filling a hexagon (140x121 mm): {{SUJET}} (salle de consultation, bloc
-opératoire, radiologie, réanimation, salle expérimentale...), clean modern medical
-equipment, calm lighting, no people, centered composition, accent #455A64,
-specialty color {{COULEUR_SPECIALITE}} on furniture details. Leave a clear
-central band (~86x61 mm) and a centered bottom strip (~20 mm) visually calm
-for overlays. Seed: {{SEED}}.
+{{BLOC_COMMUN}} Top-down view of a hospital room interior filling a 140x100 mm
+landscape rectangle: {{SUJET}} (salle de consultation, bloc opératoire,
+radiologie, réanimation, salle expérimentale...), clean modern medical
+equipment, calm lighting, no people, centered in the middle ~60x30 mm area,
+accent #455A64, specialty color {{COULEUR_SPECIALITE}} on furniture details.
+Leave the top 22 mm band and both 40 mm side strips visually calm for
+overlays. Seed: {{SEED}}.
+```
+
+### Bloc / grande salle (rectangle 150 × 160 mm → 1772 × 1890 px)
+
+```
+{{BLOC_COMMUN}} Top-down view of a large hospital room (operating block)
+filling a 150x160 mm rectangle: {{SUJET}}, clean modern surgical equipment,
+calm lighting, no people, centered around a calm central 61x86 mm zone, top
+22 mm band and 40 mm side strips visually calm for overlays, accent #455A64,
+specialty color {{COULEUR_SPECIALITE}}. Seed: {{SEED}}.
 ```
 
 ## 3. Consignes de cohérence à appliquer partout
@@ -85,14 +95,19 @@ for overlays. Seed: {{SEED}}.
 Script (Pillow) sur chaque image générée, avant impression :
 
 1. Recadrer aux gabarits : 709 × 1004 px (médecin/patient), 531 × 531 px
-   (objet), hexagone 1654 × 1429 px (salle), + fond perdu 3 mm.
+   (objet), 1654 × 1181 px (salle standard), 1772 × 1890 px (bloc), + fond
+   perdu 3 mm.
 2. Liséré / bandeau titre de la couleur du type (si le modèle a dévié).
 3. Pastille de spécialité (couleur + icône emoji, police Noto Color Emoji).
 4. Titre de la tuile (police fixe du projet, contraste vérifié).
 5. QR code (20 × 20 mm, correction Q, marge 4 modules ; 15 mm mini pour les
-   objets) — généré par `outils/planche_qr`, jamais par l'IA. Salle : QR
-   centré en bas de l'hexagone.
-6. Découpe des logements des salles (sous-épaisseur 2 mm dans carton 3 mm) :
-   encoche centrale 86 × 61 mm, encoches latérales 60,5 mm × 40 mm, encoche
-   haute 45,5 mm × 25 mm — gabarit carton + cutter.
+   objets) — généré par `outils/planche_qr`, jamais par l'IA. Salle : QR en
+   haut à droite du bandeau de 22 mm.
+6. Découpe des logements des salles (sous-épaisseur 2 mm dans carton 3 mm) —
+   gabarit carton + cutter :
+   - salle standard 140 × 100 : encoches latérales 60,5 × 40 mm (gauche =
+     médecin, droite = patient), encoche interne carrée 46 × 46 mm en haut
+     au centre ;
+   - bloc 150 × 160 : encoche centrale 61 × 86 mm (patient), deux encoches
+     latérales 60,5 × 40 mm (médecins), encoche interne carrée 46 × 46 mm.
 7. Export CMJN + PDF d'impression (A4/A3 standard, finition mate).
