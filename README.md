@@ -4,6 +4,8 @@ Jeu de société simulant la vie d'un hôpital, assisté par une application mob
 
 Les joueurs incarnent des médecins. Des patients arrivent, atteints d'une maladie cachée tirée au hasard : les médecins doivent la diagnostiquer, sur la base de diagnostics probabilistes parfois trompeurs, puis la soigner avant que l'état du patient n'empire. Chaque carte du jeu (médecin, patient, salle, objet, diplôme) porte un **QR code** : l'application lit les cartes, reconnaît la combinaison et calcule le résultat de l'action selon un paquet de règles JSON.
 
+Les joueurs jouent **à tour de rôle**, même si plusieurs smartphones sont disponibles : l'application ne gère ni l'ordre des tours, ni deux diagnostics en parallèle. Chaque joueur peut partager ses résultats de diagnostic avec les autres ou les garder pour lui.
+
 Le suivi global de la partie (tours, points de victoire, cumul des pièces et de la réputation) reste **manuel**, hors application. Si la réputation de l'hôpital tombe sous un seuil, l'hôpital ferme et **tous les joueurs ont perdu**.
 
 ## Fonctionnement
