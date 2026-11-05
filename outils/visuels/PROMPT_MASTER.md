@@ -26,21 +26,21 @@ Remplacer `{{SUJET}}`, `{{SPECIALITE}}`, `{{COULEUR_SPECIALITE}}` et fixer
 `{{SEED}}` (entier unique et stable par tuile, ex. : hash de l'identifiant
 `MED-001`).
 
-### Médecin (60 × 85 mm portrait → 709 × 1004 px, bandeau #1565C0)
+### Médecin (60 × 85 mm portrait → 709 × 1004 px, bandeau #0D47A1)
 
 ```
 {{BLOC_COMMUN}} Portrait of a doctor character, white coat and stethoscope,
 friendly confident expression, centered in a 60x50 mm area, accent color
-#1565C0, specialty badge hint: {{SPECIALITE}} ({{COULEUR_SPECIALITE}}).
+#0D47A1, specialty badge hint: {{SPECIALITE}} ({{COULEUR_SPECIALITE}}).
 Subject: {{SUJET}}. Seed: {{SEED}}.
 ```
 
-### Patient (60 × 85 mm portrait → 709 × 1004 px, bandeau #EF6C00)
+### Patient (60 × 85 mm portrait → 709 × 1004 px, bandeau #BF360C)
 
 ```
 {{BLOC_COMMUN}} A calm patient sitting on a hospital bed or armchair, blanket,
 neutral kind expression, simple hospital gown, centered in a 60x50 mm area,
-accent color #EF6C00. No illness shown graphically.
+accent color #BF360C. No illness shown graphically.
 Subject: {{SUJET}}. Seed: {{SEED}}.
 ```
 
@@ -58,8 +58,8 @@ Seed: {{SEED}}.
 
 ```
 {{BLOC_COMMUN}} Top-down / slightly isometric view of a hospital room interior
-filling a hexagon (140x121 mm): {{SUJET}} (bloc opératoire, unité de
-psychiatrie, salle de consultation, laboratoire), clean modern medical
+filling a hexagon (140x121 mm): {{SUJET}} (salle de consultation, bloc
+opératoire, radiologie, réanimation, salle expérimentale...), clean modern medical
 equipment, calm lighting, no people, centered composition, accent #455A64,
 specialty color {{COULEUR_SPECIALITE}} on furniture details. Leave a clear
 central band (~86x61 mm) and a centered bottom strip (~20 mm) visually calm
@@ -76,7 +76,9 @@ for overlays. Seed: {{SEED}}.
   entraîné sur les visuels validés ; en API cloud, *image prompt* du template
   à forte pondération.
 - **Batch** : générer d'abord 5 visuels de référence (un par type), valider,
-  puis lancer le batch des ~100 tuiles avec le même bloc commun.
+  puis lancer le batch des 53 tuiles du paquet de base
+  ([`contenu/paquet_base.json`](../../contenu/paquet_base.json)) avec le même
+  bloc commun.
 
 ## 4. Post-traitement (obligatoire, hors IA)
 

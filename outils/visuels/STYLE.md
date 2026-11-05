@@ -30,23 +30,26 @@ Aucun texte de règles n'est imprimé (les règles vivent dans le paquet JSON).
 
 | Type | ID JSON | Hex |
 |---|---|---|
-| Médecin | `medecin` | `#1565C0` |
-| Patient | `patient` | `#EF6C00` |
+| Médecin | `medecin` | `#0D47A1` |
+| Patient | `patient` | `#BF360C` |
 | Salle | `salle` | `#455A64` |
 | Objet | `objet` | `#8D6E63` |
 | Diplôme | `diplome` | `#C9A227` |
 
-### 2.2 Par spécialité (pastille, repris du paquet de base)
+### 2.2 Par spécialité (pastille, couleurs officielles du paquet de base)
+
+Couleurs et icônes reprises de [`contenu/paquet_base.json`](../../contenu/paquet_base.json) :
 
 | Spécialité | Hex | Icône |
 |---|---|---|
-| `psychologie` | `#7B4FBF` | 🧠 |
-| `chirurgie` | `#C62828` | ✂️ |
-| `pharmacie` | `#2E7D32` | 💊 |
-| `generaliste` | `#607D8B` | ➕ |
-| `recherche` (salles uniquement) | `#00838F` | 🔬 |
+| `generale` | `#1565C0` | 🩺 |
+| `cardiologie` | `#C62828` | ❤️ |
+| `psychiatrie` | `#7B4FBF` | 🧠 |
+| `orthopedie` | `#EF6C00` | 🦴 |
+| `paranormal` | `#37474F` | 👻 |
 
-Le liséré reste celui du type ; la spécialité n'apparaît que dans la pastille.
+Le liséré reste celui du type (aucune couleur de type ne reprend celle d'une
+spécialité) ; la spécialité n'apparaît que dans la pastille.
 
 ## 3. Mise en page des tuiles
 
@@ -108,7 +111,7 @@ Géométrie des logements (sous-épaisseur, voir §4) :
 - **Plateau** : dalles hexagonales mêmes cotes que les salles (140 × 121 mm),
   fond `#ECEFF1`, chaque salle reprend la couleur de sa spécialité.
 - **Pions** (pièces `#C9A227`, réputation `#C62828`, PV `#2E7D32`) : ronds.
-- **Boîte** : fond `#1565C0`, croix médicale blanche, illustration d'équipe
+- **Boîte** : fond `#0D47A1`, croix médicale blanche, illustration d'équipe
   dans le style des tuiles.
 
 ## 7. Règles absolues (anti-dérive)
