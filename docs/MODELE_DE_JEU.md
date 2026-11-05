@@ -30,7 +30,7 @@ Règle de table, hors appli : **2 à 3 joueurs**. Chaque joueur reçoit au dépa
 | Objets et diplômes | 30 | 21 (16 objets, 5 diplômes) | carte |
 | Salles | 10 | 10 | carte |
 | Maladies | 100 | 103 | virtuelle (dans le JSON) |
-| Spécialités | 3 + extensibles | 5 | virtuelle |
+| Spécialités | 5 + extensibles | 5 | virtuelle |
 
 Le paquet de base est dans [`contenu/paquet_base.json`](../contenu/paquet_base.json).
 
