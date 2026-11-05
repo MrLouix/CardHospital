@@ -18,7 +18,8 @@ L'application Android (transposable iOS) sert de **moteur d'actions**. Elle lit 
 
 **Hors périmètre de l'appli** (géré à la table par les joueurs) :
 
-- tour de jeu et ordre des joueurs ;
+- tour de jeu : les joueurs jouent **à tour de rôle**, même si plusieurs smartphones sont disponibles ; l'appli ne gère ni l'ordre des tours, ni deux diagnostics en parallèle ;
+- partage ou non des résultats de diagnostic entre joueurs (les probabilités sont réglées pour que ne rien mettre en commun rende la défaite commune quasi inévitable, [MODELE_DE_JEU.md §8.6](MODELE_DE_JEU.md#86-partage-des-diagnostics-entre-joueurs)) ;
 - points de victoire et conditions de victoire ou de défaite, dont la **fermeture de l'hôpital** quand la réputation passe sous un seuil (tous les joueurs perdent, [MODELE_DE_JEU.md §7.1](MODELE_DE_JEU.md#71-réputation-et-fermeture-de-lhôpital)) ;
 - cumul des pièces et de la réputation, partage des pièces entre médecin et hôpital, achats ;
 - identité des joueurs : l'appli n'en connaît aucune ;
@@ -28,7 +29,7 @@ L'application Android (transposable iOS) sert de **moteur d'actions**. Elle lit 
 
 1. **Sélection multi-QR puis validation** : la caméra détecte plusieurs QR à la fois et les cumule dans une sélection ; le joueur déclenche le traitement par le bouton **« Valider la sélection »**. Rien n'est déclenché automatiquement.
 2. **Confirmation obligatoire** : aucune action n'est appliquée sans appui sur « Confirmer ».
-3. **Résultat privé** : le résultat d'une action n'apparaît que sur le téléphone de l'acteur ; il le communique aux autres de vive voix ou en montrant son écran.
+3. **Résultat privé** : le résultat d'une action n'apparaît que sur le téléphone de l'acteur ; les joueurs choisissent de le partager aux autres (de vive voix ou en montrant leur écran) ou de le garder pour eux, [MODELE_DE_JEU.md §8.6](MODELE_DE_JEU.md#86-partage-des-diagnostics-entre-joueurs).
 4. **Hôte autoritaire** : un seul téléphone (celui d'un joueur) détient l'état du jeu, calcule les aperçus et applique les effets. Les clients n'embarquent que les images des cartes.
 5. **Contenu externalisé** : cartes, maladies, traitements, récompenses et actions vivent dans un paquet de jeu (`.zip` + `jeu.json`). Modifier le jeu ne demande aucun code.
 6. **Hors ligne** : aucune dépendance à Internet.
@@ -265,6 +266,8 @@ Permissions Android : `CAMERA`, `INTERNET`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK
 | D21 | La page admin sert au démarrage et à la connexion ; le reste est du debug | §7 |
 | D22 | Réputation tenue à la main ; sous un seuil, l'hôpital ferme et tous les joueurs perdent (règle de table, l'appli ne tient pas le total) | [Modèle §7.1](MODELE_DE_JEU.md#71-réputation-et-fermeture-de-lhôpital) |
 | D23 | Salle recherche : motif `recherche` déclaré avant `standard`, action `analyser` avec choix d'une maladie suspectée, révélation de la recette complète du traitement adapté après `recherche.passages` passages (global à la partie), coût = temps + aggravation, aucune pièce | [Modèle §12](MODELE_DE_JEU.md#12-recherche-en-laboratoire) |
+| D24 | Les joueurs jouent à tour de rôle, même avec plusieurs smartphones ; l'appli ne gère ni l'ordre des tours, ni deux diagnostics en parallèle | §1, [Modèle §1](MODELE_DE_JEU.md#1-partage-des-responsabilités) |
+| D25 | Les joueurs peuvent partager leurs diagnostics ou les garder pour eux ; les probabilités sont réglées pour que ne rien mettre en commun rende la défaite commune (réputation à 0) quasi inévitable | [Modèle §8.6](MODELE_DE_JEU.md#86-partage-des-diagnostics-entre-joueurs) |
 
 ## 12. Questions ouvertes
 
