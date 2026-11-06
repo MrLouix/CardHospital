@@ -36,7 +36,7 @@ L'application Android (transposable iOS) sert de **moteur d'actions**. Elle lit 
 5. **Contenu externalisé** : cartes, maladies, traitements, récompenses et actions vivent dans un paquet de jeu (`.zip` + `jeu.json`). Modifier le jeu ne demande aucun code.
 6. **Hors ligne** : aucune dépendance à Internet.
 7. **Aucune identité de joueur** : un téléphone peut servir successivement à plusieurs joueurs.
-8. **Montants entiers** : PV, pièces et réputation sont toujours des entiers (règle d'arrondi : [MODELE_DE_JEU.md §7](MODELE_DE_JEU.md#7-récompenses)).
+8. **Montants entiers** : PV, pièces et réputation sont toujours des entiers ; la difficulté leur ajoute des bonus entiers ([MODELE_DE_JEU.md §10](MODELE_DE_JEU.md#10-difficulté)).
 9. **Appli non intrusive** : l'appli gère les maladies et calcule le résultat des actions ; elle ne suit ni les tours, ni les joueurs, ni l'économie, ni les scores, qui se jouent à la table ([règles de table](REGLES_DE_TABLE.md)).
 
 ## 3. Architecture
@@ -204,7 +204,8 @@ En jeu normal, la page admin ne sert **qu'au démarrage** et pour **connecter de
 Le contenu et les règles sont décrits par un **paquet de jeu** :
 
 - le **paquet de base** est embarqué ; les **extensions** sont des `.zip` importés, contenant `jeu.json` et un dossier `images/` réservé ;
-- en v1, les extensions **n'ajoutent pas de cartes** : elles modifient les maladies, les traitements, les paramètres, les récompenses, les difficultés et les phrases ;
+- en v1, les extensions **n'ajoutent ni ne modifient de cartes** : elles modifient les maladies, les traitements, les paramètres, les récompenses, les difficultés et les phrases ;
+- **ce qui est imprimé** sur une carte : son image, son QR code, son type, son nom, sa spécialité (couleur et icône) et ses capacités ; c'est pourquoi une extension ne peut pas les changer ([MOTEUR_EFFETS.md §1.2](MOTEUR_EFFETS.md#12-ce-quune-extension-peut-faire-en-v1)) ;
 - le **catalogue** du paquet de base compte 10 médecins, 12 patients, 21 objets et diplômes (plus les objets d'aide à la recherche, à créer), 11 salles dont le laboratoire de recherche, et 103 maladies ;
 - chaque paquet est validé à l'import (JSON Schema et contrôles sémantiques) et versionné.
 
@@ -222,7 +223,8 @@ Le détail est dans [MOTEUR_EFFETS.md](MOTEUR_EFFETS.md).
 | Validation du paquet de base (103 maladies, 2 650 combinaisons) | < 2 s |
 | Autonomie de l'hôte | Mesurée en phase 3 sur une partie de 2 h |
 | Langue | Français en v1 ; les textes d'interface sont externalisés (fichiers ARB) pour une traduction future |
-| Accessibilité | Respect de la taille de police système ; contrastes suffisants ; la couleur d'une spécialité est toujours doublée de son icône et de son nom (daltonisme) |
+| Accessibilité | Respect de la taille de police système ; contrastes suffisants ; la couleur d'une spécialité est toujours doublée de son icône et de son nom |
+| Conformité daltonisme | Chaque couleur de spécialité a un contraste d'au moins 3:1 sur fond clair (`#FFFFFF`) et sur fond sombre (`#121212`). Deux couleurs de spécialité restent distinctes (écart ΔE CIE76 d'au moins 20) en vision normale, en **protanopie**, en **deutéranopie** et en **tritanopie** (simulation de Machado et al., 2009). Le validateur de paquet le vérifie ; la palette du paquet de base le respecte |
 
 ## 10. Stack technique
 
@@ -254,7 +256,7 @@ Permissions Android : `CAMERA`, `INTERNET`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK
 | D5 | Résultat privé, sur le seul téléphone de l'acteur | §5.6 |
 | D6 | Hôte unique, téléphone d'un joueur, qui scanne en loopback | §3.1 |
 | D7 | 3 niveaux de difficulté aux noms médicaux | [Modèle §10](MODELE_DE_JEU.md#10-difficulté) |
-| D8 | Montants entiers, arrondi au plus proche (demi éloigné de zéro), base non nulle ≥ 1 | [Modèle §7](MODELE_DE_JEU.md#7-récompenses) |
+| D8 | Montants entiers ; difficulté par bonus entiers (+0, +1, +2) sur les pertes de PV, les gains de pièces et les pertes de réputation ; aucune pièce si le patient meurt pendant l'action | [Modèle §7 et §10](MODELE_DE_JEU.md#10-difficulté) |
 | D9 | Maladie tirée au hasard à l'admission, indépendante de la carte | [Modèle §4.1](MODELE_DE_JEU.md#41-admission) |
 | D10 | Un patient entre en jeu quand sa carte est scannée seule pour la première fois | [Modèle §4.1](MODELE_DE_JEU.md#41-admission) |
 | D11 | Diagnostic probabiliste, tiré à nouveau à chaque fois, pouvant être faux : liste des 5 maladies les plus suspectes, indices de suspicion indépendants (pas des probabilités), couleur et icône par spécialité, bruit corrigé selon le nombre de maladies par spécialité ; une spécialité concordante renforce sa couleur, une discordante la fait reculer ; seule une tête à 95 ou plus est presque toujours juste | [Modèle §8](MODELE_DE_JEU.md#8-diagnostic-probabiliste) |
@@ -262,10 +264,10 @@ Permissions Android : `CAMERA`, `INTERNET`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK
 | D13 | Horloge commune : un tick par diagnostic, traitement ou analyse confirmé ; aggravation selon la durée de présence du patient, par paliers communs, appliquée à chaque action sur lui, sans rattrapage ; attente maximale en ticks | [Modèle §5](MODELE_DE_JEU.md#5-horloge-et-aggravation) |
 | D14 | Pièces et réputation gagnées par l'acteur, partagées hors appli entre lui et l'hôpital ; objets permanents payés par les joueurs, salles et consommables par l'hôpital | [Règles de table §3 à §6](REGLES_DE_TABLE.md) |
 | D15 | Bouton « Valider la sélection » | §5.2 |
-| D16 | Combinaison standard : médecin + patient + salle + (accessoire ou second médecin) | [Modèle §3](MODELE_DE_JEU.md#3-combinaisons) |
+| D16 | Combinaison standard : médecin + patient + salle, plus un second médecin et un accessoire facultatifs (3 à 5 cartes, un seul accessoire) | [Modèle §3](MODELE_DE_JEU.md#3-combinaisons) |
 | D17 | L'aperçu est calculé par l'hôte | §5.2 |
 | D18 | Extensions au format `.zip` (JSON + images) | [Moteur §1](MOTEUR_EFFETS.md#1-paquet-de-jeu) |
-| D19 | Les extensions n'ajoutent pas de cartes en v1 | [Moteur §1.2](MOTEUR_EFFETS.md#12-ce-quune-extension-peut-faire-en-v1) |
+| D19 | Les extensions n'ajoutent ni ne modifient de cartes en v1 (type, nom, spécialité et capacités sont imprimés) | [Moteur §1.2](MOTEUR_EFFETS.md#12-ce-quune-extension-peut-faire-en-v1) |
 | D20 | Catalogue du paquet de base : 10 médecins, 12 patients, 21 objets/diplômes, 11 salles dont le laboratoire, 103 maladies | §8 |
 | D21 | La page admin sert au démarrage et à la connexion ; le reste est du debug | §7 |
 | D22 | Réputation tenue à la main ; sous un seuil, l'hôpital ferme et tous les joueurs perdent (règle de table, l'appli ne tient pas le total) | [Modèle §7.1](MODELE_DE_JEU.md#71-réputation-et-fermeture-de-lhôpital) |

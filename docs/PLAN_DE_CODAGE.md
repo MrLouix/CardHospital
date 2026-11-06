@@ -95,7 +95,7 @@ Ordre de réalisation, chaque étape étant livrée avec ses tests :
 2. [x] **Modèles** : classes typées de `jeu.json` (cartes, maladies, prédicats, conditions, valeurs, effets, actions), chargement de l'exemple.
 3. [x] **Validateur** : JSON Schema, puis les contrôles sémantiques de [MOTEUR_EFFETS.md §7](MOTEUR_EFFETS.md#7-validation-à-limport) (références, phrases, spécialités sans maladie, réalisabilité des traitements par recherche exhaustive, doublons, poids), avec messages en français et chemin JSON. Un test négatif par règle.
 4. [x] **Reconnaissance des combinaisons** : motifs, préconditions, actions proposées, message du premier écart (point P3).
-5. [x] **Moteur d'effets** : état des patients, effets, conditions, prédicats, valeurs `$…`, modificateurs de difficulté, arrondi, invariants (mort, sortie, révélation).
+5. [x] **Moteur d'effets** : état des patients, effets, conditions, prédicats, valeurs `$…`, bonus de difficulté, invariants (mort, sortie, révélation).
 6. [x] **Diagnostic probabiliste** : liste des 5 maladies les plus suspectes, indices de suspicion indépendants, couleur et icône de chaque spécialité, bruit corrigé selon le nombre de maladies par spécialité. Tests statistiques sur graine fixe, comparés aux valeurs de [MODELE_DE_JEU.md §8.4](MODELE_DE_JEU.md#84-comportement-attendu). Cette version remplace le premier diagnostic (distribution sur le type, puis liste de noms), dont la liste de noms révélait le type avec certitude (voir §5.4).
 7. [x] **Résultat et état** : formats arrêtés (points P1 et P2), sérialisation et restauration des instantanés.
 8. [x] **Simulateur** (`bin/simuler.dart`) : stratégies simples (traiter au hasard, diagnostiquer jusqu'à X % puis traiter, se fier à la spécialité). Il mesure le taux de guérison, la durée de vie des patients, les pièces et la réputation par action, et produit un rapport reproductible.
@@ -118,6 +118,7 @@ Depuis `packages/moteur` :
 ```bash
 dart test
 dart run bin/simuler.dart --parties 2000 --strategies hasard,seuil:70,couleur:70 --en-jeu 3
+dart run bin/simuler.dart --joueurs 3 --partage les-deux
 dart run bin/simuler.dart --aide   # ou --help, -h
 ```
 
@@ -128,10 +129,11 @@ Stratégies disponibles :
 | `hasard` | Diagnostiquer ou traiter au hasard, avec une combinaison au hasard |
 | `seuil:X` | Diagnostiquer sans spécialité, à la meilleure précision, jusqu'à ce que la maladie en tête de liste, non encore essayée, atteigne l'indice de suspicion X ; puis la traiter |
 | `couleur:X` | Comme `seuil:X`, mais après un premier diagnostic sans spécialité, diagnostiquer avec la spécialité de la couleur dominante de la dernière liste (la couleur qui a le plus de lignes), pour la confirmer ou l'écarter |
+| `novice:X` | Joueur qui **ne connaît pas les traitements**. Il diagnostique comme `seuil:X` ; pour soigner, il essaie la recette qu'il a vue guérir cette maladie, puis celles qui ont guéri une maladie de la même spécialité, puis la combinaison la plus assortie à la couleur (le plus de cartes de la spécialité). Deux essais par maladie, puis il l'écarte. Ce qu'il a vu réussir est noté dans un carnet de recettes, commun à tous les joueurs quand ils partagent leurs informations |
 
 Le simulateur joue des parties sur une horloge commune : jusqu'à `--en-jeu` patients (3 par défaut) sont en jeu à la fois et pris en charge à tour de rôle ; dès qu'un patient sort, un autre est admis. Chaque patient a sa propre instance de la stratégie. Les cartes des patients morts sont réutilisées : la défausse n'est pas simulée.
 
-Les stratégies voient ce que voit un joueur (résultats des actions, spécialités des cartes). Elles sont aussi supposées connaître les traitements des maladies : c'est une **hypothèse optimiste**, car le livret ne les donne pas ([règles de table §9](REGLES_DE_TABLE.md#9-traitements-secrets)). Elles jouent donc comme des joueurs vétérans, et leurs taux de guérison sont des plafonds.
+Les stratégies voient ce que voit un joueur (résultats des actions, spécialités des cartes). Les stratégies `seuil:X` et `couleur:X` connaissent aussi les traitements des maladies, alors que le livret ne les donne pas ([règles de table §9](REGLES_DE_TABLE.md#9-traitements-secrets)) : elles jouent comme des joueurs vétérans, et leurs taux de guérison sont des plafonds. La stratégie `novice:X` joue comme un débutant, qui découvre les traitements pendant la partie.
 
 ### 5.4 Premiers constats du simulateur
 
@@ -139,15 +141,24 @@ Les stratégies voient ce que voit un joueur (résultats des actions, spécialit
 
 **Sur le paquet d'exemple** (6 maladies, 2 par spécialité), le [rapport](simulations/rapport_exemple.md) n'est **pas représentatif** :
 
-- les stratégies informées (`seuil:X`, `couleur:X`) guérissent 99 % des patients en Interne et 95 à 97 % en Réanimation, en 1,2 à 1,5 diagnostic (2 patients en jeu à la fois : l'exemple n'a que 2 cartes patient). Les paramètres par défaut sont calés pour une centaine de maladies : avec 6, la vraie maladie ressort presque toujours en tête, et le diagnostic est trop facile ;
+- les stratégies informées (`seuil:X`, `couleur:X`) guérissent 99 à 100 % des patients en Interne et 97 à 98 % en Réanimation, en 1,3 à 1,5 diagnostic (2 patients en jeu à la fois : l'exemple n'a que 2 cartes patient). Les paramètres par défaut sont calés pour une centaine de maladies : avec 6, la vraie maladie ressort presque toujours en tête, et le diagnostic est trop facile ;
 - `couleur:X` ne fait pas mieux que `seuil:X`, car un seul diagnostic suffit le plus souvent.
 
 **Sur le paquet de base** (103 maladies sur 5 spécialités, 3 patients en jeu à la fois, [rapport](simulations/rapport_paquet_base.md)) :
 
-- les stratégies informées guérissent 93 à 97 % des patients en Interne, 84 à 90 % en Chirurgien et 81 à 89 % en Réanimation, avec 1,5 à 2,5 diagnostics par patient ; le hasard n'en guérit que 4 à 6 % ;
-- suivre la couleur est récompensé sans être infaillible : `couleur:80` guérit 97 % des patients en Interne, contre 95 % pour `seuil:80` ;
-- Chirurgien et Réanimation donnent des taux de guérison proches ;
-- les patients sont pris en charge à tour de rôle et les stratégies connaissent les traitements : ces taux sont des plafonds.
+- les stratégies informées guérissent 95 à 97 % des patients en Interne, 88 à 91 % en Chirurgien et 80 à 85 % en Réanimation, avec 1,6 à 2,5 diagnostics par patient ; le hasard n'en guérit que 4 à 8 % ;
+- chaque niveau de difficulté est nettement plus dur que le précédent (bonus +0, +1, +2) ; en Réanimation, la réputation par patient devient négative pour `seuil:60` et `couleur:60` ;
+- suivre la couleur est récompensé sans être infaillible : `couleur:80` guérit 97 % des patients en Interne, contre 96 % pour `seuil:80`, et 85 % contre 81 % en Réanimation ;
+- les stratégies connaissent les traitements : ces taux sont des plafonds.
+
+**Joueur novice** (`novice:70`, même rapport) : il ne guérit que 28 % des patients en Interne et 23 % en Réanimation, contre 96 % et 84 % pour un vétéran (`seuil:70`), avec une réputation par patient fortement négative (−6 à −8). Sans connaître les traitements, l'hôpital ferme.
+
+**À 3 joueurs** ([rapport](simulations/rapport_paquet_base_3_joueurs.md)), informations partagées ou privées :
+
+- quand les joueurs partagent, 74 à 80 % des guérisons sont faites par un joueur qui n'avait pas diagnostiqué le patient : celui qui diagnostique travaille souvent pour un autre, c'est le dilemme voulu ;
+- pour des vétérans (`seuil`, `couleur`), le partage **ne change pas le taux de guérison** (97 à 98 % en Interne, 84 à 86 % en Réanimation, partage ou non) : l'objectif « défaite quasi inévitable sans partage » (modèle de jeu §8.6) n'est pas atteint pour eux ;
+- pour des **novices**, le partage aide l'équipe à soigner : 34 % de guérisons au lieu de 28 % en Interne, 31 % au lieu de 23 % en Réanimation. Mais il coûte plus de réputation par patient (−7,7 au lieu de −6,1 en Interne), parce que plus de joueurs essaient de soigner et ratent leur traitement ;
+- pistes pour que le partage sauve vraiment l'hôpital : un diagnostic moins net, des maladies qui demandent plusieurs avis, ou des recettes plus faciles à deviner une fois la spécialité connue.
 
 **À faire** : `precision_max` (4) et `par_niveau` (0,8) sont réglés ; restent `verite`, `affinite_specialite`, `bonus_specialite` et `exclusion` sur ce paquet. Le comportement du diagnostic y est mesuré dans [MODELE_DE_JEU.md §8.4](MODELE_DE_JEU.md#84-comportement-attendu). La valeur de départ et le seuil de fermeture de la réputation ne sont à fixer qu'après ce réglage.
 
@@ -167,7 +178,8 @@ Décisions de la [revue de cohérence](REVUE_COHERENCE.md) (R1 à R7, E2) qui de
 | Sujet | Travail | Prérequis |
 |---|---|---|
 | Horloge commune et paliers d'aggravation (R2) | **Fait** : un tick par diagnostic, traitement ou analyse, aggravation selon la durée de présence par paliers communs, sans rattrapage, attente en ticks ([MODELE_DE_JEU.md §5](MODELE_DE_JEU.md#5-horloge-et-aggravation)) ; le simulateur fait jouer plusieurs patients à la fois (`--en-jeu`, 3 par défaut). Reste : simuler plusieurs joueurs | — |
-| Traitements secrets (E2) | Simulateur : stratégie « novice » qui apprend les traitements par essais et au laboratoire | — |
+| Plusieurs joueurs (E11) | **Fait** : 2 ou 3 joueurs à tour de rôle, informations partagées ou privées (`--joueurs`, `--partage`), mesure des guérisons faites par un autre joueur et de l'écart de pièces. Reste : rendre le partage utile à l'équipe (§5.4) | — |
+| Traitements secrets (E2) | **Fait** : stratégie `novice:X`, qui apprend les traitements pendant la partie (carnet de recettes). Reste : l'aider avec le laboratoire, quand l'action `analyser` existera | — |
 | Réglages de table (R1, R2, R3) | Simulateur : réputation de départ, seuil de fermeture, nombre N de patients en jeu et niveau cible de victoire, par difficulté | Simulateur multi-patients |
 | Formation (R1, R4) | Contenu : salle de formation, objets de formation, piste de diplôme ; décider si l'appli valide la combinaison | [Règles de table §11](REGLES_DE_TABLE.md#11-points-à-préciser) |
 | Économie (R4) | Contenu : prix des salles (verso), tuiles de stock des consommables, classement des objets permanents et consommables | [Règles de table §11](REGLES_DE_TABLE.md#11-points-à-préciser) |

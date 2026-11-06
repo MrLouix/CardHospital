@@ -36,10 +36,10 @@ Jeu jeuBase() => Jeu.fromJson(
 );
 
 /// Valeurs de tirage d'admission menant à chaque maladie de l'exemple
-/// (poids 2, 2, 3, 3, 2, 2 : total 14).
+/// (poids 1, 2, 1, 2, 3, 2 : total 11).
 const tirageFractureOuverte = 0.0;
 const tirageFractureFermee = 0.2;
-const tirageAngine = 0.4;
-const tirageMauxDeTete = 0.6;
-const tiragePhobie = 0.8;
-const tirageHypocondrie = 0.95;
+const tirageAngine = 0.3;
+const tirageMauxDeTete = 0.45;
+const tiragePhobie = 0.7;
+const tirageHypocondrie = 0.9;

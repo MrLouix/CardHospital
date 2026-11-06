@@ -5,7 +5,7 @@ Termes utilisés dans l'ensemble de la documentation. En cas de doute, ce glossa
 | Terme | Définition |
 |---|---|
 | **Carte** | Carte physique portant un QR code. Cinq types de carte : `medecin`, `patient`, `salle`, `objet`, `diplome`. Une carte n'est qu'une **identité** (nom, image, spécialité, capacités) ; l'état de jeu vit dans l'appli hôte. |
-| **Accessoire** | Carte de type `objet` ou `diplome`. Occupe la 4ᵉ place d'une combinaison standard ou d'une combinaison de recherche. |
+| **Accessoire** | Carte de type `objet` ou `diplome`. Une combinaison en compte au plus un. |
 | **Diplôme** | Accessoire portant éventuellement une spécialité. Un diplôme de spécialité X compte comme un médecin de spécialité X dans les prédicats qui demandent un médecin **de cette spécialité** (voir l'encadré « Diplôme » du [modèle de jeu §2.2](MODELE_DE_JEU.md#22-cartes)). |
 | **Maladie** | Pathologie **virtuelle** (aucune carte) tirée au hasard par l'hôte lors de l'admission d'un patient. Elle est cachée aux joueurs. |
 | **Spécialité** | Catégorie médicale déclarée dans le paquet : `generale` (médecine générale), `cardiologie`, `psychiatrie`, `orthopedie`, `paranormal` dans le paquet de base, extensible. Chaque maladie a **une spécialité**. Les médecins, salles et accessoires peuvent porter une spécialité. |
@@ -14,7 +14,7 @@ Termes utilisés dans l'ensemble de la documentation. En cas de doute, ce glossa
 | **Capacité** | Bonus chiffré porté par une carte : `precision` (niveau de précision du diagnostic) et `stabilisation` (PV supplémentaires rendus par un traitement partiel) dans le paquet de base. Liste extensible dans le paquet. |
 | **Sélection** | Ensemble des cartes détectées par la caméra et retenues à l'écran, avant appui sur « Valider la sélection ». |
 | **Combinaison** | Sélection validée et reconnue comme conforme à au moins un **motif** d'action. |
-| **Combinaison standard** | 1 médecin + 1 patient + 1 salle + (0 ou 1 accessoire **ou** 1 second médecin). Soit 3 ou 4 cartes. |
+| **Combinaison standard** | 1 médecin + 1 patient + 1 salle, plus au choix 0 ou 1 second médecin et 0 ou 1 accessoire. Soit 3 à 5 cartes, avec un seul accessoire. |
 | **Action** | Opération de jeu appliquée à un patient : `admettre`, `diagnostiquer`, `traiter`, `analyser`. Une action n'existe qu'après **confirmation**. |
 | **Aperçu** | Phrase et images présentées avant confirmation, calculées par l'hôte. |
 | **Confirmation** | Appui sur « Confirmer » : l'hôte applique l'action. Sans confirmation, rien n'est appliqué. |
@@ -44,6 +44,8 @@ Termes utilisés dans l'ensemble de la documentation. En cas de doute, ce glossa
 | **Objet permanent** | Objet (livre, instrument…) acheté par un joueur sur sa réserve personnelle ; l'argent sort du jeu et l'objet lui appartient. |
 | **Objet consommable** | Objet de l'hôpital (médicament, bistouri, plâtre…) stocké sur une tuile de stock, avec son prix de réapprovisionnement. |
 | **Formation** | Action de table (médecin + salle de formation + objet de formation) qui fait avancer le pion du joueur sur la piste de diplôme ; elle occupe tout le tour. Après plusieurs formations, le joueur obtient un diplôme. À créer. |
+| **Bonus de difficulté** | Entier que le niveau de difficulté ajoute aux pertes de PV, aux gains de pièces et aux pertes de réputation : +0 en Interne, +1 en Chirurgien, +2 en Réanimation. Les gains de réputation ne changent pas. |
+| **Famille de traitements** | Groupe de maladies d'une même spécialité qui se soignent avec la même recette (un spécialiste dans une salle, un objet dans une salle, ou deux médecins). |
 | **Fermeture de l'hôpital** | Défaite collective : si la réputation devient strictement inférieure au seuil de fermeture, la partie s'arrête et tous les joueurs ont perdu. Règle de table, non gérée par l'appli. |
 | **Hôte** | Smartphone unique par partie, qui héberge le serveur et l'état du jeu. C'est aussi le téléphone d'un joueur. |
 | **Client** | Smartphone connecté à l'hôte, qui sert de scanner et affiche les résultats de ses propres actions. L'hôte est lui-même client via loopback. |

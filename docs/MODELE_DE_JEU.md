@@ -57,7 +57,8 @@ Une carte est une **identité stable** ; elle ne porte aucun état de partie.
 
 > **Diplôme — ce qu'il compte dans une recette.** Un diplôme de spécialité X, joué comme accessoire :
 >
-> 1. **compte comme un médecin X** quand la recette demande un médecin **de cette spécialité**. « 2 médecins d'orthopédie » est satisfait par un orthopédiste et le diplôme d'orthopédie ; avec le diplôme de médecine générale, toute combinaison compte « un médecin de médecine générale ».
+> 1. **compte comme un médecin X** quand la recette demande un médecin **de cette spécialité** : avec le diplôme de médecine générale, toute combinaison compte « un médecin de médecine générale ». C'est voulu : un médecin polyvalent muni d'un diplôme remplace un spécialiste, ce qui évite qu'un joueur seul à détenir une spécialité fasse la loi.
+>    Quand la recette exige **deux médecins** d'une spécialité, il faut **deux vrais médecins** : deux spécialistes, ou un spécialiste et un autre médecin muni du diplôme. Le diplôme seul ne remplace pas le second médecin.
 > 2. **ne compte pas comme un médecin** quand la recette demande un médecin **sans préciser la spécialité** (« 2 médecins ») ou une autre spécialité.
 > 3. **compte aussi dans les exclusions** : une recette « sans médecin X » est refusée si le diplôme X est présent.
 >
@@ -80,6 +81,8 @@ Chaque maladie définit :
 | `traitement.partiel` | Prédicat facultatif : traitement qui **stabilise** (gain de PV, sans guérison ni aggravation) | voir §6 |
 | `recompenses` | Pièces et réputation propres à la maladie (sinon valeurs globales) | voir §7 |
 
+Dans le paquet de base, chaque spécialité suit le **même gabarit de gravité** : 4 paliers (A : bénin, B : modéré, C : sérieux, D : grave), avec les mêmes PV initiaux (de 6 à 16), la même aggravation, la même attente maximale, les mêmes poids et les mêmes récompenses d'une spécialité à l'autre. Les PV restent affichés : ils renseignent sur la gravité, **pas sur la spécialité** — aucune valeur de PV n'appartient à plus de 25 % à une même spécialité.
+
 ## 3. Combinaisons
 
 ### 3.1 Motifs reconnus
@@ -87,10 +90,10 @@ Chaque maladie définit :
 | Motif | Cartes | Actions proposées |
 |---|---|---|
 | **Admission** | 1 patient, seul | `admettre` (si le patient n'est pas en jeu) |
-| **Standard** | 1 médecin + 1 patient + 1 salle + 0 ou 1 carte parmi {objet, diplôme, second médecin} | `diagnostiquer`, `traiter` — **hors laboratoire** |
+| **Standard** | 1 médecin + 1 patient + 1 salle, plus au choix 0 ou 1 second médecin et 0 ou 1 accessoire (objet ou diplôme) : 3 à 5 cartes | `diagnostiquer`, `traiter` — **hors laboratoire** |
 | **Recherche** (`schema_version` 2) | 1 médecin + 1 patient + 1 salle + 0 ou 1 accessoire (objet ou diplôme) | `analyser` (§12) — **au laboratoire seulement** |
 
-Toute autre sélection est **refusée avec un message explicite** indiquant ce qui manque ou ce qui est en trop (« Il faut une carte salle », « Une seule carte patient par action », « 4 cartes au maximum »). Une même carte détectée deux fois ne compte qu'une fois.
+Toute autre sélection est **refusée avec un message explicite** indiquant ce qui manque ou ce qui est en trop (« Il faut une carte salle », « Une seule carte patient par action », « 2 cartes médecin au maximum »). Une même carte détectée deux fois ne compte qu'une fois.
 
 Une même sélection peut correspondre à plusieurs motifs : médecin + patient + salle correspond à la fois à `standard` et à `recherche`. L'appli **réunit alors les actions** de tous les motifs reconnus, puis ne garde que celles dont la précondition est vérifiée. Ce sont les préconditions qui rendent le laboratoire exclusif : **le laboratoire ne permet que d'analyser, et les autres salles ne permettent pas d'analyser**. Si aucune action ne reste, la sélection est refusée (« Aucune action possible avec ces cartes. »).
 
@@ -157,7 +160,7 @@ L'aggravation dépend de la **durée de présence**, par **paliers communs à to
 | 17 à 22 ticks | 3 | 3ᵉ valeur |
 | 23 ticks et plus | 4 | 4ᵉ valeur |
 
-La **perte est propre à chaque maladie** : c'est sa liste `aggravation`, dont la dernière valeur se répète pour les paliers suivants. Avec `[1, 2, 2, 3]`, une fracture ouverte perd 1 PV par action au palier 1, 2 aux paliers 2 et 3, 3 ensuite. Le modificateur de difficulté `pv_perdus` s'applique.
+La **perte est propre à chaque maladie** : c'est sa liste `aggravation`, dont la dernière valeur se répète pour les paliers suivants. Avec `[1, 2, 2, 3]`, une fracture ouverte perd 1 PV par action au palier 1, 2 aux paliers 2 et 3, 3 ensuite. Le bonus de difficulté `pv_perdus` s'applique (§10).
 
 **Quand** : la perte du palier atteint est appliquée **à chaque action sur ce patient** — diagnostic, analyse ou échec de traitement —, et seulement à ce moment-là. **Ni la guérison ni le traitement partiel n'aggravent le patient.**
 
@@ -167,7 +170,7 @@ Exemple : un patient admis au tick 3, diagnostiqué au tick 6 (présence 3) ne p
 
 ### 5.3 Attente dépassée
 
-L'attente maximale `attente_max` d'une maladie se compte aussi en **ticks de présence** (défaut : `parametres.attente_max_defaut`, 15 ticks). Quand la durée de présence la dépasse, chaque action sur ce patient, **même celle qui le guérit**, coûte `reputation_attente` en réputation (défaut : −1), avec le modificateur de difficulté `reputation`. Exemple : avec une attente maximale de 12, la première action pénalisée est celle qui a lieu au 13ᵉ tick de présence ou plus tard. L'attente maximale dépend de la maladie et reste donc cachée ; le résultat signale le dépassement.
+L'attente maximale `attente_max` d'une maladie se compte aussi en **ticks de présence** (défaut : `parametres.attente_max_defaut`, 15 ticks). Quand la durée de présence la dépasse, chaque action sur ce patient, **même celle qui le guérit**, coûte `reputation_attente` en réputation (défaut : −1), avec le bonus de difficulté `reputation` (§10). Exemple : avec une attente maximale de 12, la première action pénalisée est celle qui a lieu au 13ᵉ tick de présence ou plus tard. L'attente maximale dépend de la maladie et reste donc cachée ; le résultat signale le dépassement.
 
 ### 5.4 Mort
 
@@ -183,14 +186,22 @@ L'issue d'une action `traiter` est évaluée dans l'ordre :
 
 Les prédicats de traitement portent sur les cartes de la combinaison : présence d'une carte précise, nombre de cartes d'un type de carte et d'une spécialité donnés, spécialité de la salle… (syntaxe : [MOTEUR_EFFETS.md §5](MOTEUR_EFFETS.md#5-prédicats)). Ils expriment typiquement :
 
-Exemples tirés du paquet de base :
+Dans le paquet de base, les maladies de chaque spécialité sont réparties en **5 à 7 familles de traitements**, de 2 à 6 maladies chacune. Chaque recette prend l'une de ces formes :
+
+- **un spécialiste dans une salle** (un psychiatre en salle de psychiatrie, un cardiologue en réanimation) — un médecin muni du diplôme convient aussi ;
+- **un objet dans une salle**, quel que soit le médecin (l'électrocardiographe en salle de cardiologie, le plâtre à la plâtrerie, un médicament en consultation ou à la pharmacie) ;
+- **deux médecins** dont un ou deux spécialistes, au bloc opératoire ou en réanimation.
+
+Une recette n'exige jamais à la fois un spécialiste et un objet : la place d'accessoire étant unique, un médecin polyvalent muni d'un diplôme ne pourrait pas la suivre. Aucune combinaison ne soigne plus de 35 % des maladies d'une spécialité : connaître la spécialité ne suffit plus, il faut trouver la famille.
+
+Exemples :
 
 | Maladie (spécialité) | Traitement adapté | Traitement partiel |
 |---|---|---|
-| Angine bactérienne (médecine générale) | l'antibiotique (`OBJ-010`) | un médecin ou le diplôme de médecine générale, ou la salle de consultation |
-| Fracture ouverte (orthopédie) | 2 médecins d'orthopédie (ou 1 orthopédiste + le diplôme d'orthopédie) au bloc opératoire | 1 orthopédiste à la plâtrerie |
-| Burn-out (psychiatrie) | un psychiatre en salle de psychiatrie | un psychiatre ailleurs |
-| Arythmie (cardiologie) | un cardiologue en salle de cardiologie avec l'électrocardiographe | un cardiologue ailleurs |
+| Angine bactérienne (médecine générale) | l'antibiotique, en consultation ou à la pharmacie | un médecin ou le diplôme de médecine générale, ou la salle de consultation |
+| Fracture ouverte (orthopédie) | 2 médecins au bloc opératoire : 2 orthopédistes, ou 1 orthopédiste et 1 médecin muni du diplôme d'orthopédie | 1 orthopédiste à la plâtrerie |
+| Burn-out (psychiatrie) | un psychiatre (ou un médecin muni du diplôme) en salle de psychiatrie | un psychiatre ailleurs |
+| Arythmie (cardiologie) | l'électrocardiographe en salle de cardiologie | un cardiologue ailleurs |
 
 Un diplôme de spécialité X compte comme un médecin X dans ces recettes : voir l'encadré « Diplôme » (§2.2).
 
@@ -202,7 +213,7 @@ Le laboratoire de recherche (§12) révèle ce traitement sous forme de **recett
 
 ## 7. Récompenses
 
-Tous les montants sont des **entiers**. Après application des modificateurs de difficulté, chaque montant est arrondi à l'entier le plus proche, les demis étant arrondis en s'éloignant de zéro (2,5 → 3 ; −2,5 → −3). Un montant de base non nul ne peut pas devenir nul : il vaut au minimum 1 en valeur absolue.
+Tous les montants sont des **entiers**. La difficulté leur ajoute un bonus entier (§10) ; un montant nul reste nul, et un montant non nul vaut au moins 1 en valeur absolue. **Aucune pièce n'est gagnée par une action pendant laquelle le patient meurt.**
 
 | Événement | Pièces (acteur) | Réputation |
 |---|---|---|
@@ -212,7 +223,7 @@ Tous les montants sont des **entiers**. Après application des modificateurs de 
 | Traitement partiel | `pieces_partiel` (défaut 1) | 0 |
 | Échec du traitement | 0 | `reputation_echec` (défaut −1) |
 | Attente dépassée (par action) | — | `reputation_attente` (défaut −1) |
-| Mort du patient | — | `reputation_mort` (défaut −3) |
+| Mort du patient | 0 (aucune pièce pour l'action) | `reputation_mort` (défaut −3) |
 
 Chaque maladie peut surcharger ces valeurs (les maladies graves paient plus). Le résultat rappelle que l'acteur décide, hors appli, de ses gains ([règles de table §3](REGLES_DE_TABLE.md#3-pièces-réputation-et-points-de-victoire)) : ses pièces (les garder, les donner au budget de l'hôpital ou les verser à une construction ou à un réapprovisionnement) et la réputation gagnée (la garder pour son médecin ou la laisser à l'hôpital).
 
@@ -273,6 +284,7 @@ Notations : `n` maladies dans le paquet, `S` spécialités qui sont la spéciali
 Pour chaque maladie `m` du paquet, de spécialité `s` :
 
 1. **Bruit corrigé** : `w(m) ← −ln(1 − u^(n_s / n̄))`, où `u` est tiré uniformément dans `[0, 1[`. Pour `n_s = n̄`, c'est une loi exponentielle de paramètre 1. La correction donne au maximum des maladies de chaque spécialité la même loi que s'il y avait `n̄` maladies dans chacune. Sans indice, chaque spécialité a donc **la même chance** d'avoir la maladie en tête, quel que soit son nombre de maladies. Sans correction, une spécialité de 60 maladies face à deux de 25 et 15 serait en tête 60 % du temps ; avec la correction, chacune l'est un tiers du temps.
+   **Pondération par le poids** : `w(m) ← w(m) × (poids(m) / poids moyen)^ponderation_poids`. Les maladies fréquentes apparaissent un peu plus souvent dans les listes, qui reflètent ainsi légèrement la fréquence réelle des maladies.
 2. **Affinité de la vraie spécialité** : si `s` est la spécialité de la vraie maladie, `w(m) ← w(m) × (1 + affinite_specialite)`. Toutes les maladies de la vraie spécialité sont légèrement favorisées : c'est ce qui fait ressortir sa couleur.
 3. **Vraie maladie** : `w(m) ← w(m) × (1 + verite + par_niveau × N)`.
 4. **Spécialités de la combinaison**, si `s ∈ S(C)` :
@@ -295,6 +307,7 @@ Valeurs par défaut :
 | `exclusion` | 0,75 | Facteur des maladies d'une spécialité de la combinaison qui n'est pas la vraie |
 | `taille_liste` | 5 | Nombre de maladies affichées |
 | `score_bruit` | 50 | Indice d'une maladie au niveau du maximum attendu du bruit |
+| `ponderation_poids` | 0,25 | Exposant de la pondération du bruit par le poids de la maladie (0 : aucune) |
 
 ### 8.4 Comportement attendu
 
@@ -302,16 +315,16 @@ Sur le paquet de base (103 maladies sur 5 spécialités), pour une maladie de ca
 
 | Combinaison | N | Vraie maladie en tête | Vraie maladie dans la liste | 1ʳᵉ couleur juste | Couleur dominante juste | Indice de la tête : juste / fausse |
 |---|---|---:|---:|---:|---:|---:|
-| Aucune spécialité (Dr Moreau à la pharmacie) | 1 | 41 % | 58 % | 61 % | 56 % | 82 / 65 |
-| Aucune spécialité (Dr Moreau en radiologie) | 4 | 55 % | 70 % | 70 % | 61 % | 86 / 65 |
-| Spécialité concordante (Dr Benali en salle de cardiologie) | 1 | 46 % | 64 % | 79 % | 80 % | 86 / 69 |
-| Spécialité concordante (Dr Benali en radiologie, stéthoscope) | 4 | 60 % | 75 % | 84 % | 83 % | 89 / 70 |
-| Spécialité discordante (Dr Sauvage en salle de psychiatrie) | 1 | 42 % | 60 % | 64 % | 60 % | 81 / 64 |
+| Aucune spécialité (Dr Moreau à la pharmacie) | 1 | 40 % | 58 % | 61 % | 56 % | 82 / 65 |
+| Aucune spécialité (Dr Moreau en radiologie) | 4 | 55 % | 70 % | 70 % | 62 % | 86 / 65 |
+| Spécialité concordante (Dr Benali en salle de cardiologie) | 1 | 45 % | 64 % | 78 % | 81 % | 86 / 70 |
+| Spécialité concordante (Dr Benali en radiologie, stéthoscope) | 4 | 59 % | 75 % | 84 % | 83 % | 89 / 70 |
+| Spécialité discordante (Dr Sauvage en salle de psychiatrie) | 1 | 41 % | 60 % | 64 % | 61 % | 81 / 64 |
 
 - La **couleur dominante** est la couleur la plus présente dans la liste ; en cas d'égalité, la mieux classée.
 - **Bruit seul** (aucun bonus, catalogue de 100 maladies sur 3 spécialités) : les 5 lignes affichent en moyenne 57, 50, 46, 43 et 41. Un diagnostic flou ressemble à cela.
 - **L'indice informe** : quand la tête est juste, elle affiche en moyenne 81 à 89 ; quand elle est fausse, 64 à 70. Un joueur apprend vite qu'une tête à 95 est presque sûre et qu'une tête à 60 ne prouve rien.
-- **Les têtes très hautes sont rares, mais presque toujours justes.** À précision maximale sans spécialité (N = 4), 17 % des diagnostics ont une tête à 95 ou plus, fausse dans 0,07 % des cas seulement ; 25 % ont une tête à 90 ou plus, fausse dans 0,5 % des cas. Le passage de `precision_max` de 5 à 4 et de `par_niveau` de 1,5 à 0,8 a divisé par deux la part de ces quasi-certitudes (33 % des diagnostics à 95 ou plus auparavant) ; leur fiabilité, elle, ne change pas, car un indice aussi haut n'est presque jamais atteint par le bruit seul.
+- **Les têtes très hautes sont rares, mais presque toujours justes.** À précision maximale sans spécialité (N = 4), 18 % des diagnostics ont une tête à 95 ou plus, fausse dans 0,03 % des cas seulement ; 26 % ont une tête à 90 ou plus, fausse dans 0,6 % des cas. Le passage de `precision_max` de 5 à 4 et de `par_niveau` de 1,5 à 0,8 a divisé par deux la part de ces quasi-certitudes (33 % des diagnostics à 95 ou plus auparavant) ; leur fiabilité, elle, ne change pas, car un indice aussi haut n'est presque jamais atteint par le bruit seul.
 - **La bonne spécialité est récompensée** : avec elle, la couleur dominante est juste environ 8 fois sur 10, contre 6 sur 10 sans spécialité.
 - **La mauvaise spécialité n'est pas éliminée d'un coup** : ses maladies reculent, ce qui améliore un peu la lecture des autres couleurs, mais une seule exclusion ne prouve rien.
 
@@ -327,6 +340,8 @@ Chaque résultat de diagnostic n'apparaît que sur le téléphone du joueur qui 
 
 Les probabilités du diagnostic (§8.3) doivent être calculées et réglées — avec le simulateur, qui devra comporter une stratégie « sans partage » où chaque joueur ne voit que ses propres diagnostics — pour que si les joueurs ne mettent **rien en commun**, la défaite commune (réputation de l'hôpital sous le seuil de fermeture, §7.1) soit **quasi inévitable**.
 
+État mesuré au simulateur, à 3 joueurs ([plan de codage §5.4](PLAN_DE_CODAGE.md#54-premiers-constats-du-simulateur)) : pour des joueurs **vétérans**, qui connaissent les traitements, le partage ne change pas le taux de guérison ; pour des **novices**, il le fait passer de 28 à 34 % en Interne, sans empêcher l'hôpital de fermer. L'objectif n'est pas encore atteint.
+
 ## 9. Ordre de résolution d'une action
 
 Pour `diagnostiquer`, `traiter` et `analyser`, l'ordre par défaut est le suivant (il est écrit explicitement dans le JSON, voir [MOTEUR_EFFETS.md §6.1](MOTEUR_EFFETS.md#61-actions-du-paquet-de-base)) :
@@ -340,19 +355,36 @@ Pour `diagnostiquer`, `traiter` et `analyser`, l'ordre par défaut est le suivan
 
 ## 10. Difficulté
 
-Trois niveaux, choisis au lancement de la partie :
+Trois niveaux, choisis au lancement de la partie. Chacun ajoute un **bonus entier** à certains montants : il s'ajoute à leur valeur absolue, si bien que chaque niveau est un cran plus dur que le précédent sur **chaque** ligne.
 
 | Niveau | `pv_perdus` | `pieces` | `reputation` |
-|---|---|---|---|
-| Interne | ×1,0 | ×1,0 | ×1,0 |
-| Chirurgien | ×1,5 | ×1,2 | ×1,5 |
-| Réanimation | ×2,0 | ×1,5 | ×2,0 |
+|---|---:|---:|---:|
+| Interne | +0 | +0 | +0 |
+| Chirurgien | +1 | +1 | +1 |
+| Réanimation | +2 | +2 | +2 |
 
-- `pv_perdus` s'applique aux pertes de PV (aggravation, échec de traitement), pas aux gains.
-- `pieces` s'applique à tous les gains de pièces.
-- `reputation` s'applique aux impacts de réputation, positifs comme négatifs.
+- `pv_perdus` s'applique aux **pertes** de PV (aggravation, échec de traitement), pas aux gains.
+- `pieces` s'applique à tous les **gains** de pièces.
+- `reputation` s'applique aux **pertes** de réputation seulement : les gains ne changent pas d'un niveau à l'autre.
+- Un montant nul reste nul (un patient stable ne perd rien, quel que soit le niveau). Un montant non nul reste au moins égal à 1 en valeur absolue, même si un paquet utilise un bonus négatif pour un niveau plus facile.
 
-L'arrondi (§7) s'applique **après** le modificateur.
+**Valeurs effectives** du paquet de base :
+
+| Montant | Base | Interne | Chirurgien | Réanimation |
+|---|---:|---:|---:|---:|
+| Perte de PV : aggravation (selon la maladie et le palier) | 1 | 1 | 2 | 3 |
+| | 2 | 2 | 3 | 4 |
+| | 3 | 3 | 4 | 5 |
+| | 4 | 4 | 5 | 6 |
+| Perte de PV : échec du traitement (`pv_echec`) | 2 | 2 | 3 | 4 |
+| Pièces : diagnostic, traitement partiel | 1 | 1 | 2 | 3 |
+| Pièces : guérison (selon la maladie) | 3 | 3 | 4 | 5 |
+| | 4 | 4 | 5 | 6 |
+| | 5 | 5 | 6 | 7 |
+| Réputation : guérison | +2 | +2 | +2 | +2 |
+| Réputation : échec, attente dépassée | −1 | −1 | −2 | −3 |
+| Réputation : échec (maladies graves) | −2 | −2 | −3 | −4 |
+| Réputation : mort | −3 | −3 | −4 | −5 |
 
 ## 11. Contenu d'un résultat
 
@@ -387,7 +419,7 @@ Le moteur renvoie le résultat sous la forme d'un objet JSON, qui est aussi le c
 | `issue` | `en_jeu`, `gueri` ou `mort` | Issue pour le patient |
 | `diagnostic` | objet ou `null` | `niveau` (N) et `maladies` : liste de `{id, nom, indice, specialite}` triée par indice de suspicion décroissant, où `specialite` vaut `{id, nom, couleur, icone}`. La couleur et l'icône sont recopiées dans le résultat, pour qu'un client puisse afficher la liste sans connaître le paquet actif de l'hôte |
 | `maladie_revelee` | `{id, nom}` ou `null` | Maladie, si le patient est sorti |
-| `pieces` | entier | Pièces gagnées par l'acteur, après difficulté et arrondi |
+| `pieces` | entier | Pièces gagnées par l'acteur, bonus de difficulté compris (0 si le patient meurt) |
 | `reputation` | entier signé | Impact total sur la réputation (soin, échec, attente et mort cumulés) |
 
 ## 12. Recherche en laboratoire

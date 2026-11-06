@@ -82,6 +82,7 @@ class Diagnostic {
     required this.exclusion,
     required this.tailleListe,
     required this.scoreBruit,
+    required this.ponderationPoids,
   });
 
   factory Diagnostic.fromJson(Map<String, dynamic> json) =>
@@ -116,6 +117,11 @@ class Diagnostic {
   /// maximum attendu du bruit seul.
   @JsonKey(name: 'score_bruit')
   final int scoreBruit;
+
+  /// Exposant de la pondération du bruit par le poids de la maladie :
+  /// `× (poids / poids moyen)^ponderation_poids` (0 : sans pondération).
+  @JsonKey(name: 'ponderation_poids')
+  final double ponderationPoids;
 }
 
 @JsonSerializable()
@@ -190,10 +196,16 @@ class Modificateurs {
 
   Map<String, dynamic> toJson() => _$ModificateursToJson(this);
 
+  /// Bonus ajouté à chaque perte de PV non nulle.
   @JsonKey(name: 'pv_perdus')
-  final double pvPerdus;
-  final double pieces;
-  final double reputation;
+  final int pvPerdus;
+
+  /// Bonus ajouté à chaque gain de pièces non nul.
+  final int pieces;
+
+  /// Bonus ajouté à chaque perte de réputation non nulle (les gains ne sont
+  /// pas modifiés).
+  final int reputation;
 }
 
 @JsonSerializable()
@@ -243,6 +255,7 @@ class Carte {
     required this.type,
     required this.nom,
     this.nomPhrase,
+    this.lieuPhrase,
     this.specialite,
     this.capacites,
   });
@@ -255,10 +268,19 @@ class Carte {
   final String nom;
   @JsonKey(name: 'nom_phrase')
   final String? nomPhrase;
+
+  /// Pour une salle : le lieu avec sa préposition, tel qu'il s'insère dans
+  /// une phrase (« en réanimation », « au bloc opératoire »). Par défaut,
+  /// « dans » suivi de `nom_phrase`.
+  @JsonKey(name: 'lieu_phrase')
+  final String? lieuPhrase;
   final String? specialite;
   final Map<String, int>? capacites;
 
   String get nomAffiche => nomPhrase ?? nom;
+
+  /// Lieu d'une salle dans une phrase.
+  String get lieuAffiche => lieuPhrase ?? 'dans $nomAffiche';
 }
 
 @JsonSerializable()

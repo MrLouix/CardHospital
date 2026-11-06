@@ -103,10 +103,12 @@ Le réapprovisionnement se paie comme une construction (§5) : avec le budget de
 Un joueur peut **former son médecin** pour obtenir un diplôme. La formation est un **geste purement physique** : l'appli ne la suit pas, et on ne scanne aucune combinaison.
 
 - Le joueur qui choisit la formation comme action de son tour avance son pion d'**une case** sur la **piste de diplôme**, une tuile indépendante ;
-- après plusieurs tours de formation, le joueur obtient un **diplôme** ;
+- après plusieurs tours de formation, le joueur obtient un **diplôme**. L'obtention doit être **chronophage** : un premier diplôme est envisageable dans une partie, un second demande trop de temps pour valoir la peine (par exemple 4 cases pour le premier, 8 de plus pour le second ; à régler en partie) ;
 - pendant ce tour, il ne fait **rien d'autre** : ni diagnostic, ni traitement, ni recherche. Il peut seulement acheter un objet permanent, s'il le souhaite (§6.1).
 
-À créer : la piste de diplôme et le nombre de cases à parcourir pour un diplôme (§11).
+Un médecin polyvalent muni d'un diplôme remplace un spécialiste de cette spécialité : c'est voulu, pour qu'un joueur seul à détenir une spécialité ne fasse pas la loi. Les recettes qui exigent deux médecins d'une spécialité demandent toutefois deux vrais médecins : deux spécialistes, ou un spécialiste et un médecin muni du diplôme ([modèle de jeu §2.2](MODELE_DE_JEU.md#22-cartes)).
+
+À créer : la piste de diplôme et le nombre exact de cases à parcourir pour un diplôme (§11).
 
 ## 8. Partager l'information
 

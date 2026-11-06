@@ -78,25 +78,193 @@ void main() {
     expect(taux['couleur:60'], greaterThan(hasard + 0.3));
   });
 
-  test('plus de patients en jeu, horloge plus rapide : moins de guérisons', () {
-    double taux(int enJeu) =>
-        Simulateur(
-              jeu,
-              parametres: ParametresSimulation(
-                graine: 3,
-                parties: 100,
-                patientsEnJeu: enJeu,
+  test('plus de patients en jeu, horloge plus rapide : plus de morts', () {
+    double morts(int enJeu) {
+      final r = Simulateur(
+        jeu,
+        parametres: ParametresSimulation(
+          graine: 3,
+          parties: 200,
+          patientsEnJeu: enJeu,
+        ),
+      ).simuler([Strategie.depuis('hasard')], difficultes: ['reanimation']);
+      return r.resultats.single.tauxMort;
+    }
+
+    expect(morts(2), greaterThan(morts(1)));
+  });
+
+  group('plusieurs joueurs', () {
+    final rapport = Simulateur(
+      jeu,
+      parametres: const ParametresSimulation(
+        graine: 5,
+        parties: 60,
+        joueurs: 3,
+        partages: [true, false],
+      ),
+    ).simuler([Strategie.depuis('seuil:60')], difficultes: ['interne']);
+
+    test('un résultat par mode, comptes cohérents', () {
+      expect(rapport.resultats.map((r) => r.strategie), [
+        'seuil:60 · partage',
+        'seuil:60 · privé',
+      ]);
+      for (final r in rapport.resultats) {
+        expect(r.gueris + r.morts + r.abandons, r.patients);
+        expect(r.ecartsPieces, hasLength(60));
+        expect(r.toJson()['partage'], r.partage);
+      }
+    });
+
+    test('partager permet à un autre joueur de soigner ; en privé, seul '
+        'celui qui a diagnostiqué soigne', () {
+      final partage = rapport.resultats.first;
+      final prive = rapport.resultats.last;
+      expect(partage.guerisonsParAutrui, greaterThan(0));
+      expect(prive.guerisonsParAutrui, 0);
+    });
+
+    test('rapport Markdown : section « Joueurs »', () {
+      final md = rapport.enMarkdown();
+      expect(md, contains('## Joueurs'));
+      expect(md, contains('3 joueurs à tour de rôle'));
+      expect(md, contains('| privées |'));
+    });
+  });
+
+  group('stratégie novice', () {
+    final catalogue = CatalogueCombinaisons(jeu);
+    ResultatAction diagnostic(String id, String specialite, int indice) =>
+        ResultatAction(
+          numero: 2,
+          action: actionDiagnostiquer,
+          libelle: 'Diagnostiquer',
+          phrase: '',
+          cartes: const [],
+          patient: 'PAT-001',
+          patientNom: 'Mme Garnier',
+          pvAvant: 15,
+          pvApres: 15,
+          presence: 1,
+          attenteDepassee: false,
+          issue: IssuePatient.enJeu,
+          pieces: 1,
+          reputation: 0,
+          diagnostic: ResultatDiagnostic(
+            niveau: 4,
+            maladies: [
+              LigneDiagnostic(
+                id: id,
+                nom: id,
+                indice: indice,
+                specialite: SpecialiteAffichee.depuis(
+                  jeu.specialites.firstWhere((s) => s.id == specialite),
+                ),
               ),
-            )
-            .simuler([Strategie.depuis('seuil:60')], difficultes: ['interne'])
-            .resultats
-            .single
-            .tauxGuerison;
-    expect(taux(2), lessThan(taux(1)));
+              LigneDiagnostic(
+                id: 'angine_bacterienne',
+                nom: 'Angine bactérienne',
+                indice: 40,
+                specialite: SpecialiteAffichee.depuis(
+                  jeu.specialites.firstWhere((s) => s.id == 'generale'),
+                ),
+              ),
+            ],
+          ),
+        );
+    ResultatAction guerison(List<String> cartes, String maladie) =>
+        ResultatAction(
+          numero: 3,
+          action: actionTraiter,
+          libelle: 'Traiter',
+          phrase: '',
+          cartes: ['PAT-001', ...cartes],
+          patient: 'PAT-001',
+          patientNom: 'Mme Garnier',
+          pvAvant: 15,
+          pvApres: 15,
+          presence: 2,
+          attenteDepassee: false,
+          issue: IssuePatient.gueri,
+          pieces: 5,
+          reputation: 2,
+          maladieRevelee: MaladieRevelee(id: maladie, nom: maladie),
+        );
+    final net = diagnostic('fracture_ouverte', 'orthopedie', 95);
+
+    test('description et nom', () {
+      expect(Strategie.depuis('novice:70').nom, 'novice:70');
+      expect(() => Strategie.depuis('novice'), throwsFormatException);
+    });
+
+    test('carnet : une guérison révèle la recette, par maladie et par '
+        'spécialité ; le reste est ignoré', () {
+      final carnet = Carnet(catalogue);
+      final recette = ['MED-007', 'MED-008', 'SAL-006'];
+      carnet.noter(net);
+      expect(carnet.recettes, 0);
+      carnet.noter(guerison(recette, 'fracture_ouverte'));
+      final i = catalogue.indice(recette)!;
+      expect(carnet.recette('fracture_ouverte'), i);
+      expect(carnet.recettesDe('orthopedie'), [i]);
+      expect(carnet.recettesDe('psychiatrie'), isEmpty);
+    });
+
+    test('sans recette connue, il essaie la combinaison la plus assortie à '
+        'la couleur, deux fois, puis passe à autre chose', () {
+      final s = StrategieNovice(80, carnet: Carnet(catalogue))..debutPatient();
+      expect(s.pret([net], catalogue), isTrue);
+      final meilleur = catalogue
+          .thematiques('orthopedie')
+          .map((p) => p.$2)
+          .reduce((a, b) => a > b ? a : b);
+      final essais = <List<String>>[];
+      for (var k = 0; k < 2; k++) {
+        final choix = s.choisir([net], catalogue, Alea(k));
+        expect(choix.action, actionTraiter);
+        final orthopedie = choix.cartes
+            .where((id) => jeu.cartes[id]!.specialite == 'orthopedie')
+            .length;
+        expect(orthopedie, meilleur);
+        essais.add(choix.cartes);
+      }
+      expect(essais[0], isNot(essais[1]), reason: 'pas deux fois la même');
+      expect(s.pret([net], catalogue), isFalse);
+      expect(
+        s.choisir([net], catalogue, Alea(3)).action,
+        actionDiagnostiquer,
+        reason: 'fracture écartée, l\'angine est sous le seuil',
+      );
+    });
+
+    test('il essaie d\'abord la recette notée dans son carnet', () {
+      final carnet = Carnet(
+        catalogue,
+      )..noter(guerison(['MED-007', 'MED-008', 'SAL-006'], 'fracture_ouverte'));
+      final s = StrategieNovice(80).nouvelle(carnet: carnet)..debutPatient();
+      expect(
+        s.choisir([net], catalogue, Alea(1)).cartes,
+        containsAll(['MED-007', 'MED-008', 'SAL-006']),
+      );
+    });
+
+    test('le novice soigne moins que le vétéran', () {
+      final rapport =
+          Simulateur(
+            jeu,
+            parametres: const ParametresSimulation(graine: 3, parties: 100),
+          ).simuler(
+            [Strategie.depuis('seuil:70'), Strategie.depuis('novice:70')],
+            difficultes: ['interne'],
+          );
+      final taux = [for (final r in rapport.resultats) r.tauxGuerison];
+      expect(taux[1], lessThan(taux[0]));
+    });
   });
 
   test('stratégies : une instance neuve par patient', () {
-    for (final s in ['hasard', 'seuil:60', 'couleur:70']) {
+    for (final s in ['hasard', 'seuil:60', 'couleur:70', 'novice:70']) {
       final strategie = Strategie.depuis(s);
       final copie = strategie.nouvelle();
       expect(copie.nom, strategie.nom);
@@ -174,7 +342,7 @@ void main() {
 
     test('combinaisons hors patient, hors laboratoire, et traitements '
         'adaptés', () {
-      expect(catalogue.length, 200);
+      expect(catalogue.length, 720);
       for (final cartes in catalogue.cartes) {
         expect(cartes.any((id) => id.startsWith('PAT')), isFalse);
         expect(cartes, isNot(contains('SAL-011')));
@@ -182,10 +350,9 @@ void main() {
       final fracture = catalogue.adaptees('fracture_ouverte');
       expect(fracture, isNotEmpty);
       for (final i in fracture) {
-        expect(
-          catalogue.cartes[i],
-          containsAll(['MED-007', 'MED-008', 'SAL-006']),
-        );
+        final c = Combinaison(jeu, catalogue.cartes[i]);
+        expect(c.ids, contains('SAL-006'));
+        expect(c.medecins, hasLength(2), reason: 'deux vrais médecins');
       }
       expect(catalogue.adaptees('inconnue'), isEmpty);
     });

@@ -23,8 +23,13 @@ void main() {
     });
 
     test('S(C) : spécialités hors patient et hors valeurs réservées', () {
-      final comb = c(['MED-001', 'MED-005', 'PAT-001', 'SAL-006', 'OBJ-010']);
+      final comb = c(['MED-001', 'MED-005', 'PAT-001', 'SAL-008', 'OBJ-010']);
       expect(comb.specialites, {'psychiatrie', 'orthopedie', 'generale'});
+      expect(
+        c(['MED-001', 'PAT-001', 'SAL-006']).specialites,
+        isEmpty,
+        reason: 'le bloc opératoire est polyvalent',
+      );
       expect(
         c(['MED-001', 'PAT-001', 'SAL-003']).specialites,
         isEmpty,
@@ -250,6 +255,18 @@ void main() {
             .satisfait(fracture.traitement.partiel!),
         isTrue,
       );
+      expect(
+        c(['MED-007', 'PAT-001', 'SAL-006', 'DIP-004'])
+            .satisfait(fracture.traitement.adapte),
+        isFalse,
+        reason: 'un seul vrai médecin',
+      );
+      expect(
+        c(['MED-007', 'MED-001', 'PAT-001', 'SAL-006', 'DIP-004'])
+            .satisfait(fracture.traitement.adapte),
+        isTrue,
+        reason: 'un orthopédiste et un médecin diplômé d\'orthopédie',
+      );
     });
   });
 
@@ -319,6 +336,22 @@ void main() {
         c(['MED-008', 'PAT-002', 'MED-007', 'SAL-006']).phrase(modele),
         'Examen de M. Dupont par le Dr Vasseur et le Dr Cassagne dans le bloc '
         'opératoire.',
+      );
+    });
+
+    test('lieu : préposition propre à la salle, « dans » par défaut', () {
+      const lieu = 'Examen de {patient} {lieu}.';
+      expect(
+        c(['PAT-001', 'SAL-003']).phrase(lieu),
+        'Examen de Mme Garnier en radiologie.',
+      );
+      expect(
+        c(['PAT-001', 'SAL-007']).phrase(lieu),
+        'Examen de Mme Garnier à la pharmacie.',
+      );
+      expect(
+        c(['PAT-001', 'SAL-001']).phrase(lieu),
+        'Examen de Mme Garnier dans la salle de consultation.',
       );
     });
 

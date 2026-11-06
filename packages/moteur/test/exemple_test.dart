@@ -13,7 +13,7 @@ void main() {
     final jeu = Jeu.fromJson(brut);
     expect(jeu.format, 'cardhospital');
     expect(jeu.schemaVersion, 1);
-    expect(jeu.cartes.length, 18);
+    expect(jeu.cartes.length, 21);
     expect(jeu.maladies.length, 6);
     expect(jeu.motifs.keys, containsAll(['admission', 'standard']));
     expect(
@@ -103,9 +103,9 @@ void main() {
   test('combinaisons de traitement énumérées sans doublon de carte, '
       'laboratoire exclu', () {
     final combinaisons = Validateur.combinaisonsPossibles(Jeu.fromJson(brut));
-    // 5 salles hors laboratoire. 1 médecin : 5 × 5 × (1 + 5 accessoires) ;
-    // 2 médecins : 10 paires × 5.
-    expect(combinaisons, hasLength(5 * 5 * 6 + 10 * 5));
+    // 6 salles hors laboratoire, 7 accessoires. 1 médecin : 5 × 6 × (1 + 7) ;
+    // 2 médecins : 10 paires × 6 × (1 + 7).
+    expect(combinaisons, hasLength(5 * 6 * 8 + 10 * 6 * 8));
     for (final c in combinaisons) {
       expect(c.ids.toSet(), hasLength(c.ids.length));
       expect(c.ids, isNot(contains('SAL-011')));
@@ -180,6 +180,60 @@ void main() {
     );
   });
 
+  test('catalogue imprimé : une carte modifiée ou inconnue est refusée', () {
+    final base = Jeu.fromJson(
+      jsonDecode(File('../../contenu/paquet_base.json').readAsStringSync())
+          as Map<String, dynamic>,
+    );
+    final ok = Validateur().validerJson(brut, catalogue: base.cartes);
+    expect(ok.erreurs, isEmpty, reason: 'l\'exemple reprend les cartes');
+    final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
+    final cartes = copie['cartes'] as Map;
+    cartes['MED-001']['specialite'] = 'cardiologie';
+    cartes['OBJ-001']['capacites'] = {'precision': 2};
+    final rapport = Validateur().validerJson(copie, catalogue: base.cartes);
+    expect(
+      rapport.erreurs,
+      containsAll([
+        startsWith('cartes.MED-001 : spécialité différent(s)'),
+        startsWith('cartes.OBJ-001 : capacités différent(s)'),
+      ]),
+    );
+    final inconnue = Validateur().validerJson(
+      brut,
+      catalogue: {...base.cartes}..remove('PAT-002'),
+    );
+    expect(
+      inconnue.erreurs,
+      contains('cartes.PAT-002 : carte absente du catalogue embarqué'),
+    );
+  });
+
+  test('couleurs : contraste et daltonisme contrôlés', () {
+    final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
+    final specialites = copie['specialites'] as List;
+    // Ancienne palette : bleu et violet se confondent en deutéranopie, et le
+    // gris est trop sombre.
+    (specialites[0] as Map)['couleur'] = '#1565C0';
+    (specialites[1] as Map)['couleur'] = '#7B4FBF';
+    (specialites[2] as Map)['couleur'] = '#37474F';
+    final rapport = Validateur().validerJson(copie, jeu: Jeu.fromJson(copie));
+    expect(rapport.valide, isTrue, reason: 'ce ne sont que des avertissements');
+    expect(
+      rapport.avertissements,
+      containsAll([
+        startsWith(
+          'specialites[2].couleur : contraste de 1.94:1 sur fond '
+          'sombre',
+        ),
+        startsWith(
+          'specialites[1].couleur : trop proche de « generale » en '
+          'deutéranopie',
+        ),
+      ]),
+    );
+  });
+
   test('« generaliste » est accepté, avec un avertissement', () {
     final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
     (copie['cartes'] as Map)['MED-001']['specialite'] = 'generaliste';
@@ -216,7 +270,7 @@ void main() {
     final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
     ((copie['maladies'] as List)[0]['traitement'] as Map)['adapte'] = {
       'compte': {'type': 'medecin', 'specialite': 'orthopedie'},
-      'min': 3,
+      'min': 4,
     };
     final rapport = Validateur().validerJson(copie, jeu: Jeu.fromJson(copie));
     expect(rapport.erreurs, contains(contains('Fracture ouverte')));
@@ -231,6 +285,12 @@ void main() {
     final relu = jsonDecode(une) as Map<String, dynamic>;
     expect(relu['maladies'][0]['traitement']['adapte'], {
       'tous': [
+        {
+          'compte': {
+            'type': ['medecin'],
+          },
+          'min': 2,
+        },
         {
           'compte': {
             'type': ['medecin'],
@@ -324,9 +384,9 @@ void main() {
     expect(
       {for (final s in jeu.specialites) s.id: (s.couleur, s.icone)},
       {
-        'generale': ('#1565C0', '🩺'),
-        'psychiatrie': ('#7B4FBF', '🧠'),
-        'orthopedie': ('#EF6C00', '🦴'),
+        'generale': ('#4150D9', '🩺'),
+        'psychiatrie': ('#A659B2', '🧠'),
+        'orthopedie': ('#E66E17', '🦴'),
       },
     );
     expect(jeu.parametres.diagnostic.tailleListe, 5);

@@ -82,6 +82,7 @@ Diagnostic _$DiagnosticFromJson(Map<String, dynamic> json) => Diagnostic(
   exclusion: (json['exclusion'] as num).toDouble(),
   tailleListe: (json['taille_liste'] as num).toInt(),
   scoreBruit: (json['score_bruit'] as num).toInt(),
+  ponderationPoids: (json['ponderation_poids'] as num).toDouble(),
 );
 
 Map<String, dynamic> _$DiagnosticToJson(Diagnostic instance) =>
@@ -94,6 +95,7 @@ Map<String, dynamic> _$DiagnosticToJson(Diagnostic instance) =>
       'exclusion': instance.exclusion,
       'taille_liste': instance.tailleListe,
       'score_bruit': instance.scoreBruit,
+      'ponderation_poids': instance.ponderationPoids,
     };
 
 Recompenses _$RecompensesFromJson(Map<String, dynamic> json) => Recompenses(
@@ -138,9 +140,9 @@ Map<String, dynamic> _$DifficulteToJson(Difficulte instance) =>
 
 Modificateurs _$ModificateursFromJson(Map<String, dynamic> json) =>
     Modificateurs(
-      pvPerdus: (json['pv_perdus'] as num).toDouble(),
-      pieces: (json['pieces'] as num).toDouble(),
-      reputation: (json['reputation'] as num).toDouble(),
+      pvPerdus: (json['pv_perdus'] as num).toInt(),
+      pieces: (json['pieces'] as num).toInt(),
+      reputation: (json['reputation'] as num).toInt(),
     );
 
 Map<String, dynamic> _$ModificateursToJson(Modificateurs instance) =>
@@ -181,6 +183,7 @@ Carte _$CarteFromJson(Map<String, dynamic> json) => Carte(
   type: $enumDecode(_$TypeCarteEnumMap, json['type']),
   nom: json['nom'] as String,
   nomPhrase: json['nom_phrase'] as String?,
+  lieuPhrase: json['lieu_phrase'] as String?,
   specialite: json['specialite'] as String?,
   capacites: (json['capacites'] as Map<String, dynamic>?)?.map(
     (k, e) => MapEntry(k, (e as num).toInt()),
@@ -191,6 +194,7 @@ Map<String, dynamic> _$CarteToJson(Carte instance) => <String, dynamic>{
   'type': _$TypeCarteEnumMap[instance.type]!,
   'nom': instance.nom,
   'nom_phrase': instance.nomPhrase,
+  'lieu_phrase': instance.lieuPhrase,
   'specialite': instance.specialite,
   'capacites': instance.capacites,
 };
