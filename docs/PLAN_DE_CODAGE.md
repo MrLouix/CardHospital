@@ -117,7 +117,7 @@ Depuis `packages/moteur` :
 
 ```bash
 dart test
-dart run bin/simuler.dart --parties 2000 --strategies hasard,seuil:70,couleur:70
+dart run bin/simuler.dart --parties 2000 --strategies hasard,seuil:70,couleur:70 --en-jeu 3
 dart run bin/simuler.dart --aide   # ou --help, -h
 ```
 
@@ -129,6 +129,8 @@ Stratégies disponibles :
 | `seuil:X` | Diagnostiquer sans spécialité, à la meilleure précision, jusqu'à ce que la maladie en tête de liste, non encore essayée, atteigne l'indice de suspicion X ; puis la traiter |
 | `couleur:X` | Comme `seuil:X`, mais après un premier diagnostic sans spécialité, diagnostiquer avec la spécialité de la couleur dominante de la dernière liste (la couleur qui a le plus de lignes), pour la confirmer ou l'écarter |
 
+Le simulateur joue des parties sur une horloge commune : jusqu'à `--en-jeu` patients (3 par défaut) sont en jeu à la fois et pris en charge à tour de rôle ; dès qu'un patient sort, un autre est admis. Chaque patient a sa propre instance de la stratégie. Les cartes des patients morts sont réutilisées : la défausse n'est pas simulée.
+
 Les stratégies voient ce que voit un joueur (résultats des actions, spécialités des cartes). Elles sont aussi supposées connaître les traitements des maladies : c'est une **hypothèse optimiste**, car le livret ne les donne pas ([règles de table §9](REGLES_DE_TABLE.md#9-traitements-secrets)). Elles jouent donc comme des joueurs vétérans, et leurs taux de guérison sont des plafonds.
 
 ### 5.4 Premiers constats du simulateur
@@ -137,14 +139,15 @@ Les stratégies voient ce que voit un joueur (résultats des actions, spécialit
 
 **Sur le paquet d'exemple** (6 maladies, 2 par spécialité), le [rapport](simulations/rapport_exemple.md) n'est **pas représentatif** :
 
-- les stratégies informées (`seuil:X`, `couleur:X`) guérissent 98 % des patients en Interne et 86 à 90 % en Réanimation, en 1,2 à 1,5 diagnostic. Les paramètres par défaut sont calés pour une centaine de maladies : avec 6, la vraie maladie ressort presque toujours en tête, et le diagnostic est trop facile ;
+- les stratégies informées (`seuil:X`, `couleur:X`) guérissent 99 % des patients en Interne et 95 à 97 % en Réanimation, en 1,2 à 1,5 diagnostic (2 patients en jeu à la fois : l'exemple n'a que 2 cartes patient). Les paramètres par défaut sont calés pour une centaine de maladies : avec 6, la vraie maladie ressort presque toujours en tête, et le diagnostic est trop facile ;
 - `couleur:X` ne fait pas mieux que `seuil:X`, car un seul diagnostic suffit le plus souvent.
 
-**Sur le paquet de base** (103 maladies sur 5 spécialités, [rapport](simulations/rapport_paquet_base.md)) :
+**Sur le paquet de base** (103 maladies sur 5 spécialités, 3 patients en jeu à la fois, [rapport](simulations/rapport_paquet_base.md)) :
 
-- les stratégies informées guérissent 90 à 93 % des patients en Interne, 73 à 78 % en Chirurgien et 69 à 75 % en Réanimation, avec 1,3 à 2,4 diagnostics par patient ; le hasard n'en guérit que 3 à 5 % ;
-- suivre la couleur est récompensé sans être infaillible : `couleur:80` guérit 93 % des patients en Interne, contre 89 % pour `seuil:80` ;
-- Chirurgien et Réanimation donnent des taux de guérison proches.
+- les stratégies informées guérissent 93 à 97 % des patients en Interne, 84 à 90 % en Chirurgien et 81 à 89 % en Réanimation, avec 1,5 à 2,5 diagnostics par patient ; le hasard n'en guérit que 4 à 6 % ;
+- suivre la couleur est récompensé sans être infaillible : `couleur:80` guérit 97 % des patients en Interne, contre 95 % pour `seuil:80` ;
+- Chirurgien et Réanimation donnent des taux de guérison proches ;
+- les patients sont pris en charge à tour de rôle et les stratégies connaissent les traitements : ces taux sont des plafonds.
 
 **À faire** : `precision_max` (4) et `par_niveau` (0,8) sont réglés ; restent `verite`, `affinite_specialite`, `bonus_specialite` et `exclusion` sur ce paquet. Le comportement du diagnostic y est mesuré dans [MODELE_DE_JEU.md §8.4](MODELE_DE_JEU.md#84-comportement-attendu). La valeur de départ et le seuil de fermeture de la réputation ne sont à fixer qu'après ce réglage.
 
@@ -163,7 +166,7 @@ Décisions de la [revue de cohérence](REVUE_COHERENCE.md) (R1 à R7, E2) qui de
 
 | Sujet | Travail | Prérequis |
 |---|---|---|
-| Aggravation selon l'attente entre deux prises en charge (R2) | Moteur : compter les actions faites sur les autres patients, nouvelle aggravation plafonnée ([MODELE_DE_JEU.md §5.1](MODELE_DE_JEU.md#51-évolution-décidée--aggravation-selon-lattente-entre-deux-prises-en-charge)) ; simulateur : plusieurs patients en jeu en même temps, plusieurs joueurs | Préciser la règle (§5.1) |
+| Horloge commune et paliers d'aggravation (R2) | **Fait** : un tick par diagnostic, traitement ou analyse, aggravation selon la durée de présence par paliers communs, sans rattrapage, attente en ticks ([MODELE_DE_JEU.md §5](MODELE_DE_JEU.md#5-horloge-et-aggravation)) ; le simulateur fait jouer plusieurs patients à la fois (`--en-jeu`, 3 par défaut). Reste : simuler plusieurs joueurs | — |
 | Traitements secrets (E2) | Simulateur : stratégie « novice » qui apprend les traitements par essais et au laboratoire | — |
 | Réglages de table (R1, R2, R3) | Simulateur : réputation de départ, seuil de fermeture, nombre N de patients en jeu et niveau cible de victoire, par difficulté | Simulateur multi-patients |
 | Formation (R1, R4) | Contenu : salle de formation, objets de formation, piste de diplôme ; décider si l'appli valide la combinaison | [Règles de table §11](REGLES_DE_TABLE.md#11-points-à-préciser) |

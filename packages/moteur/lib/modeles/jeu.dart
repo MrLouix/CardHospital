@@ -47,6 +47,7 @@ class Jeu {
 class Parametres {
   Parametres({
     required this.attenteMaxDefaut,
+    required this.paliersAggravation,
     required this.diagnostic,
     required this.recompenses,
   });
@@ -56,8 +57,15 @@ class Parametres {
 
   Map<String, dynamic> toJson() => _$ParametresToJson(this);
 
+  /// Attente maximale par défaut, en ticks de présence.
   @JsonKey(name: 'attente_max_defaut')
   final int attenteMaxDefaut;
+
+  /// Durées de présence, en ticks, à partir desquelles commence chaque
+  /// palier d'aggravation (strictement croissantes). Avant la première, le
+  /// patient est stable (MODELE_DE_JEU.md §5).
+  @JsonKey(name: 'paliers_aggravation')
+  final List<int> paliersAggravation;
   final Diagnostic diagnostic;
   final Recompenses recompenses;
 }

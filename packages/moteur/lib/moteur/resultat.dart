@@ -31,7 +31,7 @@ class ResultatAction {
     required this.patientNom,
     required this.pvAvant,
     required this.pvApres,
-    required this.temps,
+    required this.presence,
     required this.attenteDepassee,
     required this.issue,
     required this.pieces,
@@ -50,7 +50,7 @@ class ResultatAction {
     patientNom: json['patient_nom'] as String?,
     pvAvant: json['pv_avant'] as int?,
     pvApres: json['pv_apres'] as int?,
-    temps: json['temps'] as int?,
+    presence: json['presence'] as int?,
     attenteDepassee: json['attente_depassee'] as bool,
     issue: json['issue'] == null
         ? null
@@ -92,10 +92,10 @@ class ResultatAction {
   /// PV après l'action (PV initiaux pour une admission).
   final int? pvApres;
 
-  /// Temps du patient après l'action.
-  final int? temps;
+  /// Durée de présence du patient à l'hôpital après l'action, en ticks.
+  final int? presence;
 
-  /// Le temps du patient dépasse-t-il son attente maximale ?
+  /// La durée de présence dépasse-t-elle l'attente maximale de la maladie ?
   final bool attenteDepassee;
 
   /// Issue pour le patient : en jeu, guéri ou mort.
@@ -127,7 +127,7 @@ class ResultatAction {
     'patient_nom': patientNom,
     'pv_avant': pvAvant,
     'pv_apres': pvApres,
-    'temps': temps,
+    'presence': presence,
     'attente_depassee': attenteDepassee,
     'issue': issue == null ? null : nomIssue(issue!),
     'diagnostic': diagnostic?.toJson(),

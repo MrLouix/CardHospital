@@ -35,7 +35,7 @@ class EtatPatient {
     required this.statut,
     required this.maladie,
     required this.pv,
-    required this.temps,
+    required this.admission,
     this.issue,
   });
 
@@ -43,7 +43,7 @@ class EtatPatient {
     statut: _decoder(_statuts, json['statut']),
     maladie: json['maladie'] as String,
     pv: json['pv'] as int,
-    temps: json['temps'] as int,
+    admission: json['admission'] as int,
     issue: json['issue'] == null
         ? null
         : issueDepuisNom(json['issue'] as String),
@@ -54,7 +54,13 @@ class EtatPatient {
   /// Identifiant de la maladie (information cachée).
   String maladie;
   int pv;
-  int temps;
+
+  /// Tick de l'horloge de l'hôpital auquel le patient a été admis.
+  int admission;
+
+  /// Durée de présence du patient à l'hôpital, en ticks, quand l'horloge
+  /// marque [ticks].
+  int presence(int ticks) => ticks - admission;
 
   /// Issue de la sortie (`gueri` ou `mort`), quand le patient est sorti.
   IssuePatient? issue;
@@ -65,7 +71,7 @@ class EtatPatient {
     statut: statut,
     maladie: maladie,
     pv: pv,
-    temps: temps,
+    admission: admission,
     issue: issue,
   );
 
@@ -73,7 +79,7 @@ class EtatPatient {
     'statut': _statuts[statut],
     'maladie': maladie,
     'pv': pv,
-    'temps': temps,
+    'admission': admission,
     if (issue != null) 'issue': nomIssue(issue!),
   };
 }
@@ -137,6 +143,7 @@ class EtatPartie {
     required this.paquet,
     required this.difficulte,
     this.actions = 0,
+    this.ticks = 0,
     Map<String, EtatPatient>? patients,
   }) : patients = patients ?? {};
 
@@ -149,6 +156,7 @@ class EtatPartie {
       paquet: IdentitePaquet.fromJson(json['paquet'] as Map<String, dynamic>),
       difficulte: json['difficulte'] as String,
       actions: json['actions'] as int,
+      ticks: json['ticks'] as int,
       patients: (json['patients'] as Map<String, dynamic>).map(
         (id, p) =>
             MapEntry(id, EtatPatient.fromJson(p as Map<String, dynamic>)),
@@ -157,7 +165,7 @@ class EtatPartie {
   }
 
   /// Version du format de l'état sérialisé.
-  static const formatEtat = 1;
+  static const formatEtat = 2;
 
   final IdentitePaquet paquet;
 
@@ -167,6 +175,11 @@ class EtatPartie {
   /// Nombre d'actions confirmées depuis le début de la partie ; sert aussi
   /// de numéro au résultat suivant.
   int actions;
+
+  /// Horloge de l'hôpital : nombre de diagnostics, traitements et analyses
+  /// confirmés depuis le début de la partie, tous patients confondus
+  /// (MODELE_DE_JEU.md §5).
+  int ticks;
 
   /// État des patients déjà admis au moins une fois, par identifiant de
   /// carte.
@@ -180,6 +193,7 @@ class EtatPartie {
     paquet: paquet,
     difficulte: difficulte,
     actions: actions,
+    ticks: ticks,
     patients: patients.map((id, p) => MapEntry(id, p.copie())),
   );
 
@@ -188,6 +202,7 @@ class EtatPartie {
     'paquet': paquet.toJson(),
     'difficulte': difficulte,
     'actions': actions,
+    'ticks': ticks,
     'patients': patients.map((id, p) => MapEntry(id, p.toJson())),
   };
 }

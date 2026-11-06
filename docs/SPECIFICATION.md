@@ -3,7 +3,7 @@
 | Document | Contenu |
 |---|---|
 | **SPECIFICATION.md** (ce document) | Application : architecture, réseau, parcours d'une action, écrans, page admin, exigences |
-| [MODELE_DE_JEU.md](MODELE_DE_JEU.md) | Règles calculées : patients, maladies, diagnostic, traitement, temps, récompenses |
+| [MODELE_DE_JEU.md](MODELE_DE_JEU.md) | Règles calculées : patients, maladies, diagnostic, traitement, horloge et aggravation, récompenses |
 | [MOTEUR_EFFETS.md](MOTEUR_EFFETS.md) | Format des paquets (`.zip` + `jeu.json`), mini-langage d'effets, validation |
 | [schema/jeu.schema.json](schema/jeu.schema.json) | JSON Schema du fichier `jeu.json` |
 | [FEUILLE_DE_ROUTE.md](FEUILLE_DE_ROUTE.md) | Phases de développement, risques en premier |
@@ -86,7 +86,7 @@ Serveur HTTP embarqué (Dart, `shelf`) sur le réseau local et **WebSocket** pou
 - **Service de premier plan** (*foreground service*, avec notification permanente « Partie CardHospital en cours ») : il porte le serveur et l'état, et survit à un appel entrant ou à un changement d'application.
 - **Verrou de veille partiel** pendant une partie : l'écran peut s'éteindre sans couper le serveur.
 - **Sauvegarde automatique** de l'état après chaque action confirmée. L'écriture est atomique (fichier temporaire puis renommage).
-- **Format de la sauvegarde** (code : `packages/moteur/lib/moteur/etat.dart` et `partie.dart`) : `{ "format_sauvegarde": 1, "etat": …, "historique": [ { "avant": …, "resultat": … } ] }`. L'état contient `format_etat` (1), l'identité du `paquet` (`id`, `version`, `empreinte` SHA-256 du `jeu.json`), la `difficulte`, le nombre d'`actions` confirmées et les `patients` déjà admis, par identifiant de carte : `statut` (`en_jeu` ou `sorti`), `maladie`, `pv`, `temps` et, pour un patient sorti, `issue` (`gueri` ou `mort`). Un patient jamais admis n'y figure pas. L'historique garde les 5 dernières actions annulables, chacune avec l'instantané pris avant elle. L'état du générateur aléatoire n'est pas sauvegardé : une partie reprise continue avec un hasard neuf.
+- **Format de la sauvegarde** (code : `packages/moteur/lib/moteur/etat.dart` et `partie.dart`) : `{ "format_sauvegarde": 1, "etat": …, "historique": [ { "avant": …, "resultat": … } ] }`. L'état contient `format_etat` (2), l'identité du `paquet` (`id`, `version`, `empreinte` SHA-256 du `jeu.json`), la `difficulte`, le nombre d'`actions` confirmées, l'horloge de l'hôpital (`ticks`) et les `patients` déjà admis, par identifiant de carte : `statut` (`en_jeu` ou `sorti`), `maladie`, `pv`, `admission` (tick d'admission) et, pour un patient sorti, `issue` (`gueri` ou `mort`). Un patient jamais admis n'y figure pas. L'historique garde les 5 dernières actions annulables, chacune avec l'instantané pris avant elle. L'état du générateur aléatoire n'est pas sauvegardé : une partie reprise continue avec un hasard neuf.
 - **Reprise** : au redémarrage de l'appli hôte, si une partie est en cours, l'appli propose de la reprendre. Le jeton est conservé : les clients se reconnectent seuls si l'adresse IP n'a pas changé, et sinon ils doivent rescanner le QR de connexion.
 - **Reconnexion des clients** : automatique, avec des délais croissants (1, 2, 4, 8 s, puis toutes les 10 s), et un bandeau « Connexion à l'hôte perdue… » tant qu'elle n'est pas rétablie.
 
@@ -133,7 +133,7 @@ L'aperçu ne révèle **aucune information cachée** (maladie, PV).
 
 ### 5.4 Règle de dédoublonnage
 
-**Chaque scan compte.** Deux téléphones qui scannent les mêmes cartes obtiennent chacun un aperçu, et chaque confirmation applique son action : le temps du patient avance deux fois. Il n'y a pas de dédoublonnage automatique.
+**Chaque scan compte.** Deux téléphones qui scannent les mêmes cartes obtiennent chacun un aperçu, et chaque confirmation applique son action : l'horloge de l'hôpital avance de deux ticks. Il n'y a pas de dédoublonnage automatique.
 
 ### 5.5 Confirmation et revalidation
 
@@ -142,8 +142,8 @@ L'aperçu ne révèle **aucune information cachée** (maladie, PV).
 ### 5.6 Écran de résultat
 
 - Visible **uniquement** sur le téléphone de l'acteur. Il n'existe ni bouton « révéler », ni envoi aux autres téléphones.
-- Contenu : PV avant → après, temps du patient et éventuelle attente dépassée, diagnostic (liste des 5 maladies les plus suspectes, chacune avec son indice de suspicion, la couleur et l'icône de sa spécialité), issue (en jeu, guéri ou mort, avec la maladie révélée à la sortie), pièces gagnées, impact sur la réputation. Pour une **analyse** (laboratoire de recherche) s'ajoutent : la liste des maladies suspectées du patient, la maladie choisie, et les passages restants ou la recette révélée. Le détail figure dans [MODELE_DE_JEU.md §11](MODELE_DE_JEU.md#11-contenu-dun-résultat).
-- Deux rappels : « Pièces : à garder, à donner à l'hôpital ou à verser à une construction ou à un réapprovisionnement » et, si l'impact n'est pas nul, « Réputation : +4 à garder pour votre médecin ou à laisser à l'hôpital » pour un gain, « Réputation : reportez −2 sur la piste de l'hôpital » pour une perte ([règles de table §3](REGLES_DE_TABLE.md#3-pièces-réputation-et-points-de-victoire)).
+- Contenu : PV avant → après, durée de présence du patient et éventuelle attente dépassée, diagnostic (liste des 5 maladies les plus suspectes, chacune avec son indice de suspicion, la couleur et l'icône de sa spécialité), issue (en jeu, guéri ou mort, avec la maladie révélée à la sortie), pièces gagnées, impact sur la réputation. Pour une **analyse** (laboratoire de recherche) s'ajoutent : la liste des maladies suspectées du patient, la maladie choisie, et les passages restants ou la recette révélée. Le détail figure dans [MODELE_DE_JEU.md §11](MODELE_DE_JEU.md#11-contenu-dun-résultat).
+- Deux rappels : « Pièces : à garder, à donner à l'hôpital ou à verser à une construction ou à un réapprovisionnement » et, si l'impact n'est pas nul, « Réputation : +4 à garder pour votre médecin ou à laisser à l'hôpital » pour un gain, « Réputation : −2 à reporter sur la piste de l'hôpital ou à prendre pour vous » pour une perte ([règles de table §3](REGLES_DE_TABLE.md#3-pièces-réputation-et-points-de-victoire)).
 - À la mort d'un patient, un rappel : « Défaussez la carte de Mme Garnier ».
 - Un bouton **« OK / Fin de l'action »** ramène à l'écran de sélection.
 
@@ -192,7 +192,7 @@ En jeu normal, la page admin ne sert **qu'au démarrage** et pour **connecter de
 ### 7.3 Debug (repliée)
 
 - **Informations cachées masquées par défaut** : l'hôte est un joueur. L'affichage de la maladie des patients demande une confirmation explicite (« Vous allez voir les maladies des patients ») et se remasque en quittant la page.
-- État des patients : en jeu ou sorti, PV, temps (et maladie si elle est démasquée).
+- Horloge de l'hôpital ; état des patients : en jeu ou sorti, PV, durée de présence (et maladie si elle est démasquée).
 - **5 dernières actions** : résumé de chaque résultat.
 - **Annuler la dernière action** : annulation strictement dans l'ordre inverse (LIFO), jusqu'à 5 actions, par restauration de l'instantané pris avant chacune. Annuler une action plus ancienne sans annuler les suivantes n'est pas possible, car cela casserait la cohérence de l'état. L'appli affiche alors les pièces et la réputation de l'action annulée, que les joueurs doivent **reporter en sens inverse** à la main. L'annulation est réservée aux **erreurs de scan** : ce n'est pas une action de jeu ([règles de table §10](REGLES_DE_TABLE.md#10-annulation)). Il n'est donc pas prévu de rejouer le même tirage après une annulation.
 - Sauvegarder ou charger une partie dans un emplacement nommé (en plus de la sauvegarde automatique).
@@ -259,7 +259,7 @@ Permissions Android : `CAMERA`, `INTERNET`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK
 | D10 | Un patient entre en jeu quand sa carte est scannée seule pour la première fois | [Modèle §4.1](MODELE_DE_JEU.md#41-admission) |
 | D11 | Diagnostic probabiliste, tiré à nouveau à chaque fois, pouvant être faux : liste des 5 maladies les plus suspectes, indices de suspicion indépendants (pas des probabilités), couleur et icône par spécialité, bruit corrigé selon le nombre de maladies par spécialité ; une spécialité concordante renforce sa couleur, une discordante la fait reculer ; seule une tête à 95 ou plus est presque toujours juste | [Modèle §8](MODELE_DE_JEU.md#8-diagnostic-probabiliste) |
 | D12 | Traitements définis par maladie dans le JSON (carte précise, nombre de médecins par spécialité, salle) | [Modèle §6](MODELE_DE_JEU.md#6-traitement) |
-| D13 | Temps propre à chaque patient, avancé par chaque action confirmée sur lui | [Modèle §5](MODELE_DE_JEU.md#5-temps-et-aggravation) |
+| D13 | Horloge commune : un tick par diagnostic, traitement ou analyse confirmé ; aggravation selon la durée de présence du patient, par paliers communs, appliquée à chaque action sur lui, sans rattrapage ; attente maximale en ticks | [Modèle §5](MODELE_DE_JEU.md#5-horloge-et-aggravation) |
 | D14 | Pièces et réputation gagnées par l'acteur, partagées hors appli entre lui et l'hôpital ; objets permanents payés par les joueurs, salles et consommables par l'hôpital | [Règles de table §3 à §6](REGLES_DE_TABLE.md) |
 | D15 | Bouton « Valider la sélection » | §5.2 |
 | D16 | Combinaison standard : médecin + patient + salle + (accessoire ou second médecin) | [Modèle §3](MODELE_DE_JEU.md#3-combinaisons) |
@@ -270,7 +270,7 @@ Permissions Android : `CAMERA`, `INTERNET`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK
 | D21 | La page admin sert au démarrage et à la connexion ; le reste est du debug | §7 |
 | D22 | Réputation tenue à la main ; sous un seuil, l'hôpital ferme et tous les joueurs perdent (règle de table, l'appli ne tient pas le total) | [Modèle §7.1](MODELE_DE_JEU.md#71-réputation-et-fermeture-de-lhôpital) |
 | D26 | L'appli n'est pas intrusive : elle gère les maladies et les résultats ; tours, économie, formation et victoire se jouent à la table | [Règles de table](REGLES_DE_TABLE.md) |
-| D27 | Victoire individuelle : un médecin atteint un niveau cible de points de victoire (réputation personnelle + 1 point par lot de 3 pièces) | [Règles de table §3](REGLES_DE_TABLE.md#3-pièces-réputation-et-points-de-victoire) |
+| D27 | Victoire individuelle : un médecin atteint un niveau cible de points de victoire (réputation personnelle + 1 point par lot de 3 pièces). Le joueur qui agit répartit tous les jetons, pertes de réputation comprises : il peut prendre un −1 pour lui | [Règles de table §3](REGLES_DE_TABLE.md#3-pièces-réputation-et-points-de-victoire) |
 | D28 | Patients guéris remis dans la pioche, patients morts défaussés | [Modèle §4.2](MODELE_DE_JEU.md#42-sortie) |
 | D29 | Traitements secrets : le livret ne donne pas la correspondance maladie – traitement | [Règles de table §9](REGLES_DE_TABLE.md#9-traitements-secrets) |
 | D30 | Pas de bluff : on peut garder un résultat pour soi, pas mentir | [Règles de table §8](REGLES_DE_TABLE.md#8-partager-linformation) |

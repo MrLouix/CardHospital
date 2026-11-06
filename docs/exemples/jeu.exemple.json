@@ -4,10 +4,16 @@
   "schema_version": 1,
   "id": "base_exemple",
   "nom": "CardHospital — exemple réduit",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Sous-ensemble du paquet de base (contenu/paquet_base.json) : mêmes cartes, mêmes maladies et mêmes règles, réduits à 3 spécialités, 18 cartes et 6 maladies. Sert d'exemple dans la documentation et de jeu d'essai aux tests du moteur.",
   "parametres": {
-    "attente_max_defaut": 5,
+    "attente_max_defaut": 15,
+    "paliers_aggravation": [
+      5,
+      11,
+      17,
+      23
+    ],
     "diagnostic": {
       "precision_max": 4,
       "verite": 3.0,
@@ -267,7 +273,7 @@
           ]
         }
       },
-      "attente_max": 4,
+      "attente_max": 12,
       "recompenses": {
         "pieces_traitement": 4
       }
@@ -313,7 +319,7 @@
           ]
         }
       },
-      "attente_max": 5
+      "attente_max": 15
     },
     {
       "id": "angine_bacterienne",
@@ -344,7 +350,7 @@
           ]
         }
       },
-      "attente_max": 6
+      "attente_max": 18
     },
     {
       "id": "maux_de_tete",
@@ -374,7 +380,7 @@
           ]
         }
       },
-      "attente_max": 6
+      "attente_max": 18
     },
     {
       "id": "phobie_des_blouses_blanches",
@@ -451,7 +457,7 @@
           "min": 1
         }
       },
-      "attente_max": 3,
+      "attente_max": 9,
       "recompenses": {
         "reputation_echec": -2
       }

@@ -78,6 +78,32 @@ void main() {
     expect(taux['couleur:60'], greaterThan(hasard + 0.3));
   });
 
+  test('plus de patients en jeu, horloge plus rapide : moins de guérisons', () {
+    double taux(int enJeu) =>
+        Simulateur(
+              jeu,
+              parametres: ParametresSimulation(
+                graine: 3,
+                parties: 100,
+                patientsEnJeu: enJeu,
+              ),
+            )
+            .simuler([Strategie.depuis('seuil:60')], difficultes: ['interne'])
+            .resultats
+            .single
+            .tauxGuerison;
+    expect(taux(2), lessThan(taux(1)));
+  });
+
+  test('stratégies : une instance neuve par patient', () {
+    for (final s in ['hasard', 'seuil:60', 'couleur:70']) {
+      final strategie = Strategie.depuis(s);
+      final copie = strategie.nouvelle();
+      expect(copie.nom, strategie.nom);
+      expect(identical(copie, strategie), isFalse);
+    }
+  });
+
   test('abandon au-delà du nombre maximal d\'actions', () {
     // Aucune aggravation et un échec de traitement sans perte : le hasard
     // ne tue jamais, il finit par abandonner ou par soigner.
@@ -199,7 +225,7 @@ void main() {
           patientNom: 'Mme Garnier',
           pvAvant: 10,
           pvApres: 9,
-          temps: 1,
+          presence: 1,
           attenteDepassee: false,
           issue: IssuePatient.enJeu,
           pieces: 1,

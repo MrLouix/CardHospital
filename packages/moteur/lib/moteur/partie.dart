@@ -356,7 +356,7 @@ class _Execution {
       patientNom: patientId == null ? null : jeu.cartes[patientId]!.nom,
       pvAvant: pvAvant,
       pvApres: etatPatient?.pv,
-      temps: etatPatient?.temps,
+      presence: etatPatient?.presence(etat.ticks),
       attenteDepassee: attenteDepassee,
       issue: issue,
       diagnostic: diagnostic,
@@ -380,7 +380,7 @@ class _Execution {
       case 'admettre':
         _admettre();
       case 'avancer_temps':
-        patient?.temps++;
+        partie._etat.ticks++;
       case 'diagnostiquer':
         final m = maladie;
         if (m != null) {
@@ -390,8 +390,7 @@ class _Execution {
         final p = patient;
         final m = maladie;
         if (p != null && m != null) {
-          final i = (p.temps - 1).clamp(0, m.aggravation.length - 1);
-          _perdrePv(p, m.aggravation[i]);
+          _perdrePv(p, perteAggravation(m, _presence(p), jeu.parametres));
         }
       case 'soigner':
         if (patient != null) gueri = true;
@@ -431,7 +430,7 @@ class _Execution {
       statut: StatutPatient.enJeu,
       maladie: m.id,
       pv: m.pvInitial,
-      temps: 0,
+      admission: partie._etat.ticks,
     );
   }
 
@@ -439,8 +438,10 @@ class _Execution {
     p.pv = math.max(0, p.pv - moduler(base, mod.pvPerdus));
   }
 
+  int _presence(EtatPatient p) => p.presence(partie._etat.ticks);
+
   bool _attenteDepassee(EtatPatient p, Maladie m) =>
-      p.temps > (m.attenteMax ?? jeu.parametres.attenteMaxDefaut);
+      _presence(p) > (m.attenteMax ?? jeu.parametres.attenteMaxDefaut);
 
   /// Évalue une condition (MOTEUR_EFFETS.md §6) sur l'état courant.
   ///
@@ -507,6 +508,21 @@ class _Execution {
         jeu.parametres.recompenses.toJson()[cle] as int? ??
         (throw StateError('récompense inconnue « $cle »'));
   }
+}
+
+/// Palier d'aggravation atteint après [presence] ticks de présence : nombre
+/// de seuils de [paliers] atteints (0 : patient stable).
+int palierAggravation(int presence, List<int> paliers) =>
+    paliers.where((seuil) => presence >= seuil).length;
+
+/// Perte de PV d'aggravation (avant difficulté) de la maladie [m] après
+/// [presence] ticks : 0 tant que le patient est stable, puis la valeur de
+/// `aggravation` du palier atteint (le premier élément pour le premier
+/// palier, la dernière valeur se répétant).
+int perteAggravation(Maladie m, int presence, Parametres parametres) {
+  final palier = palierAggravation(presence, parametres.paliersAggravation);
+  if (palier == 0) return 0;
+  return m.aggravation[(palier - 1).clamp(0, m.aggravation.length - 1)];
 }
 
 /// Applique un modificateur de difficulté à un montant entier, puis arrondit

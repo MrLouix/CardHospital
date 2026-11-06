@@ -104,6 +104,10 @@ abstract class Strategie {
   /// Appelé à chaque nouveau patient admis.
   void debutPatient() {}
 
+  /// Nouvelle instance de la même stratégie, sans mémoire : le simulateur
+  /// en crée une par patient, plusieurs patients étant en jeu à la fois.
+  Strategie nouvelle();
+
   /// Choisit la prochaine action sur le patient, au vu de l'[historique]
   /// de ses résultats depuis l'admission (exclue).
   Choix choisir(
@@ -142,6 +146,9 @@ class StrategieHasard extends Strategie {
   String get nom => 'hasard';
 
   @override
+  Strategie nouvelle() => StrategieHasard();
+
+  @override
   Choix choisir(
     List<ResultatAction> historique,
     CatalogueCombinaisons catalogue,
@@ -167,6 +174,9 @@ class StrategieSeuil extends Strategie {
 
   @override
   void debutPatient() => _essayees.clear();
+
+  @override
+  Strategie nouvelle() => StrategieSeuil(seuil);
 
   /// Spécialités de la combinaison du prochain diagnostic.
   Set<String> specialitesDiagnostic(List<ResultatAction> historique) =>
@@ -207,6 +217,9 @@ class StrategieSeuil extends Strategie {
 /// la confirmer ou l'écarter.
 class StrategieCouleur extends StrategieSeuil {
   StrategieCouleur(super.seuil);
+
+  @override
+  Strategie nouvelle() => StrategieCouleur(seuil);
 
   @override
   String get nom => 'couleur:$seuil';

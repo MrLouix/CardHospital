@@ -40,8 +40,9 @@ Choix retenus :
 
 Décisions sur les règles manquantes (R1 à R7) et les traitements (E2) :
 
+- **R3 (jetons)** : le joueur qui agit répartit tous les jetons, pertes de réputation comprises ; il peut prendre un −1 pour lui afin d'éviter la fermeture. Une action à deux joueurs (bloc opératoire) se partage entre eux.
 - **R1, R3, R4, R5, R7** : rédigées dans un nouveau document, les [règles de table](REGLES_DE_TABLE.md) — mise en place, tour, partage des gains, points de victoire, constructions, objets permanents et consommables, formation, absence de bluff, annulation réservée aux erreurs de scan. L'appli n'est pas intrusive : elle gère les maladies et les résultats, rien de plus. Les patients morts sont défaussés.
-- **R2** : l'aggravation dépendra du nombre d'actions faites sur d'autres patients depuis la dernière prise en charge, avec un plafond. La règle est décrite comme décidée mais non codée ([modèle de jeu §5.1](MODELE_DE_JEU.md#51-évolution-décidée--aggravation-selon-lattente-entre-deux-prises-en-charge)) : sa forme exacte reste à préciser.
+- **R2** : le temps devient une **horloge commune** ([modèle de jeu §5](MODELE_DE_JEU.md#5-horloge-et-aggravation)). Chaque diagnostic, traitement ou analyse confirmé est un tick, quel que soit le patient ; l'hôte note le tick d'admission de chaque patient. L'aggravation dépend de la durée de présence, par paliers communs (stable de 0 à 4 ticks, puis paliers à 5, 11, 17 et 23 ticks), avec une perte propre à chaque maladie (sa liste `aggravation`). Elle est appliquée à chaque action sur le patient (diagnostic, analyse, échec de traitement), sans rattrapage ; ni la guérison ni le traitement partiel n'aggravent. L'attente maximale passe en ticks de présence : les valeurs du paquet de base sont multipliées par 3 (3 patients en jeu font avancer l'horloge environ 3 fois plus vite qu'un patient seul). Le simulateur fait jouer plusieurs patients à la fois. Au tour de jeu, le joueur admet un patient s'il y en a moins de N en jeu (règles de table §2).
 - **R6** : réanalyse possible, recette privée comme un diagnostic, compteur de passages commun à toute la partie ([modèle de jeu §12.3](MODELE_DE_JEU.md#123-déroulement-dun-passage)).
 - **E2** : les traitements sont secrets. Les stratégies du simulateur, qui les connaissent, jouent comme des vétérans : leurs taux de guérison sont des plafonds.
 - Les points encore ouverts sont listés dans les [règles de table §11](REGLES_DE_TABLE.md#11-points-à-préciser).
@@ -82,7 +83,7 @@ Décisions sur les règles manquantes (R1 à R7) et les traitements (E2) :
 | [D11](#d11) | Message d'erreur « 4 cartes total maximum. » | Mineur | Corrigé |
 | [D12](#d12) | Aucune carte laboratoire dans le paquet de base, et les 10 salles sont déjà prises | Mineur | Corrigé |
 | [R1](#r1) | Mise en place incomplète | Important | Décidé : règles de table §1 ; formation à créer |
-| [R2](#r2) | Tour de jeu non défini : un patient laissé de côté ne s'aggrave jamais | Important | Décidé : à préciser puis coder (modèle de jeu §5.1) |
+| [R2](#r2) | Tour de jeu non défini : un patient laissé de côté ne s'aggrave jamais | Important | Corrigé : horloge commune et paliers (modèle de jeu §5) |
 | [R3](#r3) | Victoire individuelle et fin de partie non définies | Important | Décidé : règles de table §3 et §4 |
 | [R4](#r4) | Économie non définie : prix, propriété des cartes, cartes des autres joueurs | Important | Décidé : règles de table §2, §5 et §6 |
 | [R5](#r5) | Partage des diagnostics : a-t-on le droit de mentir ? | Mineur | Corrigé : règles de table §8 |

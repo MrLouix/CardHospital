@@ -1,6 +1,6 @@
 # CardHospital — Modèle de jeu
 
-Ce document décrit les **règles calculées par l'application** : entités, cycle de vie d'un patient, diagnostic, traitement, temps, récompenses. Il est indépendant de la technique (voir [SPECIFICATION.md](SPECIFICATION.md)) et du format de fichier (voir [MOTEUR_EFFETS.md](MOTEUR_EFFETS.md)). Les termes sont définis dans le [glossaire](GLOSSAIRE.md).
+Ce document décrit les **règles calculées par l'application** : entités, cycle de vie d'un patient, diagnostic, traitement, horloge et aggravation, récompenses. Il est indépendant de la technique (voir [SPECIFICATION.md](SPECIFICATION.md)) et du format de fichier (voir [MOTEUR_EFFETS.md](MOTEUR_EFFETS.md)). Les termes sont définis dans le [glossaire](GLOSSAIRE.md).
 
 Toutes les valeurs numériques citées ici sont des **valeurs par défaut du paquet de base** : elles sont paramétrables dans le JSON.
 
@@ -8,7 +8,7 @@ Toutes les valeurs numériques citées ici sont des **valeurs par défaut du paq
 
 | Géré par l'appli (hôte) | Géré par les joueurs, hors appli |
 |---|---|
-| Maladie cachée de chaque patient, PV, temps du patient, maladies suspectées et passages restants des analyses (§12) | **Tour de jeu : les joueurs jouent à tour de rôle**, même si plusieurs smartphones sont disponibles dans la partie. L'appli n'impose aucun ordre de jeu et ne bloque pas deux actions simultanées : c'est aux joueurs de jouer chacun leur tour |
+| Maladie cachée de chaque patient, PV, horloge de l'hôpital et tick d'admission de chaque patient (§5), maladies suspectées et passages restants des analyses (§12) | **Tour de jeu : les joueurs jouent à tour de rôle**, même si plusieurs smartphones sont disponibles dans la partie. L'appli n'impose aucun ordre de jeu et ne bloque pas deux actions simultanées : c'est aux joueurs de jouer chacun leur tour |
 | Diagnostic probabiliste, issue des traitements (guérison, traitement partiel, échec) | Points de victoire, conditions de victoire et de défaite (dont la **fermeture de l'hôpital**, §7.1) |
 | Calcul des pièces gagnées et de l'impact sur la réputation, **par action** | Cumul des pièces, de la réputation de l'hôpital et de la réputation personnelle de chaque médecin |
 | | Partage des gains (pièces et réputation) entre le joueur et l'hôpital, achats, constructions, réapprovisionnements, formation |
@@ -73,8 +73,8 @@ Chaque maladie définit :
 |---|---|---|
 | `specialite` | Spécialité de la maladie (jamais `polyvalent` ni `recherche`) | `orthopedie` |
 | `pv_initial` | PV à l'admission (entier > 0) | `10` |
-| `aggravation` | PV perdus après un diagnostic, une analyse ou un échec de traitement, selon le temps du patient (la dernière valeur se répète) | `[1, 2, 2, 3]` |
-| `attente_max` | Attente maximale : à partir de l'action suivante, chaque action coûte de la réputation (§5). Par défaut, `parametres.attente_max_defaut` | `4` |
+| `aggravation` | PV perdus à chaque diagnostic, analyse ou échec de traitement, selon le palier de présence du patient (§5.2) : 1ʳᵉ valeur au palier 1, la dernière se répète | `[1, 2, 2, 3]` |
+| `attente_max` | Attente maximale, en ticks de présence : au-delà, chaque action sur le patient coûte de la réputation (§5.3). Par défaut, `parametres.attente_max_defaut` | `12` |
 | `poids` | Probabilité relative d'être tirée à l'admission : entier **≥ 1** (défaut 1). Une maladie présente dans le paquet doit pouvoir sortir ; pour l'écarter, on la retire du paquet | `1` |
 | `traitement.adapte` | Prédicat sur la combinaison : traitement qui **guérit** | voir §6 |
 | `traitement.partiel` | Prédicat facultatif : traitement qui **stabilise** (gain de PV, sans guérison ni aggravation) | voir §6 |
@@ -119,7 +119,7 @@ Hors laboratoire, une combinaison standard permet deux actions ; au laboratoire,
 Un patient entre en jeu quand un joueur pioche sa carte, **hors jeu**, la **scanne seule**, puis confirme l'action « Admettre ».
 
 1. L'hôte tire une maladie au hasard parmi celles du paquet actif, pondérée par `poids`. Le tirage est **indépendant de la carte**.
-2. `PV ← maladie.pv_initial`, `temps ← 0`.
+2. `PV ← maladie.pv_initial` ; l'hôte note le tick d'admission (l'horloge, elle, n'avance pas).
 3. Le résultat affiche : « Admission de M. Dupont — 10 PV ». La maladie n'est **pas** affichée.
 
 Scanner seul un patient déjà en jeu ne déclenche rien (« M. Dupont est déjà en jeu »). L'appli ne révèle aucune autre information.
@@ -133,30 +133,45 @@ Un patient guéri ou mort passe à l'état **sorti** : sa maladie est révélée
 
 Les messages évitent tout accord, qui deviendrait fautif selon la personne : style nominal (« Admission de… », « Guérison de… », « Décès de… ») et « n'est pas en jeu » plutôt que « n'est pas admis », qui deviendrait fautif pour Mme Garnier.
 
-## 5. Temps et aggravation
+## 5. Horloge et aggravation
 
-Le temps est **propre à chaque patient** et n'avance que lorsqu'on agit sur lui :
+### 5.1 Horloge de l'hôpital
 
-- chaque action **confirmée** de diagnostic, de traitement ou d'analyse sur un patient incrémente son temps de 1 ;
-- les sélections annulées, refusées ou non confirmées ne comptent pas ;
-- un patient jamais sollicité ne s'aggrave jamais.
+L'hôte tient une **horloge commune** à toute la partie, comptée en **ticks** :
 
-**Aggravation** : après un diagnostic, une analyse ou un échec de traitement, le patient perd `aggravation[temps]` PV (le premier élément correspond à `temps = 1`, la dernière valeur de la liste se répétant ensuite), avec le modificateur de difficulté `pv_perdus`. **Ni la guérison ni le traitement partiel n'aggravent le patient.**
+- chaque action **confirmée** de diagnostic, de traitement ou d'analyse fait avancer l'horloge d'**un tick**, quel que soit le patient ;
+- l'admission ne fait pas avancer l'horloge ; les sélections annulées, refusées ou non confirmées non plus ;
+- l'hôte note le **tick d'admission** de chaque patient. Sa **durée de présence** est le nombre de ticks écoulés depuis : tick courant − tick d'admission.
 
-**Attente dépassée** : le temps avance avant le test. À partir de la (`attente_max` + 1)ᵉ action sur ce patient, chaque action, **même celle qui le guérit**, coûte `reputation_attente` en réputation (défaut : −1), avec le modificateur de difficulté `reputation`. Exemple : avec une attente maximale de 5, les 5 premières actions sont gratuites, la 6ᵉ est la première pénalisée. L'attente maximale dépend de la maladie et reste donc cachée ; le résultat signale le dépassement.
+Un patient vieillit donc avec l'hôpital, même quand personne ne s'occupe de lui.
 
-**Mort** : si les PV tombent à 0 ou moins à la fin d'une action, le patient meurt (`PV` affichés = 0). Un traitement adapté l'emporte toujours : un patient guéri ne subit pas d'aggravation lors de cette action.
+### 5.2 Paliers d'aggravation
 
-### 5.1 Évolution décidée : aggravation selon l'attente entre deux prises en charge
+L'aggravation dépend de la **durée de présence**, par **paliers communs à toutes les maladies** (`parametres.paliers_aggravation`, défaut `[5, 11, 17, 23]`) :
 
-> **État** : décidée (revue de cohérence, R2), **non implémentée**. Le moteur applique encore la règle ci-dessus.
+| Durée de présence | Palier | Perte de PV par action sur le patient |
+|---|---|---|
+| 0 à 4 ticks | stable | aucune |
+| 5 à 10 ticks | 1 (aggravation légère) | 1ʳᵉ valeur de `aggravation` |
+| 11 à 16 ticks | 2 | 2ᵉ valeur |
+| 17 à 22 ticks | 3 | 3ᵉ valeur |
+| 23 ticks et plus | 4 | 4ᵉ valeur |
 
-L'aggravation dépendra du **nombre d'actions faites sur d'autres patients depuis la dernière prise en charge** du patient (diagnostic ou traitement). L'hôte connaît ce nombre sans rien demander aux joueurs :
+La **perte est propre à chaque maladie** : c'est sa liste `aggravation`, dont la dernière valeur se répète pour les paliers suivants. Avec `[1, 2, 2, 3]`, une fracture ouverte perd 1 PV par action au palier 1, 2 aux paliers 2 et 3, 3 ensuite. Le modificateur de difficulté `pv_perdus` s'applique.
 
-- deux actions de suite sur le même patient : **pas d'aggravation** entre les deux ;
-- plus il a attendu, plus il s'aggrave, avec une **limite haute** : par exemple, après 5 actions sur d'autres patients, l'aggravation est maximale.
+**Quand** : la perte du palier atteint est appliquée **à chaque action sur ce patient** — diagnostic, analyse ou échec de traitement —, et seulement à ce moment-là. **Ni la guérison ni le traitement partiel n'aggravent le patient.**
 
-Restent à préciser avant de coder : la forme de l'aggravation propre à chaque maladie, ce qui compte comme action (admission, analyse, formation), le moment où elle s'applique (avant ou après l'effet de l'action, et si une guérison l'annule), et ce que devient l'attente maximale. Le simulateur devra alors jouer plusieurs patients en même temps.
+**Pas de rattrapage** : un patient délaissé ne perd rien tant qu'on n'agit pas sur lui. Quand on le reprend en charge, il ne subit que la perte de son palier, une seule fois, et non la somme des ticks manqués. C'est un écart volontaire à la réalité : il évite que l'appli intervienne dans le déroulé du jeu. La pression vient de la montée des paliers et de l'attente maximale.
+
+Exemple : un patient admis au tick 3, diagnostiqué au tick 6 (présence 3) ne perd rien ; laissé de côté jusqu'au tick 12, il ne perd rien entre-temps ; un traitement raté au tick 12 (présence 9) lui coûte la perte de l'échec plus la 1ʳᵉ valeur de son aggravation.
+
+### 5.3 Attente dépassée
+
+L'attente maximale `attente_max` d'une maladie se compte aussi en **ticks de présence** (défaut : `parametres.attente_max_defaut`, 15 ticks). Quand la durée de présence la dépasse, chaque action sur ce patient, **même celle qui le guérit**, coûte `reputation_attente` en réputation (défaut : −1), avec le modificateur de difficulté `reputation`. Exemple : avec une attente maximale de 12, la première action pénalisée est celle qui a lieu au 13ᵉ tick de présence ou plus tard. L'attente maximale dépend de la maladie et reste donc cachée ; le résultat signale le dépassement.
+
+### 5.4 Mort
+
+Si les PV tombent à 0 ou moins à la fin d'une action, le patient meurt (`PV` affichés = 0). Un traitement adapté l'emporte toujours : un patient guéri ne subit pas d'aggravation lors de cette action.
 
 ## 6. Traitement
 
@@ -222,7 +237,7 @@ Un diagnostic produit une **liste des 5 maladies les plus suspectes**. Chaque ma
 - un **indice de suspicion**, de 0 à 99, affiché sans signe « % » ;
 - la **couleur et l'icône de sa spécialité** ([MOTEUR_EFFETS.md §2.3](MOTEUR_EFFETS.md#23-spécialités)).
 
-La liste est **tirée à nouveau à chaque diagnostic** : deux diagnostics successifs donnent en général des listes différentes. Elle **peut être fausse** : la maladie en tête n'est pas toujours la bonne, et la bonne peut ne pas figurer dans la liste. Les diagnostics répétés orientent les joueurs, mais chacun fait avancer le temps du patient.
+La liste est **tirée à nouveau à chaque diagnostic** : deux diagnostics successifs donnent en général des listes différentes. Elle **peut être fausse** : la maladie en tête n'est pas toujours la bonne, et la bonne peut ne pas figurer dans la liste. Les diagnostics répétés orientent les joueurs, mais chacun fait avancer l'horloge de l'hôpital.
 
 Exemple, alors que la maladie est une fracture fermée :
 
@@ -316,10 +331,10 @@ Les probabilités du diagnostic (§8.3) doivent être calculées et réglées �
 
 Pour `diagnostiquer`, `traiter` et `analyser`, l'ordre par défaut est le suivant (il est écrit explicitement dans le JSON, voir [MOTEUR_EFFETS.md §6.1](MOTEUR_EFFETS.md#61-actions-du-paquet-de-base)) :
 
-1. `temps ← temps + 1` ;
+1. l'horloge avance d'un tick ;
 2. effet propre à l'action (diagnostic, analyse, ou issue du traitement avec ses PV, pièces et réputation) ;
-3. si le patient n'est ni guéri ni stabilisé par un traitement partiel : aggravation ;
-4. si `temps > attente_max` : pénalité d'attente ;
+3. si le patient n'est ni guéri ni stabilisé par un traitement partiel : perte du palier de présence atteint (§5.2) ;
+4. si la durée de présence dépasse `attente_max` : pénalité d'attente ;
 5. si `PV ≤ 0` et que le patient n'est pas guéri : mort et pénalité de mort ;
 6. si le patient est sorti : révélation de la maladie.
 
@@ -344,7 +359,7 @@ L'arrondi (§7) s'applique **après** le modificateur.
 | Élément | Admission | Diagnostic | Traitement | Analyse (§12) |
 |---|---|---|---|---|
 | PV avant → après (delta) | PV initiaux | oui | oui | oui |
-| Temps du patient / attente dépassée | — | oui | oui | oui |
+| Durée de présence / attente dépassée | — | oui | oui | oui |
 | Liste des 5 maladies (indice de suspicion, couleur, icône) | — | oui | — | — |
 | Liste des maladies suspectées | — | — | — | oui (proposées) |
 | Maladie choisie pour l'analyse | — | — | — | oui |
@@ -367,8 +382,8 @@ Le moteur renvoie le résultat sous la forme d'un objet JSON, qui est aussi le c
 | `patient`, `patient_nom` | texte | Carte patient et son nom affiché |
 | `pv_avant` | entier ou `null` | PV avant l'action ; `null` pour une admission |
 | `pv_apres` | entier | PV après l'action (PV initiaux pour une admission) |
-| `temps` | entier | Temps du patient après l'action |
-| `attente_depassee` | booléen | `temps > attente_max` |
+| `presence` | entier | Durée de présence du patient après l'action, en ticks (0 pour une admission) |
+| `attente_depassee` | booléen | `presence > attente_max` |
 | `issue` | `en_jeu`, `gueri` ou `mort` | Issue pour le patient |
 | `diagnostic` | objet ou `null` | `niveau` (N) et `maladies` : liste de `{id, nom, indice, specialite}` triée par indice de suspicion décroissant, où `specialite` vaut `{id, nom, couleur, icone}`. La couleur et l'icône sont recopiées dans le résultat, pour qu'un client puisse afficher la liste sans connaître le paquet actif de l'hôte |
 | `maladie_revelee` | `{id, nom}` ou `null` | Maladie, si le patient est sorti |
@@ -383,7 +398,7 @@ Une salle de spécialité `recherche` — le **laboratoire** — permet d'analys
 
 ### 12.2 Maladies suspectées
 
-L'hôte mémorise, pour chaque patient en jeu, l'ensemble des maladies qui ont figuré dans les listes affichées lors de ses diagnostics précédents (§8) : ce sont ses **maladies suspectées**. La liste est remise à zéro à chaque admission (le patient revient avec une nouvelle maladie). Chaque diagnostic affichant 5 maladies, un patient diagnostiqué au moins une fois a toujours des maladies suspectées. Si le patient n'a encore jamais été diagnostiqué, l'action `analyser` n'est pas proposée : la sélection est refusée (« Aucune piste — faire d'abord un diagnostic »), sans rien coûter ni faire avancer le temps.
+L'hôte mémorise, pour chaque patient en jeu, l'ensemble des maladies qui ont figuré dans les listes affichées lors de ses diagnostics précédents (§8) : ce sont ses **maladies suspectées**. La liste est remise à zéro à chaque admission (le patient revient avec une nouvelle maladie). Chaque diagnostic affichant 5 maladies, un patient diagnostiqué au moins une fois a toujours des maladies suspectées. Si le patient n'a encore jamais été diagnostiqué, l'action `analyser` n'est pas proposée : la sélection est refusée (« Aucune piste — faire d'abord un diagnostic »), sans rien coûter ni faire avancer l'horloge.
 
 ### 12.3 Déroulement d'un passage
 
@@ -401,7 +416,7 @@ Chaque maladie peut définir `recherche.passages` dans le JSON (entier ≥ 1, d�
 
 ### 12.5 Coût d'un passage
 
-Un passage en laboratoire est une action sur le patient comme les autres : il avance son temps de 1, subit l'aggravation (action non curative) et éventuellement la pénalité d'attente dépassée. Il ne rapporte **aucune pièce**. Analyser plusieurs fois fait donc courir le risque de perdre le patient.
+Un passage en laboratoire est une action sur le patient comme les autres : il fait avancer l'horloge d'un tick, fait subir au patient la perte de son palier de présence et éventuellement la pénalité d'attente dépassée. Il ne rapporte **aucune pièce**. Analyser plusieurs fois fait donc courir le risque de perdre le patient.
 
 ### 12.6 Capacité `recherche`
 

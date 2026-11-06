@@ -27,16 +27,21 @@ Les **salles sont communes** : tous les joueurs les utilisent. Une salle n'est j
 
 ## 3. Pièces, réputation et points de victoire
 
-### 3.1 Partage des gains
+### 3.1 Partage des jetons
 
-Après chaque action, l'appli affiche les pièces gagnées par l'acteur et l'impact sur la réputation. L'acteur décide, hors appli :
+Après chaque action, l'appli affiche les pièces gagnées et l'impact sur la réputation. On les matérialise par des **jetons** : pièces, **+1 réputation**, **−1 réputation**.
 
-- de ses **pièces** : les garder (réserve personnelle), les donner au **budget de l'hôpital**, ou les verser directement à une construction de salle (§5) ou à un réapprovisionnement de consommables (§6.2) ;
-- de la **réputation gagnée** : la garder pour son médecin (**réputation personnelle**) ou la laisser à l'hôpital (piste de réputation de l'hôpital).
+**Seul le joueur qui a joué l'action** prend les jetons : il en est seul responsable. Il répartit **chaque jeton**, gain ou perte :
+
+- **pièces** : les garder (réserve personnelle), les donner au **budget de l'hôpital**, ou les verser directement à une construction de salle (§5) ou à un réapprovisionnement de consommables (§6.2) ;
+- **+1 réputation** : le garder pour son médecin (**réputation personnelle**) ou le laisser à l'hôpital (piste de réputation de l'hôpital) ;
+- **−1 réputation** : le reporter sur la piste de l'hôpital, ou **le prendre pour lui**, sur sa réputation personnelle. Il perd alors un point de victoire, mais la réputation de l'hôpital ne baisse pas : c'est ainsi qu'un joueur peut éviter la fermeture quand l'hôpital approche du seuil.
+
+**Action à deux joueurs** : quand une combinaison réunit les médecins de deux joueurs (par exemple les deux orthopédistes exigés au bloc opératoire), les deux joueurs sont responsables de l'action et se répartissent ses jetons.
 
 ### 3.2 Points de victoire et victoire
 
-- Chaque point de réputation personnelle rapporte **1 point de victoire**.
+- Chaque point de réputation personnelle rapporte **1 point de victoire** ; chaque −1 pris pour soi en retire un.
 - Chaque lot de **3 pièces** gagnées rapporte **1 point de victoire**.
 - Un joueur **gagne** quand son médecin atteint le **niveau cible** (à fixer au simulateur).
 
@@ -108,7 +113,7 @@ L'annulation de la dernière action, dans la page admin de l'hôte, est réserv�
 |---|---|---|
 | 1 | Nombre de joueurs autorisé (la mise en place parle de « 2 ou 3 joueurs, sinon médecin seul ») | — |
 | 2 | Points de victoire des pièces : pièces gagnées au total, ou pièces encore en réserve ? Les pièces données à l'hôpital ou dépensées comptent-elles ? | — |
-| 3 | Pertes de réputation (échec, attente, mort) : toujours pour l'hôpital ? | Oui : seuls les gains se partagent |
+| 3 | Action à deux joueurs : compte-t-elle comme le tour des deux ? Qui garde la main ? | — |
 | 4 | Niveau cible de victoire, valeur de départ et seuil de fermeture, N patients en jeu | À fixer au simulateur, par difficulté |
 | 5 | Fin de partie si la pioche est vide (les morts en sortent) avant que quelqu'un gagne | — |
 | 6 | Qui choisit la salle à construire, et quand | — |

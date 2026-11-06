@@ -34,6 +34,11 @@ Future<void> main(List<String> args) async {
     )
     ..addOption('patients', help: 'Patients par partie.', defaultsTo: '10')
     ..addOption(
+      'en-jeu',
+      help: 'Patients en jeu à la fois (N des règles de table).',
+      defaultsTo: '3',
+    )
+    ..addOption(
       'actions-max',
       help: 'Actions au-delà desquelles un patient est abandonné.',
       defaultsTo: '60',
@@ -125,6 +130,7 @@ Future<void> main(List<String> args) async {
       graine: entier('graine'),
       parties: entier('parties'),
       patientsParPartie: entier('patients'),
+      patientsEnJeu: entier('en-jeu'),
       actionsMax: entier('actions-max'),
     ),
   );

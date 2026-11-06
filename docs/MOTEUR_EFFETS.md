@@ -40,7 +40,7 @@ Réservé à la future possibilité d'ajouter des cartes. En v1, son contenu est
 | `format` | Toujours `"cardhospital"` |
 | `schema_version` | Version entière du format (actuellement `1`) |
 | `id`, `nom`, `version`, `description` | Identité du paquet (`version` au format `MAJEUR.MINEUR.CORRECTIF`) |
-| `parametres` | Paramètres du diagnostic, récompenses par défaut, attente par défaut |
+| `parametres` | Paramètres du diagnostic, récompenses par défaut, attente maximale par défaut (en ticks), paliers d'aggravation |
 | `difficultes` | Exactement 3 niveaux et leurs modificateurs |
 | `specialites` | Spécialités des maladies et des cartes, avec leur couleur et leur icône (`polyvalent` et `recherche` sont réservés et implicites) |
 | `capacites` | Capacités déclarées (ex. `precision`, `stabilisation`) |
@@ -94,7 +94,7 @@ Extrait du paquet de base :
 }
 ```
 
-`specialite` est la spécialité de la maladie : une spécialité déclarée, jamais une valeur réservée (`polyvalent`, `recherche`). `attente_max` (défaut : `parametres.attente_max_defaut`), `poids` (entier ≥ 1, défaut 1), `traitement.partiel`, `recompenses` et `recherche` sont facultatifs. `recherche.passages` (entier ≥ 1, défaut 1) est le nombre de passages en laboratoire nécessaires pour révéler la recette de la maladie (§9, prévu pour `schema_version` 2). Un poids nul est interdit : une maladie qui ne peut jamais être tirée n'a pas sa place dans le paquet, il suffit de la retirer. Toute clé de `recompenses` absente reprend la valeur de `parametres.recompenses`.
+`specialite` est la spécialité de la maladie : une spécialité déclarée, jamais une valeur réservée (`polyvalent`, `recherche`). `aggravation` donne la perte de PV par palier de présence, la dernière valeur se répétant ; `attente_max` se compte en ticks de présence (défaut : `parametres.attente_max_defaut`), `poids` (entier ≥ 1, défaut 1), `traitement.partiel`, `recompenses` et `recherche` sont facultatifs. `recherche.passages` (entier ≥ 1, défaut 1) est le nombre de passages en laboratoire nécessaires pour révéler la recette de la maladie (§9, prévu pour `schema_version` 2). Un poids nul est interdit : une maladie qui ne peut jamais être tirée n'a pas sa place dans le paquet, il suffit de la retirer. Toute clé de `recompenses` absente reprend la valeur de `parametres.recompenses`.
 
 ### 2.3 Spécialités
 
@@ -115,7 +115,11 @@ Extrait du paquet de base :
 - Les deux champs sont obligatoires. Deux spécialités de même couleur ou de même icône déclenchent un avertissement à l'import.
 - Une extension qui ajoute une spécialité lui choisit sa couleur et son icône. L'emoji évite d'avoir à embarquer une image, ce qui reste interdit aux extensions en v1.
 
-### 2.4 Paramètres du diagnostic
+### 2.4 Horloge et paliers
+
+`parametres.paliers_aggravation` (obligatoire) liste les durées de présence, en ticks et strictement croissantes, où commence chaque palier d'aggravation : `[5, 11, 17, 23]` dans le paquet de base. Avant la première, le patient est stable. Ces paliers sont **communs à toutes les maladies** ; la perte propre à chaque maladie est sa liste `aggravation`. `parametres.attente_max_defaut` est en ticks de présence (15 dans le paquet de base). Voir le [modèle de jeu §5](MODELE_DE_JEU.md#5-horloge-et-aggravation).
+
+### 2.5 Paramètres du diagnostic
 
 `parametres.diagnostic` contient `precision_max`, `verite`, `par_niveau`, `affinite_specialite`, `bonus_specialite`, `exclusion`, `taille_liste` et `score_bruit`. Leur rôle et leurs valeurs par défaut sont décrits dans le [modèle de jeu §8.3](MODELE_DE_JEU.md#83-calcul-de-la-liste).
 
@@ -175,10 +179,10 @@ Une action est une **liste d'effets exécutés dans l'ordre**. Chaque effet est 
 
 | Effet | Paramètres | Comportement |
 |---|---|---|
-| `admettre` | — | Tire une maladie (pondérée par `poids`), `PV ← pv_initial`, `temps ← 0`, patient « en jeu » |
-| `avancer_temps` | — | `temps ← temps + 1` |
+| `admettre` | — | Tire une maladie (pondérée par `poids`), `PV ← pv_initial`, note le tick d'admission, patient « en jeu ». L'horloge n'avance pas |
+| `avancer_temps` | — | L'horloge de l'hôpital avance d'un tick (tous patients confondus) |
 | `diagnostiquer` | — | Calcule et ajoute au résultat la liste des maladies les plus probables du [modèle de jeu §8](MODELE_DE_JEU.md#8-diagnostic-probabiliste) |
-| `aggraver` | — | Perte de `aggravation[temps]` PV (dernière valeur répétée), modificateur `pv_perdus` |
+| `aggraver` | — | Perte de PV du palier de présence atteint ([modèle de jeu §5.2](MODELE_DE_JEU.md#52-paliers-daggravation)) : 0 tant que le patient est stable, puis la valeur de `aggravation` pour ce palier (dernière valeur répétée), modificateur `pv_perdus` |
 | `soigner` | — | Marque le patient guéri |
 | `gagner_pv` | `valeur` | Ajoute des PV, plafonnés à `pv_initial` (pas de modificateur) |
 | `perdre_pv` | `valeur` | Retire des PV, modificateur `pv_perdus` |

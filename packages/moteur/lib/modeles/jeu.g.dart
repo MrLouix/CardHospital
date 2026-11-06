@@ -56,6 +56,9 @@ Map<String, dynamic> _$JeuToJson(Jeu instance) => <String, dynamic>{
 
 Parametres _$ParametresFromJson(Map<String, dynamic> json) => Parametres(
   attenteMaxDefaut: (json['attente_max_defaut'] as num).toInt(),
+  paliersAggravation: (json['paliers_aggravation'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
   diagnostic: Diagnostic.fromJson(json['diagnostic'] as Map<String, dynamic>),
   recompenses: Recompenses.fromJson(
     json['recompenses'] as Map<String, dynamic>,
@@ -65,6 +68,7 @@ Parametres _$ParametresFromJson(Map<String, dynamic> json) => Parametres(
 Map<String, dynamic> _$ParametresToJson(Parametres instance) =>
     <String, dynamic>{
       'attente_max_defaut': instance.attenteMaxDefaut,
+      'paliers_aggravation': instance.paliersAggravation,
       'diagnostic': instance.diagnostic,
       'recompenses': instance.recompenses,
     };

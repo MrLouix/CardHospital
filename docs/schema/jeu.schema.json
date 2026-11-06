@@ -65,9 +65,13 @@
     "parametres": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["diagnostic", "recompenses", "attente_max_defaut"],
+      "required": ["diagnostic", "recompenses", "attente_max_defaut", "paliers_aggravation"],
       "properties": {
-        "attente_max_defaut": { "$ref": "#/$defs/entier_positif" },
+        "attente_max_defaut": { "$ref": "#/$defs/entier_positif", "description": "Attente maximale par défaut, en ticks de présence." },
+        "paliers_aggravation": {
+          "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/entier_positif" },
+          "description": "Durées de présence (en ticks, strictement croissantes) où commence chaque palier d'aggravation ; avant la première, le patient est stable."
+        },
         "diagnostic": {
           "type": "object",
           "additionalProperties": false,
@@ -182,9 +186,10 @@
         "aggravation": {
           "type": "array",
           "minItems": 1,
-          "items": { "$ref": "#/$defs/entier_positif_ou_nul" }
+          "items": { "$ref": "#/$defs/entier_positif_ou_nul" },
+          "description": "PV perdus à chaque action sur le patient, selon son palier (premier élément : premier palier après la période stable) ; la dernière valeur se répète."
         },
-        "attente_max": { "$ref": "#/$defs/entier_positif" },
+        "attente_max": { "$ref": "#/$defs/entier_positif", "description": "Attente maximale, en ticks de présence : au-delà, chaque action sur le patient coûte de la réputation." },
         "poids": { "$ref": "#/$defs/entier_positif" },
         "traitement": {
           "type": "object",

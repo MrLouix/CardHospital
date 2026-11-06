@@ -41,6 +41,29 @@ void main() {
     expect(rapport.erreurs, contains(contains('poids d\'au moins 1')));
   });
 
+  test('paliers d\'aggravation absents, nuls ou non croissants : erreur', () {
+    for (final paliers in [
+      null,
+      <int>[],
+      [5, 0],
+      [5, 5, 11],
+    ]) {
+      final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
+      final parametres = copie['parametres'] as Map;
+      if (paliers == null) {
+        parametres.remove('paliers_aggravation');
+      } else {
+        parametres['paliers_aggravation'] = paliers;
+      }
+      final rapport = Validateur().validerJson(copie);
+      expect(
+        rapport.erreurs,
+        contains(startsWith('parametres.paliers_aggravation')),
+        reason: '$paliers',
+      );
+    }
+  });
+
   test('une spécialité non déclarée est refusée', () {
     final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
     (copie['maladies'] as List)[0]['specialite'] = 'cardiologie';

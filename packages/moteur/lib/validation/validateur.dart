@@ -104,6 +104,25 @@ class Validateur {
         'difficultes : exactement 3 niveaux requis (${diff ?? 0} trouvé(s))',
       );
     }
+    final paliers = (brut['parametres'] as Map?)?['paliers_aggravation'];
+    if (paliers is! List ||
+        paliers.isEmpty ||
+        paliers.any((p) => p is! int || p < 1)) {
+      erreurs.add(
+        'parametres.paliers_aggravation : liste non vide d\'entiers ≥ 1 '
+        'attendue (début de chaque palier, en ticks de présence)',
+      );
+    } else {
+      for (var i = 1; i < paliers.length; i++) {
+        if ((paliers[i] as int) <= (paliers[i - 1] as int)) {
+          erreurs.add(
+            'parametres.paliers_aggravation : les paliers doivent être '
+            'strictement croissants (${paliers[i - 1]} puis ${paliers[i]})',
+          );
+          break;
+        }
+      }
+    }
     final specialites = brut['specialites'] as List? ?? const [];
     for (var i = 0; i < specialites.length; i++) {
       final sp = specialites[i] as Map;

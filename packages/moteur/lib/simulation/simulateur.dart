@@ -13,6 +13,7 @@ class ParametresSimulation {
     this.graine = 1,
     this.parties = 1000,
     this.patientsParPartie = 10,
+    this.patientsEnJeu = 3,
     this.actionsMax = 60,
   });
 
@@ -25,6 +26,10 @@ class ParametresSimulation {
   /// Patients admis au cours d'une partie.
   final int patientsParPartie;
 
+  /// Nombre de patients en jeu à la fois (N des règles de table), au plus le
+  /// nombre de cartes patient du paquet.
+  final int patientsEnJeu;
+
   /// Au-delà, le patient est abandonné (compté à part).
   final int actionsMax;
 
@@ -32,6 +37,7 @@ class ParametresSimulation {
     'graine': graine,
     'parties': parties,
     'patients_par_partie': patientsParPartie,
+    'patients_en_jeu': patientsEnJeu,
     'actions_max': actionsMax,
   };
 }
@@ -128,7 +134,9 @@ class RapportSimulation {
       ..writeln(
         'Graine ${parametres.graine} · ${parametres.parties} parties de '
         '${parametres.patientsParPartie} patients par stratégie et par '
-        'difficulté · abandon au-delà de ${parametres.actionsMax} actions.',
+        'difficulté, ${parametres.patientsEnJeu} patients en jeu à la fois, '
+        'pris en charge à tour de rôle · abandon au-delà de '
+        '${parametres.actionsMax} actions sur un patient.',
       )
       ..writeln()
       ..writeln('## Synthèse')
@@ -211,19 +219,23 @@ class RapportSimulation {
 
 /// Simulateur de parties automatiques (phase 1 de la feuille de route).
 ///
-/// Le temps étant propre à chaque patient, une partie est simulée patient
-/// par patient : l'ordre d'entrelacement des patients ne change pas leur
-/// évolution.
+/// Une partie partage une seule horloge : jusqu'à
+/// [ParametresSimulation.patientsEnJeu] patients sont en jeu à la fois et
+/// pris en charge à tour de rôle, dans l'ordre d'admission. Chaque patient
+/// a sa propre instance de la stratégie. Dès qu'un patient sort, un autre
+/// est admis, jusqu'à [ParametresSimulation.patientsParPartie] admissions.
+/// Les cartes des patients sortis, même morts, sont réutilisées : la
+/// défausse des règles de table n'est pas simulée.
 class Simulateur {
   Simulateur(this.jeu, {this.parametres = const ParametresSimulation()})
     : _catalogue = CatalogueCombinaisons(jeu) {
-    _patient = jeu.cartes.entries
-        .firstWhere(
-          (e) => e.value.type == TypeCarte.patient,
-          orElse: () =>
-              throw ArgumentError('le paquet ne contient aucune carte patient'),
-        )
-        .key;
+    _cartesPatient = [
+      for (final e in jeu.cartes.entries)
+        if (e.value.type == TypeCarte.patient) e.key,
+    ];
+    if (_cartesPatient.isEmpty) {
+      throw ArgumentError('le paquet ne contient aucune carte patient');
+    }
     for (final id in [actionAdmettre, actionDiagnostiquer, actionTraiter]) {
       if (!jeu.actions.any((a) => a.id == id)) {
         throw ArgumentError('le paquet ne définit pas l\'action « $id »');
@@ -234,7 +246,7 @@ class Simulateur {
   final Jeu jeu;
   final ParametresSimulation parametres;
   final CatalogueCombinaisons _catalogue;
-  late final String _patient;
+  late final List<String> _cartesPatient;
 
   static const _paquet = IdentitePaquet(
     id: 'simulation',
@@ -269,54 +281,74 @@ class Simulateur {
     SourceAleatoire alea,
   ) {
     final stats = StatsStrategie(strategie.nom, difficulte);
+    final enJeuMax = parametres.patientsEnJeu.clamp(1, _cartesPatient.length);
     for (var p = 0; p < parametres.parties; p++) {
+      final partie = Partie.nouvelle(
+        jeu: jeu,
+        paquet: _paquet,
+        difficulte: difficulte,
+        alea: alea,
+      );
+      final libres = [..._cartesPatient];
+      final enJeu = <_PatientSimule>[];
+      var admissions = 0;
       var cumul = 0;
       var minimum = 0;
-      for (var i = 0; i < parametres.patientsParPartie; i++) {
-        final partie = Partie.nouvelle(
-          jeu: jeu,
-          paquet: _paquet,
-          difficulte: difficulte,
-          alea: alea,
-        );
-        _appliquer(partie, [_patient], actionAdmettre);
-        final maladie = partie.etat.patients[_patient]!.maladie;
-        final parMaladie = stats.parMaladie.putIfAbsent(
-          maladie,
-          StatsMaladie.new,
-        );
-        stats.patients++;
-        parMaladie.patients++;
-        strategie.debutPatient();
-
-        final historique = <ResultatAction>[];
-        var issue = IssuePatient.enJeu;
-        while (issue == IssuePatient.enJeu) {
-          if (historique.length >= parametres.actionsMax) {
-            stats.abandons++;
-            break;
-          }
-          final choix = strategie.choisir(historique, _catalogue, alea);
-          final r = _appliquer(partie, [
-            _patient,
-            ...choix.cartes,
-          ], choix.action);
-          historique.add(r);
-          stats.actions++;
-          parMaladie.actions++;
-          if (r.diagnostic != null) stats.diagnostics++;
-          stats.pieces += r.pieces;
-          stats.reputation += r.reputation;
-          cumul += r.reputation;
-          if (cumul < minimum) minimum = cumul;
-          issue = r.issue ?? IssuePatient.enJeu;
+      while (true) {
+        while (enJeu.length < enJeuMax &&
+            admissions < parametres.patientsParPartie &&
+            libres.isNotEmpty) {
+          final carte = libres.removeAt(0);
+          _appliquer(partie, [carte], actionAdmettre);
+          admissions++;
+          final maladie = partie.etat.patients[carte]!.maladie;
+          enJeu.add(
+            _PatientSimule(
+              carte,
+              strategie.nouvelle()..debutPatient(),
+              stats.parMaladie.putIfAbsent(maladie, StatsMaladie.new),
+            ),
+          );
+          stats.patients++;
+          enJeu.last.stats.patients++;
         }
-        if (issue == IssuePatient.gueri) {
-          stats.gueris++;
-          parMaladie.gueris++;
-        } else if (issue == IssuePatient.mort) {
-          stats.morts++;
-          parMaladie.morts++;
+        if (enJeu.isEmpty) break;
+
+        final suivi = enJeu.removeAt(0);
+        if (suivi.historique.length >= parametres.actionsMax) {
+          // Abandonné : il reste en jeu dans le moteur, sa carte n'est pas
+          // libérée.
+          stats.abandons++;
+          continue;
+        }
+        final choix = suivi.strategie.choisir(
+          suivi.historique,
+          _catalogue,
+          alea,
+        );
+        final r = _appliquer(partie, [
+          suivi.carte,
+          ...choix.cartes,
+        ], choix.action);
+        suivi.historique.add(r);
+        stats.actions++;
+        suivi.stats.actions++;
+        if (r.diagnostic != null) stats.diagnostics++;
+        stats.pieces += r.pieces;
+        stats.reputation += r.reputation;
+        cumul += r.reputation;
+        if (cumul < minimum) minimum = cumul;
+        switch (r.issue ?? IssuePatient.enJeu) {
+          case IssuePatient.enJeu:
+            enJeu.add(suivi);
+          case IssuePatient.gueri:
+            stats.gueris++;
+            suivi.stats.gueris++;
+            libres.add(suivi.carte);
+          case IssuePatient.mort:
+            stats.morts++;
+            suivi.stats.morts++;
+            libres.add(suivi.carte);
         }
       }
       stats.reputationFinale.add(cumul);
@@ -352,3 +384,14 @@ String _pct(double x) => '${_dec(x * 100, 1)} %';
 
 String _dec(double x, [int decimales = 2]) =>
     x.toStringAsFixed(decimales).replaceAll('.', ',');
+
+/// Un patient en jeu pendant une simulation : sa carte, sa stratégie et
+/// l'historique de ses résultats depuis son admission.
+class _PatientSimule {
+  _PatientSimule(this.carte, this.strategie, this.stats);
+
+  final String carte;
+  final Strategie strategie;
+  final StatsMaladie stats;
+  final historique = <ResultatAction>[];
+}
