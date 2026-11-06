@@ -20,9 +20,9 @@ CardHospital se joue de **2 à 6 joueurs**.
 
 Les joueurs jouent **à tour de rôle**, même si plusieurs smartphones sont disponibles. L'appli n'impose aucun ordre et ne bloque pas deux actions simultanées : c'est aux joueurs de respecter les tours.
 
-1. **Début du tour : nouveau patient.** S'il y a moins de N patients en jeu, le joueur pioche un patient et l'admet avec l'appli. N dépend de la difficulté et est à fixer au simulateur. L'appli ne vérifie pas cette règle.
+1. **Début du tour : nouveau patient.** S'il y a moins de N patients en jeu, le joueur pioche un patient et l'admet avec l'appli. N dépend de la difficulté et est à fixer au simulateur. L'appli ne vérifie pas cette règle. Si la pioche est vide à ce moment, la partie est perdue (§3.3).
 2. **Achat et action.** Pendant son tour, le joueur :
-   - **peut acheter un objet permanent**, et un seul (§6.1). Cet achat n'est pas obligatoire ;
+   - **peut acheter un objet permanent**, et un seul (§6.1), **avant ou après son action**, à son choix. Cet achat n'est pas obligatoire ;
    - **et réalise une action** : diagnostic, traitement, recherche (au laboratoire) ou formation (§7). La formation n'est pas suivie par l'appli : le joueur qui se forme ne fait pas d'autre action pendant ce tour.
 
 À son tour, tout joueur peut aussi prendre l'initiative de **lancer la construction d'une salle** (§5).
@@ -61,14 +61,14 @@ Un joueur **gagne** dès que sa main atteint le **niveau cible** de points de vi
 La partie s'arrête et **tous les joueurs ont perdu**, quels que soient leurs points, dans deux cas :
 
 - **fermeture de l'hôpital** : la réputation de l'hôpital devient **strictement inférieure au seuil de fermeture** ;
-- **trop de morts** : la **pioche de patients est vide**. Les patients morts sortent du jeu (§4) : quand il en meurt trop, la pioche s'épuise.
+- **trop de morts** : un joueur doit piocher un patient en début de tour (§2) et la **pioche de patients est vide**. Les patients morts sortent du jeu (§4) : quand il en meurt trop, la pioche s'épuise. Une pioche vide n'arrête pas la partie tant que personne ne doit y piocher.
 
 C'est la tension du jeu : chaque médecin joue pour lui, mais un patient négligé, mal traité ou qui meurt pénalise tout le monde.
 
 ## 4. Sortie des patients
 
 - Un patient **guéri** retourne dans la pioche. S'il est de nouveau pioché, il est réadmis avec une nouvelle maladie.
-- Un patient **mort** est **défaussé** : sa carte sort du jeu pour le reste de la partie. Si la pioche de patients se vide, tous les joueurs ont perdu (§3.3).
+- Un patient **mort** est **défaussé** : sa carte sort du jeu pour le reste de la partie. Si un joueur doit piocher un patient alors que la pioche est vide, tous les joueurs ont perdu (§3.3).
 
 ## 5. Construire une salle
 
@@ -84,7 +84,7 @@ C'est la tension du jeu : chaque médecin joue pour lui, mais un patient néglig
 
 Les objets permanents du paquet de base sont : le **stéthoscope**, le **traité de médecine**, le **défibrillateur**, l'**électrocardiographe**, le **thermomètre**, le **tensiomètre**, le **livre de psychanalyse**, le **grimoire** et l'**amulette de protection**.
 
-À son tour, un joueur peut en acheter **un seul**, en plus de son action (§2). Cet achat n'est pas obligatoire.
+À son tour, un joueur peut en acheter **un seul**, avant ou après son action (§2). Cet achat n'est pas obligatoire.
 
 - On en propose toujours **autant que de joueurs**, tous **différents**, face visible : à chaque achat, un **nouvel objet permanent** est mis en jeu à la place de l'objet acheté.
 - Le joueur paie avec les pièces de sa main (**réserve personnelle**). Cet argent ne va pas à l'hôpital : il **sort du jeu**.
@@ -135,6 +135,5 @@ L'annulation de la dernière action, dans la page admin de l'hôte, est réserv�
 | 1 | Niveau cible de victoire, valeur de départ et seuil de fermeture, N patients en jeu | À fixer au simulateur, par difficulté |
 | 2 | Quand un consommable est-il utilisé (au traitement seulement ?) | — |
 | 3 | Prix des objets permanents | — |
-| 4 | Formation : nombre de cases de la piste pour obtenir un diplôme, choix de la spécialité du diplôme | — |
+| 4 | Formation : nombre exact de cases de la piste pour obtenir un diplôme, choix de la spécialité du diplôme | Environ 4 cases pour un premier diplôme, 8 de plus pour un second (§7) |
 | 5 | Budget de l'hôpital au départ | — |
-| 6 | Achat d'un objet permanent : avant ou après l'action du tour ? | Au choix du joueur |
