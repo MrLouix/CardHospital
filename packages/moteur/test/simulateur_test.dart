@@ -263,8 +263,172 @@ void main() {
     });
   });
 
+  group('stratégie novice avec laboratoire', () {
+    final catalogue = CatalogueCombinaisons(jeu);
+    ResultatAction diagnostic(String id, int indice) => ResultatAction(
+      numero: 2,
+      action: actionDiagnostiquer,
+      libelle: 'Diagnostiquer',
+      phrase: '',
+      cartes: const [],
+      patient: 'PAT-001',
+      patientNom: 'Mme Garnier',
+      pvAvant: 15,
+      pvApres: 15,
+      presence: 1,
+      attenteDepassee: false,
+      issue: IssuePatient.enJeu,
+      pieces: 1,
+      reputation: 0,
+      diagnostic: ResultatDiagnostic(
+        niveau: 4,
+        maladies: [
+          LigneDiagnostic(
+            id: id,
+            nom: id,
+            indice: indice,
+            specialite: SpecialiteAffichee.depuis(
+              jeu.specialites.firstWhere((s) => s.id == 'orthopedie'),
+            ),
+          ),
+        ],
+      ),
+    );
+    ResultatAction analyse(String id, int restants) => ResultatAction(
+      numero: 3,
+      action: actionAnalyser,
+      libelle: 'Analyser',
+      phrase: '',
+      cartes: const ['MED-001', 'PAT-001', 'SAL-011', 'OBJ-017'],
+      patient: 'PAT-001',
+      patientNom: 'Mme Garnier',
+      pvAvant: 15,
+      pvApres: 15,
+      presence: 2,
+      attenteDepassee: false,
+      issue: IssuePatient.enJeu,
+      pieces: 0,
+      reputation: 0,
+      analyse: ResultatAnalyse(
+        maladie: MaladieAnalysee(
+          id: id,
+          nom: id,
+          specialite: SpecialiteAffichee.depuis(
+            jeu.specialites.firstWhere((s) => s.id == 'orthopedie'),
+          ),
+        ),
+        passagesRestants: restants,
+        recette: restants == 0 ? 'Recette.' : null,
+      ),
+    );
+    final net = diagnostic('fracture_ouverte', 95);
+
+    test('description, nom, et combinaisons d\'analyse du catalogue', () {
+      expect(Strategie.depuis('novice+labo:70').nom, 'novice+labo:70');
+      expect(
+        Strategie.depuis('novice+labo:70').nouvelle().nom,
+        'novice+labo:70',
+      );
+      expect(catalogue.recherches, isNotEmpty);
+      for (final cartes in catalogue.recherches) {
+        expect(cartes, contains('SAL-011'));
+        expect(cartes.where((id) => id.startsWith('MED')), hasLength(1));
+      }
+      expect(catalogue.meilleuresRecherches(), isNotEmpty);
+      for (final cartes in catalogue.meilleuresRecherches()) {
+        expect(cartes, contains('OBJ-017'), reason: 'le microscope aide');
+      }
+      final sansLabo = CatalogueCombinaisons(
+        jeuExemple((brut) => (brut['actions'] as List).removeLast()),
+      );
+      expect(sansLabo.recherches, isEmpty);
+      expect(sansLabo.meilleuresRecherches(), isEmpty);
+    });
+
+    test('carnet : une analyse terminée révèle la recette ; une analyse en '
+        'cours ne révèle rien', () {
+      final carnet = Carnet(catalogue)..noter(analyse('fracture_ouverte', 2));
+      expect(carnet.recettes, 0);
+      carnet.noter(analyse('fracture_ouverte', 0));
+      final i = carnet.recette('fracture_ouverte')!;
+      expect(catalogue.adaptees('fracture_ouverte'), contains(i));
+      expect(carnet.recettesDe('orthopedie'), [i]);
+      carnet.noter(analyse('fracture_ouverte', 0));
+      expect(carnet.recette('fracture_ouverte'), i, reason: 'inchangée');
+    });
+
+    test('il analyse la maladie en tête jusqu\'à la recette, puis la '
+        'traite avec elle', () {
+      final carnet = Carnet(catalogue);
+      final s = StrategieNovice(80, labo: true).nouvelle(carnet: carnet)
+        ..debutPatient();
+      expect(s.pret([net], catalogue), isTrue);
+      final c1 = s.choisir([net], catalogue, Alea(1));
+      expect(c1.action, actionAnalyser);
+      expect(c1.maladie, 'fracture_ouverte');
+      expect(c1.cartes, containsAll(['SAL-011', 'OBJ-017']));
+
+      final enCours = analyse('fracture_ouverte', 1);
+      carnet.noter(enCours);
+      expect(
+        s.choisir([net, enCours], catalogue, Alea(2)).action,
+        actionAnalyser,
+      );
+
+      final finie = analyse('fracture_ouverte', 0);
+      carnet.noter(finie);
+      final c3 = s.choisir([net, enCours, finie], catalogue, Alea(3));
+      expect(c3.action, actionTraiter);
+      expect(c3.maladie, isNull);
+      expect(
+        catalogue.adaptees('fracture_ouverte'),
+        contains(catalogue.indice(c3.cartes)),
+      );
+    });
+
+    test('sous le seuil, il diagnostique ; sans laboratoire dans le paquet, '
+        'il joue comme le novice', () {
+      final s = StrategieNovice(80, labo: true, carnet: Carnet(catalogue))
+        ..debutPatient();
+      final faible = diagnostic('fracture_ouverte', 50);
+      expect(s.pret([faible], catalogue), isFalse);
+      expect(
+        s.choisir([faible], catalogue, Alea(1)).action,
+        actionDiagnostiquer,
+      );
+
+      final sansLabo = CatalogueCombinaisons(
+        jeuExemple((brut) => (brut['actions'] as List).removeLast()),
+      );
+      expect(s.choisir([net], sansLabo, Alea(1)).action, actionTraiter);
+    });
+
+    test('le laboratoire aide le novice, en simulation réelle', () {
+      final rapport =
+          Simulateur(
+            jeuBase(),
+            parametres: const ParametresSimulation(graine: 3, parties: 60),
+          ).simuler(
+            [Strategie.depuis('novice:70'), Strategie.depuis('novice+labo:70')],
+            difficultes: ['interne'],
+          );
+      final [sans, avec] = rapport.resultats;
+      expect(sans.analyses, 0);
+      expect(avec.analyses, greaterThan(0));
+      expect(avec.tauxGuerison, greaterThan(sans.tauxGuerison + 0.3));
+      expect(rapport.enMarkdown(), contains('Analyses / patient'));
+      expect(rapport.toJson()['resultats'][1]['analyses'], avec.analyses);
+    });
+  });
+
   test('stratégies : une instance neuve par patient', () {
-    for (final s in ['hasard', 'seuil:60', 'couleur:70', 'novice:70']) {
+    for (final s in [
+      'hasard',
+      'seuil:60',
+      'couleur:70',
+      'novice:70',
+      'novice+labo:70',
+    ]) {
       final strategie = Strategie.depuis(s);
       final copie = strategie.nouvelle();
       expect(copie.nom, strategie.nom);
@@ -342,7 +506,7 @@ void main() {
 
     test('combinaisons hors patient, hors laboratoire, et traitements '
         'adaptés', () {
-      expect(catalogue.length, 720);
+      expect(catalogue.length, 810);
       for (final cartes in catalogue.cartes) {
         expect(cartes.any((id) => id.startsWith('PAT')), isFalse);
         expect(cartes, isNot(contains('SAL-011')));

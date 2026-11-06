@@ -14,12 +14,78 @@ class MaladieRevelee {
   Map<String, dynamic> toJson() => {'id': id, 'nom': nom};
 }
 
+/// Résultat d'un passage en laboratoire (MODELE_DE_JEU.md §12.3).
+class ResultatAnalyse {
+  const ResultatAnalyse({
+    required this.maladie,
+    required this.passagesRestants,
+    this.recette,
+  });
+
+  factory ResultatAnalyse.fromJson(Map<String, dynamic> json) =>
+      ResultatAnalyse(
+        maladie: MaladieAnalysee.fromJson(
+          json['maladie'] as Map<String, dynamic>,
+        ),
+        passagesRestants: json['passages_restants'] as int,
+        recette: json['recette'] as String?,
+      );
+
+  /// Maladie analysée, choisie par le joueur parmi les maladies suspectées.
+  final MaladieAnalysee maladie;
+
+  /// Passages encore nécessaires, tous joueurs confondus (0 : recette
+  /// révélée).
+  final int passagesRestants;
+
+  /// Recette du traitement adapté, quand elle est révélée : description des
+  /// cartes requises.
+  final String? recette;
+
+  bool get recetteRevelee => passagesRestants == 0;
+
+  Map<String, dynamic> toJson() => {
+    'maladie': maladie.toJson(),
+    'passages_restants': passagesRestants,
+    'recette': recette,
+  };
+}
+
+/// Maladie choisie pour une analyse, avec de quoi l'afficher.
+class MaladieAnalysee {
+  const MaladieAnalysee({
+    required this.id,
+    required this.nom,
+    required this.specialite,
+  });
+
+  factory MaladieAnalysee.fromJson(Map<String, dynamic> json) =>
+      MaladieAnalysee(
+        id: json['id'] as String,
+        nom: json['nom'] as String,
+        specialite: SpecialiteAffichee.fromJson(
+          json['specialite'] as Map<String, dynamic>,
+        ),
+      );
+
+  final String id;
+  final String nom;
+  final SpecialiteAffichee specialite;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'nom': nom,
+    'specialite': specialite.toJson(),
+  };
+}
+
 /// Résultat d'une action confirmée (point P1 du plan de codage).
 ///
 /// C'est aussi le contenu du message `resultat` du protocole
 /// (SPECIFICATION.md §3.3), envoyé au seul client qui a confirmé. Il ne
 /// contient aucune information cachée, sauf la maladie à la sortie du
-/// patient (MODELE_DE_JEU.md §11).
+/// patient et la recette révélée par une analyse (MODELE_DE_JEU.md §11 et
+/// §12).
 class ResultatAction {
   const ResultatAction({
     required this.numero,
@@ -37,6 +103,7 @@ class ResultatAction {
     required this.pieces,
     required this.reputation,
     this.diagnostic,
+    this.analyse,
     this.maladieRevelee,
   });
 
@@ -62,6 +129,9 @@ class ResultatAction {
         : ResultatDiagnostic.fromJson(
             json['diagnostic'] as Map<String, dynamic>,
           ),
+    analyse: json['analyse'] == null
+        ? null
+        : ResultatAnalyse.fromJson(json['analyse'] as Map<String, dynamic>),
     maladieRevelee: json['maladie_revelee'] == null
         ? null
         : MaladieRevelee.fromJson(
@@ -104,6 +174,9 @@ class ResultatAction {
   /// Diagnostic, pour une action qui en comporte un.
   final ResultatDiagnostic? diagnostic;
 
+  /// Analyse, pour un passage en laboratoire.
+  final ResultatAnalyse? analyse;
+
   /// Maladie révélée, si le patient est sorti (guéri ou mort).
   final MaladieRevelee? maladieRevelee;
 
@@ -131,6 +204,7 @@ class ResultatAction {
     'attente_depassee': attenteDepassee,
     'issue': issue == null ? null : nomIssue(issue!),
     'diagnostic': diagnostic?.toJson(),
+    'analyse': analyse?.toJson(),
     'maladie_revelee': maladieRevelee?.toJson(),
     'pieces': pieces,
     'reputation': reputation,

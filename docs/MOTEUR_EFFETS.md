@@ -91,11 +91,12 @@ Extrait du paquet de base :
     "partiel": { "tous": [ { "compte": { "type": "medecin", "specialite": "orthopedie" }, "min": 1 },
                            { "carte": "SAL-008" } ] }
   },
-  "recompenses": { "pieces_traitement": 5, "reputation_echec": -2 }
+  "recompenses": { "pieces_traitement": 5, "reputation_echec": -2 },
+  "recherche": { "passages": 3 }
 }
 ```
 
-`specialite` est la spécialité de la maladie : une spécialité déclarée, jamais une valeur réservée (`polyvalent`, `recherche`). `aggravation` donne la perte de PV par palier de présence, la dernière valeur se répétant ; `attente_max` se compte en ticks de présence (défaut : `parametres.attente_max_defaut`), `poids` (entier ≥ 1, défaut 1), `traitement.partiel`, `recompenses` et `recherche` sont facultatifs. `recherche.passages` (entier ≥ 1, défaut 1) est le nombre de passages en laboratoire nécessaires pour révéler la recette de la maladie (§9, prévu pour `schema_version` 2). Un poids nul est interdit : une maladie qui ne peut jamais être tirée n'a pas sa place dans le paquet, il suffit de la retirer. Toute clé de `recompenses` absente reprend la valeur de `parametres.recompenses`.
+`specialite` est la spécialité de la maladie : une spécialité déclarée, jamais une valeur réservée (`polyvalent`, `recherche`). `aggravation` donne la perte de PV par palier de présence, la dernière valeur se répétant ; `attente_max` se compte en ticks de présence (défaut : `parametres.attente_max_defaut`), `poids` (entier ≥ 1, défaut 1), `traitement.partiel`, `recompenses` et `recherche` sont facultatifs. `recherche.passages` (entier ≥ 1, défaut 1) est le nombre de passages en laboratoire nécessaires pour révéler la recette de la maladie (§9). Un poids nul est interdit : une maladie qui ne peut jamais être tirée n'a pas sa place dans le paquet, il suffit de la retirer. Toute clé de `recompenses` absente reprend la valeur de `parametres.recompenses`.
 
 ### 2.3 Spécialités
 
@@ -132,11 +133,12 @@ Un motif décrit une forme de sélection par des **intervalles `[min, max]`** de
 ```json
 "motifs": {
   "admission": { "patient": [1, 1], "total": [1, 1] },
-  "standard":  { "patient": [1, 1], "medecin": [1, 2], "salle": [1, 1], "objet|diplome": [0, 1], "total": [3, 5] }
+  "standard":  { "patient": [1, 1], "medecin": [1, 2], "salle": [1, 1], "objet|diplome": [0, 1], "total": [3, 5] },
+  "recherche": { "patient": [1, 1], "medecin": [1, 1], "salle": [1, 1], "objet|diplome": [0, 1], "total": [3, 4] }
 }
 ```
 
-Un type de carte absent d'un motif est interdit (`[0, 0]`). Le motif standard encode « 1 médecin + 1 patient + 1 salle, plus au choix un second médecin et un accessoire (objet ou diplôme) » : de 3 à 5 cartes, avec **un seul accessoire**.
+Un type de carte absent d'un motif est interdit (`[0, 0]`). Le motif standard encode « 1 médecin + 1 patient + 1 salle, plus au choix un second médecin et un accessoire (objet ou diplôme) » : de 3 à 5 cartes, avec **un seul accessoire**. Le motif `recherche` est celui de l'analyse au laboratoire (§9).
 
 Quand plusieurs motifs correspondent à une même sélection, l'hôte **réunit leurs actions** (dans l'ordre de déclaration des actions), puis ne propose que celles dont la précondition est vérifiée. L'ordre des motifs n'a donc pas d'importance : ce sont les préconditions qui départagent, par exemple entre le motif `recherche` et le motif `standard` (§9). Si aucune action ne reste à cause des cartes, l'hôte répond « Aucune action possible avec ces cartes. ».
 
@@ -183,7 +185,8 @@ Une action est une **liste d'effets exécutés dans l'ordre**. Chaque effet est 
 |---|---|---|
 | `admettre` | — | Tire une maladie (pondérée par `poids`), `PV ← pv_initial`, note le tick d'admission, patient « en jeu ». L'horloge n'avance pas |
 | `avancer_temps` | — | L'horloge de l'hôpital avance d'un tick (tous patients confondus) |
-| `diagnostiquer` | — | Calcule et ajoute au résultat la liste des maladies les plus probables du [modèle de jeu §8](MODELE_DE_JEU.md#8-diagnostic-probabiliste) |
+| `diagnostiquer` | — | Calcule et ajoute au résultat la liste des maladies les plus probables du [modèle de jeu §8](MODELE_DE_JEU.md#8-diagnostic-probabiliste) ; les maladies de la liste rejoignent les maladies suspectées du patient |
+| `rechercher` | — | Un passage en laboratoire sur la maladie choisie par le joueur à la confirmation (§9.4) |
 | `aggraver` | — | Perte de PV du palier de présence atteint ([modèle de jeu §5.2](MODELE_DE_JEU.md#52-paliers-daggravation)) : 0 tant que le patient est stable, puis la valeur de `aggravation` pour ce palier (dernière valeur répétée), bonus `pv_perdus` |
 | `soigner` | — | Marque le patient guéri |
 | `gagner_pv` | `valeur` | Ajoute des PV, plafonnés à `pv_initial` (pas de bonus de difficulté) |
@@ -192,7 +195,7 @@ Une action est une **liste d'effets exécutés dans l'ordre**. Chaque effet est 
 | `reputation` | `valeur` | Impact sur la réputation (signé) ; bonus `reputation` sur les pertes seulement |
 | `si` | `condition`, `alors`, `sinon` (facultatif) | Exécute une des deux listes d'effets |
 
-**Conditions** : `"traitement_adapte"`, `"traitement_partiel"`, `"attente_depassee"`, `"gueri"`, `"patient_en_jeu"`, `"patient_hors_jeu"`, ou les formes composées `{ "et": [...] }`, `{ "ou": [...] }`, `{ "non": c }` et `{ "combinaison": prédicat }`.
+**Conditions** : `"traitement_adapte"`, `"traitement_partiel"`, `"attente_depassee"`, `"gueri"`, `"patient_en_jeu"`, `"patient_hors_jeu"`, `"patient_diagnostique"` (le patient a des maladies suspectées, §9.3), ou les formes composées `{ "et": [...] }`, `{ "ou": [...] }`, `{ "non": c }` et `{ "combinaison": prédicat }`.
 
 **Invariants du moteur** (non paramétrables, appliqués à toute action) :
 
@@ -204,7 +207,7 @@ Une action est une **liste d'effets exécutés dans l'ordre**. Chaque effet est 
 
 ### 6.1 Actions du paquet de base
 
-`diagnostiquer` et `traiter` ont la même précondition : patient en jeu, **hors laboratoire** (le laboratoire ne sert qu'à analyser, §9). Dans `traiter`, le traitement partiel stabilise le patient : il ne subit pas d'aggravation.
+`diagnostiquer` et `traiter` ont la même précondition : patient en jeu, **hors laboratoire** (le laboratoire ne sert qu'à analyser, §9). Dans `traiter`, le traitement partiel stabilise le patient : il ne subit pas d'aggravation. `analyser` est décrite au §9.3.
 
 ```json
 "actions": [
@@ -248,6 +251,19 @@ Une action est une **liste d'effets exécutés dans l'ordre**. Chaque effet est 
       { "effet": "si", "condition": "attente_depassee",
         "alors": [ { "effet": "reputation", "valeur": "$recompenses.reputation_attente" } ] }
     ]
+  },
+  {
+    "id": "analyser", "libelle": "Analyser", "motif": "recherche",
+    "precondition": { "et": [ "patient_en_jeu", "patient_diagnostique",
+                              { "combinaison": { "compte": { "type": "salle", "specialite": "recherche" }, "min": 1 } } ] },
+    "phrase": "Analyse du cas de {patient} par {medecin} {lieu}[ avec {accessoire}].",
+    "effets": [
+      { "effet": "avancer_temps" },
+      { "effet": "rechercher" },
+      { "effet": "aggraver" },
+      { "effet": "si", "condition": "attente_depassee",
+        "alors": [ { "effet": "reputation", "valeur": "$recompenses.reputation_attente" } ] }
+    ]
   }
 ]
 ```
@@ -258,7 +274,7 @@ Une action est une **liste d'effets exécutés dans l'ordre**. Chaque effet est 
 - Un segment entre crochets `[…]` n'est affiché que si **toutes** ses variables sont présentes dans la combinaison.
 - La première lettre de la phrase est mise en majuscule automatiquement.
 - Le genre et le nombre des personnes étant inconnus, les phrases privilégient le **style nominal**, qui évite tout accord (« Examen de… par… » plutôt que « Le Dr X examine… », qui deviendrait fautif avec deux médecins).
-- Exemples : *« Examen de Mme Garnier par le Dr Moreau en radiologie avec le stéthoscope. »*, *« Tentative de soin de M. Dupont par le Dr Cassagne et le Dr Vasseur au bloc opératoire. »*
+- Exemples : *« Examen de Mme Garnier par le Dr Moreau en radiologie avec le stéthoscope. »*, *« Tentative de soin de M. Dupont par le Dr Cassagne et le Dr Vasseur au bloc opératoire. »*, *« Analyse du cas de Mme Garnier par le Dr Moreau au laboratoire de recherche avec le microscope. »*
 
 ## 7. Validation à l'import
 
@@ -272,23 +288,25 @@ Un paquet est **refusé** s'il comporte au moins une erreur ; les avertissements
 4. référence inconnue : spécialité, capacité, carte, motif, référence `$…` ;
 5. variable de phrase incompatible avec le motif de l'action (ex. `{salle}` dans une action d'admission) ;
 6. spécialité déclarée qui n'est la spécialité d'aucune maladie ;
-7. maladie dont le traitement adapté n'est **réalisable par aucune combinaison de traitement** des cartes du catalogue : une combinaison reconnue par le motif d'une action qui teste `traitement_adapte`, et permise par la partie `combinaison` de sa précondition (le laboratoire en est donc exclu). Vérification exhaustive : 2 650 combinaisons pour le paquet de base ;
+7. maladie dont le traitement adapté n'est **réalisable par aucune combinaison de traitement** des cartes du catalogue : une combinaison reconnue par le motif d'une action qui teste `traitement_adapte`, et permise par la partie `combinaison` de sa précondition (le laboratoire en est donc exclu). Vérification exhaustive : 13 750 combinaisons pour le paquet de base ;
 8. identifiants en double ;
 9. `poids` d'une maladie inférieur à 1 (déjà refusé par le JSON Schema, et revérifié par le validateur sémantique, qui donne un message explicite : `maladies[12].poids : une maladie doit avoir un poids d'au moins 1 ; pour l'écarter, retirez-la du paquet`) ;
-10. valeur réservée mal employée : `polyvalent`, `generaliste` ou `recherche` déclarés dans `specialites`, spécialité de maladie réservée, `recherche` portée par une carte qui n'est pas une salle.
+10. valeur réservée mal employée : `polyvalent`, `generaliste` ou `recherche` déclarés dans `specialites`, spécialité de maladie réservée, `recherche` portée par une carte qui n'est pas une salle ;
+11. `recherche.passages` d'une maladie qui n'est pas un entier d'au moins 1 ;
+12. action avec l'effet `rechercher` dont la précondition n'exige pas `patient_diagnostique` (hors de toute alternative et de toute négation) : le joueur doit pouvoir choisir la maladie parmi les maladies suspectées.
 
-**Avertissements** : dossier `images/` non vide, maladie sans traitement partiel, spécialité portée par aucune carte, deux spécialités de même couleur ou de même icône, couleur de spécialité trop peu contrastée sur fond clair ou sombre, deux couleurs trop proches pour un daltonien (protanopie, deutéranopie, tritanopie), carte qui utilise encore `generaliste` (ancien nom de `polyvalent`), traitement adapté satisfait par toutes les combinaisons (prédicat sans doute toujours vrai), maladie qu'aucune combinaison ne traite en échec (traitement partiel sans doute toujours vrai).
+**Avertissements** : dossier `images/` non vide, maladie sans traitement partiel, spécialité portée par aucune carte, deux spécialités de même couleur ou de même icône, couleur de spécialité trop peu contrastée sur fond clair ou sombre, deux couleurs trop proches pour un daltonien (protanopie, deutéranopie, tritanopie), carte qui utilise encore `generaliste` (ancien nom de `polyvalent`), laboratoire (salle de spécialité `recherche`) alors qu'aucune action n'a l'effet `rechercher`, traitement adapté satisfait par toutes les combinaisons (prédicat sans doute toujours vrai), maladie qu'aucune combinaison ne traite en échec (traitement partiel sans doute toujours vrai).
 
 ## 8. Versionnement
 
 - `schema_version` (entier) est incrémenté à chaque changement incompatible du format.
 - L'application déclare la plage de versions qu'elle sait lire. Un paquet plus ancien est **migré** en mémoire ; un paquet plus récent est refusé (« Ce paquet nécessite une version plus récente de l'application »).
-- Tant qu'aucun paquet n'a été publié (avant la première version de l'application), le format `schema_version` 1 peut encore évoluer sans incrément. Le passage au diagnostic par liste (couleur et icône des spécialités, nouveaux paramètres du diagnostic) a été fait ainsi, puis les renommages de la [revue de cohérence](REVUE_COHERENCE.md) : `maladies[].type` → `specialite`, `affinite_type` → `affinite_specialite`, `generaliste` → `polyvalent`, capacité `soin` → `stabilisation`, `soin_partiel` → `pv_partiel`, `reputation_soin` → `reputation_guerison`, issue et condition `soigne` → `gueri`, `pourcentage` → `indice` dans le résultat ; puis l'horloge commune (`paliers_aggravation`, `admission`, `presence`), les modificateurs de difficulté devenus des bonus entiers, `ponderation_poids`, `lieu_phrase` et la variable `{lieu}`, et le motif standard à 2 médecins et 1 accessoire.
+- Tant qu'aucun paquet n'a été publié (avant la première version de l'application), le format `schema_version` 1 peut encore évoluer sans incrément. Le passage au diagnostic par liste (couleur et icône des spécialités, nouveaux paramètres du diagnostic) a été fait ainsi, puis les renommages de la [revue de cohérence](REVUE_COHERENCE.md) : `maladies[].type` → `specialite`, `affinite_type` → `affinite_specialite`, `generaliste` → `polyvalent`, capacité `soin` → `stabilisation`, `soin_partiel` → `pv_partiel`, `reputation_soin` → `reputation_guerison`, issue et condition `soigne` → `gueri`, `pourcentage` → `indice` dans le résultat ; puis l'horloge commune (`paliers_aggravation`, `admission`, `presence`), les modificateurs de difficulté devenus des bonus entiers, `ponderation_poids`, `lieu_phrase` et la variable `{lieu}`, le motif standard à 2 médecins et 1 accessoire, et enfin la salle recherche (motif `recherche`, action `analyser`, effet `rechercher`, condition `patient_diagnostique`, champ `recherche` des maladies), d'abord prévue pour `schema_version` 2.
 - `version` (texte, au format `MAJEUR.MINEUR.CORRECTIF`) est la version éditoriale du paquet. Elle est enregistrée dans les sauvegardes : au chargement d'une sauvegarde faite avec un autre paquet (identifiant, version ou empreinte différents), l'appli avertit l'utilisateur et refuse si des maladies référencées n'existent plus.
 
-## 9. Salle recherche (prévu pour `schema_version` 2)
+## 9. Salle recherche
 
-> **État** : conception validée. Sont **déjà en place** en `schema_version` 1 : la valeur réservée `recherche` (validateur), la carte du laboratoire dans le paquet de base (`SAL-011`), la réunion des actions de tous les motifs reconnus, et les préconditions « hors laboratoire » de `diagnostiquer` et `traiter`. Le reste (motif `recherche`, action `analyser`, effet `rechercher`, champ `recherche` des maladies) arrive avec la montée à `schema_version` 2 (voir [PLAN_DE_CODAGE.md](PLAN_DE_CODAGE.md) §5.2, étape 10). Règles du jeu : [MODELE_DE_JEU.md §12](MODELE_DE_JEU.md#12-recherche-en-laboratoire).
+Règles du jeu : [MODELE_DE_JEU.md §12](MODELE_DE_JEU.md#12-recherche-en-laboratoire). Code : `packages/moteur/lib/moteur/partie.dart` (effet et condition), `recette.dart` (rédaction des recettes), `etat.dart` (maladies suspectées et compteur commun).
 
 ### 9.1 Spécialité réservée
 
@@ -296,37 +314,37 @@ Un paquet est **refusé** s'il comporte au moins une erreur ; les avertissements
 
 ### 9.2 Motif et exclusivité du laboratoire
 
-```json
-"motifs": {
-  "admission": { "patient": [1, 1], "total": [1, 1] },
-  "standard":  { "patient": [1, 1], "medecin": [1, 2], "salle": [1, 1], "objet|diplome": [0, 1], "total": [3, 5] },
-  "recherche": { "patient": [1, 1], "medecin": [1, 1], "salle": [1, 1], "objet|diplome": [0, 1], "total": [3, 4] }
-}
-```
-
-Le motif `recherche` accepte un accessoire (objet ou diplôme), pour les cartes qui aident à la recherche (§9.6). Une sélection médecin + patient + salle (+ accessoire) correspond à la fois à `standard` et à `recherche` : l'hôte réunit leurs actions (§3), et les préconditions font le tri :
+Le motif `recherche` (§3) accepte 1 médecin, 1 patient, 1 salle et un accessoire facultatif (objet ou diplôme), pour les cartes qui aident à la recherche (§9.6). Une sélection médecin + patient + salle (+ accessoire) correspond à la fois à `standard` et à `recherche` : l'hôte réunit leurs actions (§3), et les préconditions font le tri :
 
 | Salle | `diagnostiquer`, `traiter` | `analyser` |
 |---|---|---|
-| Laboratoire (spécialité `recherche`) | non : précondition « hors laboratoire » | oui |
+| Laboratoire (spécialité `recherche`) | non : précondition « hors laboratoire » | oui, si le patient a été diagnostiqué |
 | Toute autre salle | oui | non : précondition « au laboratoire » |
 
-Le laboratoire ne permet donc **ni de diagnostiquer ni de traiter**, et aucune autre salle ne permet d'**analyser**. Un laboratoire avec deux médecins ne correspond qu'au motif standard : aucune action n'est proposée.
+Le laboratoire ne permet donc **ni de diagnostiquer ni de traiter**, et aucune autre salle ne permet d'**analyser**. Un laboratoire avec deux médecins ne correspond qu'au motif standard : aucune action n'est proposée (« Aucune action possible avec ces cartes. »).
 
 ### 9.3 Action `analyser`
 
-- `motif` : `recherche` ; précondition : `patient_en_jeu`, **et** `patient_diagnostique` (nouvelle condition : le patient a des maladies suspectées), **et** `{ "combinaison": { "compte": { "type": "salle", "specialite": "recherche" }, "min": 1 } }`. Un patient jamais diagnostiqué est refusé sans coût (« Aucune piste — faire d'abord un diagnostic »).
-- **Paramètre choisi par le joueur à la confirmation** : la maladie analysée (`maladie_id`), dans la liste des maladies suspectées du patient.
-- Effets : `avancer_temps`, `rechercher` (9.4), `aggraver`, puis pénalité d'attente si dépassée. Aucune pièce gagnée.
+- `motif` : `recherche` ; précondition : `patient_en_jeu`, **et** `patient_diagnostique` (le patient a des maladies suspectées), **et** `{ "combinaison": { "compte": { "type": "salle", "specialite": "recherche" }, "min": 1 } }`. JSON complet : §6.1.
+- Un patient jamais diagnostiqué est refusé sans coût : « Aucune piste pour Mme Garnier : faire d'abord un diagnostic. ». L'hôte donne ce message quand les cartes permettent l'action mais que seule l'état du patient l'empêche, et que la précondition mentionne `patient_diagnostique`.
+- **Maladie choisie par le joueur.** L'aperçu (`SelectionAcceptee`) joint à l'action la liste des maladies suspectées du patient (`maladies` : `{id, nom, specialite}`, dans l'ordre de première apparition). Le joueur en choisit une ; la confirmation la transmet (`maladie_id` dans le message `confirmer`, [SPECIFICATION.md §3.3](SPECIFICATION.md#33-protocole)). Une maladie absente ou non suspectée est refusée sans coût : « Choisissez la maladie à analyser parmi les maladies suspectées — action non appliquée. ». Toute action qui contient l'effet `rechercher` demande ce choix.
+- Effets : `avancer_temps`, `rechercher`, `aggraver`, puis pénalité d'attente si dépassée. Aucune pièce gagnée.
 
-### 9.4 Nouvel effet `rechercher`
+### 9.4 Effet `rechercher`
 
-`{ "effet": "rechercher", "maladie": "<id_maladie>" }` :
+`{ "effet": "rechercher" }`, sans paramètre dans le JSON : la maladie est celle choisie à la confirmation.
 
-1. ajoute au résultat la liste des maladies suspectées du patient (noms mémorisés lors des effets `diagnostiquer` précédents, remis à zéro à chaque admission) ;
-2. retire 1 + la capacité `recherche` de la combinaison au compteur de passages restants de la maladie choisie, sans descendre sous 0 — état **commun à toute la partie**, mémorisé par maladie ; une maladie déjà analysée peut l'être de nouveau : la recette s'affiche une nouvelle fois ;
-3. si le compteur atteint 0 : ajoute au résultat la **recette** de `traitement.adapte`, générée depuis le prédicat (`carte` → « la carte X », `compte` → « N cartes de type/spécialité … », en écrivant « médecins ou diplômes de X » quand un diplôme peut compter, `tous` → conjonction, `non` → « sans … ») ;
-4. sinon : indique le nombre de passages restants (« Analyse en cours — X passage(s) restant(s) »).
+1. Le compteur de la maladie choisie avance de 1 + la capacité `recherche` de la combinaison, sans dépasser `recherche.passages`. Ce compteur est **commun à toute la partie**, mémorisé par maladie (`recherche` dans l'état sauvegardé) : les passages de tous les joueurs et sur tous les patients s'additionnent.
+2. Le résultat porte `analyse` : la maladie choisie, `passages_restants` et, quand il n'en reste plus, la **recette** de `traitement.adapte` ([modèle de jeu §11.1](MODELE_DE_JEU.md#111-format-du-résultat)). Une maladie déjà révélée peut être analysée de nouveau : la recette s'affiche une nouvelle fois, au coût normal d'un passage.
+
+**Rédaction de la recette** (`RedacteurRecette`) :
+
+- une conjonction (`tous`) s'écrit « cartes requises, lieu, exclusions » ;
+- `carte` donne le `nom_phrase` de la carte ; une salle, une alternative entre salles ou un `compte` de salles par identifiant donnent le lieu (`lieu_phrase`), relié par « ou » ;
+- `compte` donne « un médecin », « une salle », « 2 médecins », « au plus un… », « exactement… », « de 1 à 2… », avec « de spécialité X » si le filtre porte une spécialité ; pour des médecins d'une spécialité, la recette précise ce que permet un diplôme : « (ou muni du diplôme de cette spécialité) », ou, s'il en faut deux, « (l'un d'eux peut être remplacé par un médecin muni du diplôme de cette spécialité) » ;
+- « 2 médecins » et « un médecin de spécialité X » dans une même conjonction se lisent ensemble : « 2 médecins, dont un de spécialité X » ;
+- `non` et `compte` avec `max: 0` donnent « sans … » (« sans aucun objet ») ;
+- `un_de` relie ses éléments par « ou », une conjonction imbriquée étant mise entre parenthèses.
 
 ### 9.5 Champ `recherche` d'une maladie
 
@@ -334,8 +352,17 @@ Le laboratoire ne permet donc **ni de diagnostiquer ni de traiter**, et aucune a
 { "id": "maladie_xx", "nom": "…", "recherche": { "passages": 3 } }
 ```
 
-`passages` : entier ≥ 1, défaut 1. Le validateur contrôle la cohérence (entier ≥ 1).
+`passages` : entier ≥ 1, défaut 1. Le validateur le contrôle (§7, règle 11).
 
 ### 9.6 Capacité `recherche`
 
-Déclarable comme toute capacité dans `capacites`, portée par des médecins ou des accessoires : chaque point retire un passage de plus au compteur commun de la maladie analysée (9.4). Un passage reste toujours nécessaire. L'accessoire du motif `recherche` permet de jouer des **objets d'aide à la recherche**, à créer (aucun dans le paquet de base).
+Déclarée comme toute capacité dans `capacites`, portée par des médecins ou des accessoires : chaque point fait avancer d'un passage de plus le compteur commun de la maladie analysée (§9.4). Un passage reste toujours nécessaire. Le paquet de base la donne à trois objets d'aide à la recherche, joués comme accessoire du motif `recherche` : le microscope (`OBJ-017`) et la centrifugeuse (`OBJ-018`), 1 point chacun, et le séquenceur d'ADN (`OBJ-019`), 2 points.
+
+### 9.7 État et sauvegarde
+
+L'état (`format_etat` 3) mémorise :
+
+- pour chaque patient, `suspectees` : les identifiants des maladies apparues dans ses diagnostics depuis l'admission ;
+- pour la partie, `recherche` : les passages comptés par maladie.
+
+Les instantanés d'annulation les contiennent, si bien qu'annuler une analyse rétablit le compteur. Une sauvegarde au format 2 (sans laboratoire) est encore relue, sans maladie suspectée ni analyse. À la reprise avec un autre paquet, une maladie analysée ou suspectée qui n'existe plus est ignorée, avec un avertissement.

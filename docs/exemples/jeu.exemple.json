@@ -4,8 +4,8 @@
   "schema_version": 1,
   "id": "base_exemple",
   "nom": "CardHospital — exemple réduit",
-  "version": "0.4.0",
-  "description": "Sous-ensemble du paquet de base (contenu/paquet_base.json) : mêmes cartes, mêmes maladies et mêmes règles, réduits à 3 spécialités, 21 cartes et 6 maladies. Sert d'exemple dans la documentation et de jeu d'essai aux tests du moteur.",
+  "version": "0.5.0",
+  "description": "Sous-ensemble du paquet de base (contenu/paquet_base.json) : mêmes cartes, mêmes maladies et mêmes règles, réduits à 3 spécialités, 22 cartes et 6 maladies. Sert d'exemple dans la documentation et de jeu d'essai aux tests du moteur.",
   "parametres": {
     "attente_max_defaut": 15,
     "paliers_aggravation": [
@@ -96,6 +96,11 @@
       "id": "stabilisation",
       "nom": "Stabilisation",
       "description": "PV supplémentaires rendus par un traitement partiel."
+    },
+    {
+      "id": "recherche",
+      "nom": "Recherche",
+      "description": "Passages de laboratoire supplémentaires : chaque point fait avancer l'analyse d'un passage de plus."
     }
   ],
   "cartes": {
@@ -238,6 +243,14 @@
       "nom_phrase": "l'antalgique",
       "specialite": "generale"
     },
+    "OBJ-017": {
+      "type": "objet",
+      "nom": "Microscope",
+      "nom_phrase": "le microscope",
+      "capacites": {
+        "recherche": 1
+      }
+    },
     "DIP-001": {
       "type": "diplome",
       "nom": "Diplôme de médecine générale",
@@ -310,6 +323,9 @@
       "recompenses": {
         "pieces_traitement": 5,
         "reputation_echec": -2
+      },
+      "recherche": {
+        "passages": 3
       }
     },
     {
@@ -353,6 +369,9 @@
       },
       "recompenses": {
         "pieces_traitement": 4
+      },
+      "recherche": {
+        "passages": 2
       }
     },
     {
@@ -403,6 +422,9 @@
       },
       "recompenses": {
         "pieces_traitement": 4
+      },
+      "recherche": {
+        "passages": 2
       }
     },
     {
@@ -563,6 +585,28 @@
         3,
         5
       ]
+    },
+    "recherche": {
+      "patient": [
+        1,
+        1
+      ],
+      "medecin": [
+        1,
+        1
+      ],
+      "salle": [
+        1,
+        1
+      ],
+      "objet|diplome": [
+        0,
+        1
+      ],
+      "total": [
+        3,
+        4
+      ]
     }
   },
   "actions": [
@@ -713,6 +757,48 @@
               "effet": "aggraver"
             }
           ]
+        },
+        {
+          "effet": "si",
+          "condition": "attente_depassee",
+          "alors": [
+            {
+              "effet": "reputation",
+              "valeur": "$recompenses.reputation_attente"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "analyser",
+      "libelle": "Analyser",
+      "motif": "recherche",
+      "precondition": {
+        "et": [
+          "patient_en_jeu",
+          "patient_diagnostique",
+          {
+            "combinaison": {
+              "compte": {
+                "type": "salle",
+                "specialite": "recherche"
+              },
+              "min": 1
+            }
+          }
+        ]
+      },
+      "phrase": "Analyse du cas de {patient} par {medecin} {lieu}[ avec {accessoire}].",
+      "effets": [
+        {
+          "effet": "avancer_temps"
+        },
+        {
+          "effet": "rechercher"
+        },
+        {
+          "effet": "aggraver"
         },
         {
           "effet": "si",

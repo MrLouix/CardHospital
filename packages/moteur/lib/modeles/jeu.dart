@@ -308,6 +308,7 @@ class Maladie {
     this.attenteMax,
     this.poids,
     this.recompenses,
+    this.recherche,
   });
 
   factory Maladie.fromJson(Map<String, dynamic> json) =>
@@ -328,6 +329,27 @@ class Maladie {
   final int? poids;
   final Traitement traitement;
   final Recompenses? recompenses;
+
+  /// Analyse en laboratoire (MODELE_DE_JEU.md §12) ; sans ce champ, un seul
+  /// passage révèle la recette.
+  final Recherche? recherche;
+
+  /// Nombre de passages en laboratoire nécessaires pour révéler la recette.
+  int get passages => recherche?.passages ?? 1;
+}
+
+/// Champ `recherche` d'une maladie.
+@JsonSerializable()
+class Recherche {
+  Recherche({this.passages = 1});
+
+  factory Recherche.fromJson(Map<String, dynamic> json) =>
+      _$RechercheFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RechercheToJson(this);
+
+  /// Passages en laboratoire nécessaires (≥ 1).
+  final int passages;
 }
 
 class Motif {

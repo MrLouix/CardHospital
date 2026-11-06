@@ -2,8 +2,11 @@ import 'dart:math' as math;
 
 import '../modeles/jeu.dart';
 import '../moteur/alea.dart';
+import '../moteur/combinaison.dart';
 import '../moteur/diagnostic.dart';
 import '../moteur/etat.dart';
+import '../moteur/partie.dart';
+import '../moteur/reconnaissance.dart';
 import '../moteur/resultat.dart';
 import '../validation/validateur.dart';
 
@@ -11,9 +14,11 @@ import '../validation/validateur.dart';
 const actionAdmettre = 'admettre';
 const actionDiagnostiquer = 'diagnostiquer';
 const actionTraiter = 'traiter';
+const actionAnalyser = 'analyser';
 
-/// Choix d'une stratégie : une action et les cartes hors patient.
-typedef Choix = ({String action, List<String> cartes});
+/// Choix d'une stratégie : une action, les cartes hors patient et, pour une
+/// analyse, la maladie choisie.
+typedef Choix = ({String action, List<String> cartes, String? maladie});
 
 /// Combinaisons standard du paquet (hors patient), indexées pour les
 /// stratégies.
@@ -46,6 +51,7 @@ class CatalogueCombinaisons {
       [for (final c in combinaisons) c.specialites],
       precisions,
       adaptes,
+      _recherches(jeu),
     );
   }
 
@@ -56,7 +62,61 @@ class CatalogueCombinaisons {
     this._specialites,
     this._precisions,
     this._adaptes,
+    this.recherches,
   );
+
+  /// Combinaisons (hors patient) avec lesquelles l'action `analyser` est
+  /// proposée, de la plus grande capacité `recherche` à la plus petite.
+  /// Vide si le paquet n'a pas cette action.
+  final List<List<String>> recherches;
+
+  static List<List<String>> _recherches(Jeu jeu) {
+    final analyser = jeu.actions
+        .where((a) => a.id == actionAnalyser)
+        .firstOrNull;
+    final patient = jeu.cartes.entries
+        .where((e) => e.value.type == TypeCarte.patient)
+        .firstOrNull
+        ?.key;
+    if (analyser == null || patient == null) return const [];
+    List<String> deType(bool Function(TypeCarte) t) => [
+      for (final e in jeu.cartes.entries)
+        if (t(e.value.type)) e.key,
+    ];
+    final reconnaissance = ReconnaissanceCombinaisons(jeu);
+    final trouvees = <(List<String>, int)>[];
+    for (final m in deType((t) => t == TypeCarte.medecin)) {
+      for (final s in deType((t) => t == TypeCarte.salle)) {
+        for (final a in [
+          null,
+          ...deType((t) => t == TypeCarte.objet || t == TypeCarte.diplome),
+        ]) {
+          final cartes = [m, s, ?a];
+          final r = reconnaissance.reconnaitre([patient, ...cartes]);
+          final c = Combinaison(jeu, [patient, ...cartes]);
+          if (r is Apercu &&
+              r.motifs.contains(analyser.motif) &&
+              (analyser.precondition == null ||
+                  c.permet(analyser.precondition!))) {
+            trouvees.add((cartes, c.capacite(capaciteRecherche)));
+          }
+        }
+      }
+    }
+    trouvees.sort((a, b) => b.$2.compareTo(a.$2));
+    return [for (final (cartes, _) in trouvees) cartes];
+  }
+
+  /// Combinaisons d'analyse de meilleure capacité `recherche`.
+  List<List<String>> meilleuresRecherches() {
+    if (recherches.isEmpty) return const [];
+    final c = Combinaison(jeu, recherches.first);
+    final max = c.capacite(capaciteRecherche);
+    return [
+      for (final r in recherches)
+        if (Combinaison(jeu, r).capacite(capaciteRecherche) == max) r,
+    ];
+  }
 
   final Jeu jeu;
 
@@ -145,8 +205,20 @@ class Carnet {
   List<int> recettesDe(String specialite) =>
       _parSpecialite[specialite] ?? const [];
 
-  /// Note le résultat [r] : une guérison révèle la maladie et la recette.
+  /// Note le résultat [r] : une guérison révèle la maladie et la recette ;
+  /// une analyse terminée au laboratoire révèle la recette, et le joueur
+  /// retient l'une des combinaisons qui la satisfont.
   void noter(ResultatAction r) {
+    final analyse = r.analyse;
+    if (analyse != null && analyse.recetteRevelee) {
+      final id = analyse.maladie.id;
+      final adaptees = catalogue.adaptees(id);
+      final specialite = _specialiteDe[id];
+      if (adaptees.isNotEmpty && specialite != null) {
+        _retenir(id, specialite, _parMaladie[id] ?? adaptees.first);
+      }
+      return;
+    }
     final m = r.maladieRevelee;
     if (r.issue != IssuePatient.gueri || m == null) return;
     final i = catalogue.indice([
@@ -155,7 +227,11 @@ class Carnet {
     ]);
     final specialite = _specialiteDe[m.id];
     if (i == null || specialite == null) return;
-    _parMaladie[m.id] = i;
+    _retenir(m.id, specialite, i);
+  }
+
+  void _retenir(String maladie, String specialite, int i) {
+    _parMaladie[maladie] = i;
     _parSpecialite.putIfAbsent(specialite, () => [])
       ..remove(i)
       ..insert(0, i);
@@ -196,7 +272,7 @@ abstract class Strategie {
   );
 
   /// Stratégie décrite par [description] : `hasard`, `seuil:<X>`,
-  /// `couleur:<X>` ou `novice:<X>`.
+  /// `couleur:<X>`, `novice:<X>` ou `novice+labo:<X>`.
   static Strategie depuis(String description) {
     final parties = description.split(':');
     int seuil() {
@@ -216,6 +292,8 @@ abstract class Strategie {
         return StrategieCouleur(seuil());
       case 'novice':
         return StrategieNovice(seuil());
+      case 'novice+labo':
+        return StrategieNovice(seuil(), labo: true);
     }
     throw FormatException('stratégie inconnue : $description');
   }
@@ -237,7 +315,7 @@ class StrategieHasard extends Strategie {
   ) {
     final action = alea.flottant() < 0.5 ? actionDiagnostiquer : actionTraiter;
     final i = (alea.flottant() * catalogue.length).floor();
-    return (action: action, cartes: catalogue.cartes[i]);
+    return (action: action, cartes: catalogue.cartes[i], maladie: null);
   }
 }
 
@@ -292,6 +370,7 @@ class StrategieSeuil extends Strategie {
         return (
           action: actionTraiter,
           cartes: catalogue.tirer(combinaisons, alea),
+          maladie: null,
         );
       }
     }
@@ -301,6 +380,7 @@ class StrategieSeuil extends Strategie {
         catalogue.meilleursDiagnostics(specialitesDiagnostic(historique)),
         alea,
       ),
+      maladie: null,
     );
   }
 }
@@ -333,16 +413,29 @@ class StrategieCouleur extends StrategieSeuil {
 ///
 /// Il diagnostique comme [StrategieSeuil] jusqu'à ce que la maladie en tête
 /// atteigne [seuil]. Pour la soigner, il essaie dans l'ordre : la recette
-/// qu'il a vue guérir cette maladie, puis celles qui ont guéri une maladie
-/// de la même spécialité, puis la combinaison la plus « assortie » à la
-/// couleur de la maladie (le plus de cartes de sa spécialité ; au hasard
-/// parmi les ex æquo). Après [essais] échecs sur une maladie, il l'écarte et
-/// passe à la suivante, ou diagnostique de nouveau.
+/// qu'il connaît pour cette maladie (vue guérir, ou révélée par une
+/// analyse), puis celles qui ont guéri une maladie de la même spécialité,
+/// puis la combinaison la plus « assortie » à la couleur de la maladie (le
+/// plus de cartes de sa spécialité ; au hasard parmi les ex æquo). Après
+/// [essais] échecs sur une maladie, il l'écarte et passe à la suivante, ou
+/// diagnostique de nouveau.
+///
+/// Avec [labo], il analyse au laboratoire une maladie dont il ne connaît pas
+/// la recette avant d'essayer quoi que ce soit, jusqu'à ce que l'analyse la
+/// révèle, avec la combinaison de meilleure capacité `recherche`.
 class StrategieNovice extends Strategie {
-  StrategieNovice(this.seuil, {this.carnet, this.essais = 2});
+  StrategieNovice(
+    this.seuil, {
+    this.carnet,
+    this.essais = 2,
+    this.labo = false,
+  });
 
   final int seuil;
   final int essais;
+
+  /// Analyse au laboratoire les maladies dont la recette est inconnue.
+  final bool labo;
 
   /// Recettes vues réussir pendant la partie (fourni par le simulateur).
   final Carnet? carnet;
@@ -350,7 +443,7 @@ class StrategieNovice extends Strategie {
   final _tentees = <String, Set<int>>{};
 
   @override
-  String get nom => 'novice:$seuil';
+  String get nom => labo ? 'novice+labo:$seuil' : 'novice:$seuil';
 
   @override
   void debutPatient() {
@@ -360,7 +453,14 @@ class StrategieNovice extends Strategie {
 
   @override
   Strategie nouvelle({Carnet? carnet}) =>
-      StrategieNovice(seuil, carnet: carnet, essais: essais);
+      StrategieNovice(seuil, carnet: carnet, essais: essais, labo: labo);
+
+  /// Faut-il analyser [c] au laboratoire avant de la traiter ?
+  bool _analyser(LigneDiagnostic c, CatalogueCombinaisons catalogue) =>
+      labo &&
+      catalogue.recherches.isNotEmpty &&
+      carnet?.recette(c.id) == null &&
+      !(_tentees[c.id]?.isNotEmpty ?? false);
 
   LigneDiagnostic? _candidate(List<ResultatAction> historique) => historique
       .reversed
@@ -403,7 +503,9 @@ class StrategieNovice extends Strategie {
   @override
   bool pret(List<ResultatAction> historique, CatalogueCombinaisons catalogue) {
     final c = _candidate(historique);
-    return c != null && c.indice >= seuil && _essai(c, catalogue, null) != null;
+    return c != null &&
+        c.indice >= seuil &&
+        (_analyser(c, catalogue) || _essai(c, catalogue, null) != null);
   }
 
   @override
@@ -414,11 +516,23 @@ class StrategieNovice extends Strategie {
   ) {
     var c = _candidate(historique);
     while (c != null && c.indice >= seuil) {
+      if (_analyser(c, catalogue)) {
+        final recherches = catalogue.meilleuresRecherches();
+        return (
+          action: actionAnalyser,
+          cartes: recherches[(alea.flottant() * recherches.length).floor()],
+          maladie: c.id,
+        );
+      }
       final i = _essai(c, catalogue, alea);
       if (i != null) {
         final tentees = _tentees.putIfAbsent(c.id, () => {})..add(i);
         if (tentees.length >= essais) _ecartees.add(c.id);
-        return (action: actionTraiter, cartes: catalogue.cartes[i]);
+        return (
+          action: actionTraiter,
+          cartes: catalogue.cartes[i],
+          maladie: null,
+        );
       }
       _ecartees.add(c.id);
       c = _candidate(historique);
@@ -426,6 +540,7 @@ class StrategieNovice extends Strategie {
     return (
       action: actionDiagnostiquer,
       cartes: catalogue.tirer(catalogue.meilleursDiagnostics(const {}), alea),
+      maladie: null,
     );
   }
 }

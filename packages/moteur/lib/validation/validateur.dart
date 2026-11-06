@@ -157,13 +157,25 @@ class Validateur {
         );
       }
     }
-    for (final m in (brut['maladies'] as List? ?? const [])) {
-      final poids = (m as Map)['poids'];
+    final maladies = brut['maladies'] as List? ?? const [];
+    for (var i = 0; i < maladies.length; i++) {
+      final m = maladies[i] as Map;
+      final poids = m['poids'];
       if (poids is int && poids < 1) {
-        final index = (brut['maladies'] as List).indexOf(m);
         erreurs.add(
-          'maladies[$index].poids : une maladie doit avoir un poids d\'au moins 1 ; pour l\'écarter, retirez-la du paquet',
+          'maladies[$i].poids : une maladie doit avoir un poids d\'au moins 1 ; pour l\'écarter, retirez-la du paquet',
         );
+      }
+      final recherche = m['recherche'];
+      if (recherche != null) {
+        final passages = recherche is Map ? recherche['passages'] : null;
+        if (recherche is! Map ||
+            (passages != null && (passages is! int || passages < 1))) {
+          erreurs.add(
+            'maladies[$i].recherche.passages : entier d\'au moins 1 attendu '
+            '(passages en laboratoire pour révéler la recette)',
+          );
+        }
       }
     }
     return erreurs;
@@ -337,6 +349,14 @@ class Validateur {
           '$chemin.motif : le motif « ${a.motif} » n\'est pas déclaré',
         );
       }
+      if (a.effets.any(_rechercher) &&
+          !_exige(a.precondition, 'patient_diagnostique')) {
+        erreurs.add(
+          '$chemin.precondition : une action avec l\'effet « rechercher » '
+          'doit exiger « patient_diagnostique » (le joueur choisit la maladie '
+          'parmi les maladies suspectées)',
+        );
+      }
       for (final e in a.effets) {
         erreurs.addAll(
           _verifierEffet(
@@ -462,6 +482,7 @@ class Validateur {
       'gueri',
       'patient_en_jeu',
       'patient_hors_jeu',
+      'patient_diagnostique',
     };
     final erreurs = <String>[];
     if (c.constante != null && !constantes.contains(c.constante)) {
@@ -630,6 +651,17 @@ class Validateur {
     return resultat;
   }
 
+  static bool _rechercher(Effet e) =>
+      e.effet == 'rechercher' || [...?e.alors, ...?e.sinon].any(_rechercher);
+
+  /// La condition [c] exige-t-elle la constante [constante] (présente hors
+  /// de toute négation et de toute alternative) ?
+  static bool _exige(Condition? c, String constante) {
+    if (c == null) return false;
+    if (c.constante == constante) return true;
+    return c.et?.any((x) => _exige(x, constante)) ?? false;
+  }
+
   static bool _testeTraitementAdapte(Effet e) =>
       (e.condition != null && _conditionTesteAdapte(e.condition!)) ||
       [...?e.alors, ...?e.sinon].any(_testeTraitementAdapte);
@@ -693,7 +725,14 @@ class Validateur {
         }
       }
     }
+    final analyse = j.actions.any((a) => a.effets.any(_rechercher));
     for (final MapEntry(key: id, value: carte) in j.cartes.entries) {
+      if (carte.specialite == specialiteRecherche && !analyse) {
+        avertissements.add(
+          'cartes.$id : aucune action n\'a l\'effet « rechercher » ; le '
+          'laboratoire ne permet aucune action',
+        );
+      }
       if (carte.specialite == ancienNomPolyvalent) {
         avertissements.add(
           'cartes.$id.specialite : « generaliste » est l\'ancien nom de '

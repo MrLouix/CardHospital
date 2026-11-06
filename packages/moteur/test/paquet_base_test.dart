@@ -25,21 +25,29 @@ void main() {
     );
   });
 
-  test('catalogue : 10 médecins, 12 patients, 11 salles, 21 accessoires, '
-      '103 maladies sur 5 spécialités', () {
+  test('catalogue : 10 médecins, 12 patients, 11 salles, 24 accessoires '
+      '(dont 3 d\'aide à la recherche), 103 maladies sur 5 spécialités', () {
     int nombre(TypeCarte type) =>
         jeu.cartes.values.where((c) => c.type == type).length;
     expect(nombre(TypeCarte.medecin), 10);
     expect(nombre(TypeCarte.patient), 12);
     expect(nombre(TypeCarte.salle), 11);
-    expect(nombre(TypeCarte.objet) + nombre(TypeCarte.diplome), 21);
+    expect(nombre(TypeCarte.objet) + nombre(TypeCarte.diplome), 24);
+    expect(
+      {
+        for (final e in jeu.cartes.entries)
+          if (e.value.capacites?.containsKey('recherche') ?? false)
+            e.key: e.value.capacites!['recherche'],
+      },
+      {'OBJ-017': 1, 'OBJ-018': 1, 'OBJ-019': 2},
+    );
     expect(jeu.maladies, hasLength(103));
     expect(jeu.specialites, hasLength(5));
   });
 
   test('aucune maladie n\'est soignée par plus de 10 % des combinaisons, et '
       'chacune peut échouer', () {
-    expect(combinaisons, hasLength(12100));
+    expect(combinaisons, hasLength(13750));
     for (final m in jeu.maladies) {
       final adaptees = combinaisons
           .where((c) => c.satisfait(m.traitement.adapte))
@@ -77,8 +85,8 @@ void main() {
     );
   });
 
-  test('le laboratoire n\'entre dans aucune combinaison de traitement et ne '
-      'permet ni de diagnostiquer ni de traiter', () {
+  test('le laboratoire n\'entre dans aucune combinaison de traitement, ne '
+      'permet ni de diagnostiquer ni de traiter, et sert à analyser', () {
     for (final c in combinaisons) {
       expect(c.ids, isNot(contains('SAL-011')));
     }
@@ -89,15 +97,35 @@ void main() {
       alea: Alea(1),
     );
     partie.confirmer(['PAT-001'], 'admettre');
-    final r = partie.valider(['MED-001', 'PAT-001', 'SAL-011']);
     expect(
-      (r as SelectionRefusee).message,
-      'Aucune action possible avec ces cartes.',
+      (partie.valider([
+        'MED-001',
+        'PAT-001',
+        'SAL-011',
+      ]) as SelectionRefusee).message,
+      'Aucune piste pour Mme Garnier : faire d\'abord un diagnostic.',
     );
+    List<String> actions(List<String> qrs) => [
+      for (final a in (partie.valider(qrs) as SelectionAcceptee).actions) a.id,
+    ];
+    expect(actions(['MED-001', 'PAT-001', 'SAL-001']), [
+      'diagnostiquer',
+      'traiter',
+    ], reason: 'les autres salles restent utilisables à 3 cartes');
+    partie.confirmer(['MED-001', 'PAT-001', 'SAL-001'], 'diagnostiquer');
+    for (final accessoire in ['OBJ-017', 'OBJ-018', 'OBJ-019', 'DIP-001']) {
+      expect(actions(['MED-001', 'PAT-001', 'SAL-011', accessoire]), [
+        'analyser',
+      ]);
+    }
     expect(
-      partie.valider(['MED-001', 'PAT-001', 'SAL-001']),
-      isA<SelectionAcceptee>(),
-      reason: 'les autres salles restent utilisables à 3 cartes',
+      (partie.valider([
+        'MED-001',
+        'MED-002',
+        'PAT-001',
+        'SAL-011',
+      ]) as SelectionRefusee).message,
+      'Aucune action possible avec ces cartes.',
     );
   });
 
@@ -140,6 +168,28 @@ void main() {
       expect(max / total, lessThanOrEqualTo(0.30), reason: 'PV $pv');
     });
     expect(parPv.keys.length, greaterThanOrEqualTo(8), reason: 'PV variés');
+  });
+
+  test('laboratoire : 1 passage aux paliers A et B, 2 au palier C, 3 au '
+      'palier D', () {
+    for (final m in jeu.maladies) {
+      final attendu = m.pvInitial >= 15
+          ? 3
+          : m.pvInitial >= 12
+          ? 2
+          : 1;
+      expect(m.passages, attendu, reason: m.nom);
+    }
+  });
+
+  test('chaque maladie a une recette rédigée, sans identifiant de carte', () {
+    final redacteur = RedacteurRecette(jeu);
+    for (final m in jeu.maladies) {
+      final recette = redacteur.decrire(m.traitement.adapte);
+      expect(recette, endsWith('.'), reason: m.nom);
+      expect(recette, isNot(matches(RegExp(r'[A-Z]{3}-\d{3}'))), reason: m.nom);
+      expect(recette[0], recette[0].toUpperCase(), reason: m.nom);
+    }
   });
 
   test('diagnostic : précision plafonnée à 4, bonus par niveau de 0,8', () {

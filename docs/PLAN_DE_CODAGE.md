@@ -29,7 +29,7 @@ Aucun ne bloque le démarrage. Chacun est tranché au moment du codage, puis rep
 
 | Prérequis | Nécessaire pour | Statut |
 |---|---|---|
-| **Contenu du jeu** : spécialité et capacités de chaque carte, environ 20 maladies pour la phase 1 et 100 pour la phase 5 | Simulateur (phase 1), contenu complet (phase 5) | Fait : paquet de base de 103 maladies ([`contenu/paquet_base.json`](../contenu/paquet_base.json)) ; l'exemple en est un sous-ensemble de 6 maladies. Restent les objets d'aide à la recherche. |
+| **Contenu du jeu** : spécialité et capacités de chaque carte, environ 20 maladies pour la phase 1 et 100 pour la phase 5 | Simulateur (phase 1), contenu complet (phase 5) | Fait : paquet de base de 103 maladies ([`contenu/paquet_base.json`](../contenu/paquet_base.json)) ; l'exemple en est un sous-ensemble de 6 maladies. |
 | **Images des cartes** | Phase 2 et suivantes | Des images provisoires suffisent jusqu'à la phase 4 |
 | **Téléphones de test**, dont un d'entrée de gamme sous API 26–28 | Phase 0 | À réunir |
 | **Impression de la planche de QR** de test, en finition mate et brillante | Phase 0 | Après génération de la planche |
@@ -100,8 +100,7 @@ Ordre de réalisation, chaque étape étant livrée avec ses tests :
 7. [x] **Résultat et état** : formats arrêtés (points P1 et P2), sérialisation et restauration des instantanés.
 8. [x] **Simulateur** (`bin/simuler.dart`) : stratégies simples (traiter au hasard, diagnostiquer jusqu'à X % puis traiter, se fier à la spécialité). Il mesure le taux de guérison, la durée de vie des patients, les pièces et la réputation par action, et produit un rapport reproductible.
 9. [x] **Paquet de base** : [`contenu/paquet_base.json`](../contenu/paquet_base.json), 103 maladies sur 5 spécialités, validé et contrôlé en intégration continue (`test/paquet_base_test.dart` : validation sans avertissement, aucune maladie soignée par plus de 10 % des combinaisons, échec toujours possible, laboratoire exclu). Il remplace le paquet intermédiaire d'environ 20 maladies prévu au départ ; le réglage reste à faire dessus (§5.4).
-10. [ ] **Salle recherche** (`schema_version` 2) : motif `recherche` (médecin + patient + salle + accessoire facultatif), action `analyser` avec choix de la maladie par le joueur, nouvelle condition `patient_diagnostique`, nouvel effet `rechercher`, champ `recherche.passages` des maladies, capacité `recherche` et objets d'aide à la recherche, montée du schéma + migration v1 → v2. Conception : [MOTEUR_EFFETS.md §9](MOTEUR_EFFETS.md#9-salle-recherche-prévu-pour-schema_version-2) et [MODELE_DE_JEU.md §12](MODELE_DE_JEU.md#12-recherche-en-laboratoire). Tests positifs et négatifs.
-    Déjà en place, avec leurs tests : les actions de tous les motifs reconnus sont réunies, puis filtrées par précondition, y compris de combinaison ; une précondition de combinaison non satisfaite donne un message sur les cartes (« Aucune action possible avec ces cartes. ») et non sur l'état du patient ; la valeur réservée `recherche` (salles seulement) ; la carte du laboratoire `SAL-011` dans le paquet de base ; les préconditions « hors laboratoire » de `diagnostiquer` et `traiter`. Restent à faire : l'état (maladies suspectées par patient, passages restants par maladie, à ajouter au format de sauvegarde P2), la condition `patient_diagnostique`, le paramètre `maladie_id` de la confirmation, l'effet `rechercher` et la génération des recettes, les champs du résultat propres à l'analyse, le schéma v2 et sa migration.
+10. [x] **Salle recherche**, faite dans `schema_version` 1 puisqu'aucun paquet n'est publié : motif `recherche` (médecin + patient + salle + accessoire facultatif), action `analyser` avec choix de la maladie parmi les maladies suspectées (paramètre `maladie` de la confirmation, liste jointe à l'aperçu), condition `patient_diagnostique`, effet `rechercher`, champ `recherche.passages` des maladies, capacité `recherche` et 3 objets d'aide à la recherche, rédaction des recettes (`lib/moteur/recette.dart`), champ `analyse` du résultat, état au format 3 (maladies suspectées par patient, compteur commun de passages par maladie ; format 2 encore relu), deux nouvelles règles du validateur et un avertissement. Conception : [MOTEUR_EFFETS.md §9](MOTEUR_EFFETS.md#9-salle-recherche) et [MODELE_DE_JEU.md §12](MODELE_DE_JEU.md#12-recherche-en-laboratoire). Tests positifs et négatifs (`partie_test`, `recette_test`, `exemple_test`, `paquet_base_test`, `simulateur_test`).
 
 Critères de fin : ceux de la [feuille de route](FEUILLE_DE_ROUTE.md#phase-1--moteur-deffets-validateur-et-simulateur), soit une couverture ≥ 90 %, un test négatif par règle de validation et un rapport de simulation reproductible.
 
@@ -130,6 +129,7 @@ Stratégies disponibles :
 | `seuil:X` | Diagnostiquer sans spécialité, à la meilleure précision, jusqu'à ce que la maladie en tête de liste, non encore essayée, atteigne l'indice de suspicion X ; puis la traiter |
 | `couleur:X` | Comme `seuil:X`, mais après un premier diagnostic sans spécialité, diagnostiquer avec la spécialité de la couleur dominante de la dernière liste (la couleur qui a le plus de lignes), pour la confirmer ou l'écarter |
 | `novice:X` | Joueur qui **ne connaît pas les traitements**. Il diagnostique comme `seuil:X` ; pour soigner, il essaie la recette qu'il a vue guérir cette maladie, puis celles qui ont guéri une maladie de la même spécialité, puis la combinaison la plus assortie à la couleur (le plus de cartes de la spécialité). Deux essais par maladie, puis il l'écarte. Ce qu'il a vu réussir est noté dans un carnet de recettes, commun à tous les joueurs quand ils partagent leurs informations |
+| `novice+labo:X` | Comme `novice:X`, mais quand la maladie en tête atteint l'indice X et que sa recette lui est inconnue, il l'**analyse au laboratoire** (avec la combinaison de meilleure capacité `recherche`) jusqu'à ce que la recette soit révélée, puis la traite avec elle. Une recette révélée va dans son carnet |
 
 Le simulateur joue des parties sur une horloge commune : jusqu'à `--en-jeu` patients (3 par défaut) sont en jeu à la fois et pris en charge à tour de rôle ; dès qu'un patient sort, un autre est admis. Chaque patient a sa propre instance de la stratégie. Les cartes des patients morts sont réutilisées : la défausse n'est pas simulée.
 
@@ -152,6 +152,17 @@ Les stratégies voient ce que voit un joueur (résultats des actions, spécialit
 - les stratégies connaissent les traitements : ces taux sont des plafonds.
 
 **Joueur novice** (`novice:70`, même rapport) : il ne guérit que 28 % des patients en Interne et 23 % en Réanimation, contre 96 % et 84 % pour un vétéran (`seuil:70`), avec une réputation par patient fortement négative (−6 à −8). Sans connaître les traitements, l'hôpital ferme.
+
+**Novice au laboratoire** (`novice+labo:70`, même rapport) : il analyse la maladie en tête dès qu'elle atteint l'indice 70, puis la traite avec la recette révélée. Il guérit 89 % des patients en Interne, 79 % en Chirurgien et 67 % en Réanimation, avec environ une analyse par patient, et une réputation par patient de +0,5, −0,5 et −1,5. Le laboratoire comble donc l'essentiel de l'écart entre novice et vétéran. Variantes mesurées sur 300 parties :
+
+| Variante | Interne | Chirurgien | Réanimation |
+|---|---:|---:|---:|
+| Paquet de base (passages 1, 1, 2, 3 ; séquenceur d'ADN à 2) | 88 % | 78 % | 67 % |
+| Les 3 objets d'aide à 1 | 88 % | 78 % | 65 % |
+| Sans objet d'aide à la recherche | 87 % | 76 % | 61 % |
+| Sans objet, passages 1, 2, 3, 4 (paliers A à D) | 82 % | 65 % | 47 % |
+
+Le nombre de passages et les objets pèsent peu : une seule analyse, juste après le diagnostic, révèle la recette de la plupart des maladies. Le simulateur suppose le laboratoire construit dès le départ ; à la table, son prix de construction et le temps qu'il faut pour le financer seront les vrais leviers.
 
 **À 3 joueurs** ([rapport](simulations/rapport_paquet_base_3_joueurs.md)), informations partagées ou privées :
 
@@ -179,7 +190,8 @@ Décisions de la [revue de cohérence](REVUE_COHERENCE.md) (R1 à R7, E2) qui de
 |---|---|---|
 | Horloge commune et paliers d'aggravation (R2) | **Fait** : un tick par diagnostic, traitement ou analyse, aggravation selon la durée de présence par paliers communs, sans rattrapage, attente en ticks ([MODELE_DE_JEU.md §5](MODELE_DE_JEU.md#5-horloge-et-aggravation)) ; le simulateur fait jouer plusieurs patients à la fois (`--en-jeu`, 3 par défaut). Reste : simuler plusieurs joueurs | — |
 | Plusieurs joueurs (E11) | **Fait** : 2 ou 3 joueurs à tour de rôle, informations partagées ou privées (`--joueurs`, `--partage`), mesure des guérisons faites par un autre joueur et de l'écart de pièces. Reste : rendre le partage utile à l'équipe (§5.4) | — |
-| Traitements secrets (E2) | **Fait** : stratégie `novice:X`, qui apprend les traitements pendant la partie (carnet de recettes). Reste : l'aider avec le laboratoire, quand l'action `analyser` existera | — |
+| Traitements secrets (E2) | **Fait** : stratégie `novice:X`, qui apprend les traitements pendant la partie (carnet de recettes), et `novice+labo:X`, qui les découvre au laboratoire | — |
+| Laboratoire (R6) | **Fait** : action `analyser` ([MODELE_DE_JEU.md §12](MODELE_DE_JEU.md#12-recherche-en-laboratoire)). Reste : régler son poids, car il rend un novice presque aussi efficace qu'un vétéran (§5.4) : prix de construction, coût d'une analyse, nombre de passages | Prix des salles |
 | Réglages de table (R1, R2, R3) | Simulateur : réputation de départ, seuil de fermeture, nombre N de patients en jeu et niveau cible de victoire, par difficulté | Simulateur multi-patients |
 | Formation (R1, R4) | Contenu : salle de formation, objets de formation, piste de diplôme ; décider si l'appli valide la combinaison | [Règles de table §11](REGLES_DE_TABLE.md#11-points-à-préciser) |
 | Économie (R4) | Contenu : prix des salles (verso), tuiles de stock des consommables, classement des objets permanents et consommables | [Règles de table §11](REGLES_DE_TABLE.md#11-points-à-préciser) |

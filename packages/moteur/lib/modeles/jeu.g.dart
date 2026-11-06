@@ -231,6 +231,9 @@ Maladie _$MaladieFromJson(Map<String, dynamic> json) => Maladie(
   recompenses: json['recompenses'] == null
       ? null
       : Recompenses.fromJson(json['recompenses'] as Map<String, dynamic>),
+  recherche: json['recherche'] == null
+      ? null
+      : Recherche.fromJson(json['recherche'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$MaladieToJson(Maladie instance) => <String, dynamic>{
@@ -243,6 +246,14 @@ Map<String, dynamic> _$MaladieToJson(Maladie instance) => <String, dynamic>{
   'poids': instance.poids,
   'traitement': instance.traitement,
   'recompenses': instance.recompenses,
+  'recherche': instance.recherche,
+};
+
+Recherche _$RechercheFromJson(Map<String, dynamic> json) =>
+    Recherche(passages: (json['passages'] as num?)?.toInt() ?? 1);
+
+Map<String, dynamic> _$RechercheToJson(Recherche instance) => <String, dynamic>{
+  'passages': instance.passages,
 };
 
 Intervalle _$IntervalleFromJson(Map<String, dynamic> json) =>

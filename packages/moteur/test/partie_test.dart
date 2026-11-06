@@ -599,6 +599,7 @@ void main() {
         'attente_depassee',
         'issue',
         'diagnostic',
+        'analyse',
         'maladie_revelee',
         'pieces',
         'reputation',
@@ -699,61 +700,281 @@ void main() {
   });
 
   group('laboratoire de recherche', () {
-    test('le laboratoire ne sert ni à diagnostiquer ni à traiter', () {
+    /// Patient admis avec la fracture ouverte (3 passages), puis
+    /// diagnostiqué une fois.
+    Partie diagnostiquee() {
+      final partie = _partie(tirages: [tirageFractureOuverte, 0.5]);
+      _appliquer(partie, ['PAT-001'], 'admettre');
+      _appliquer(partie, _diag, 'diagnostiquer');
+      return partie;
+    }
+
+    ResultatAction analyser(Partie partie, List<String> qrs, String maladie) {
+      final reponse = partie.confirmer(qrs, 'analyser', maladie: maladie);
+      if (reponse is ActionRefusee) {
+        fail('analyse refusée : ${reponse.message}');
+      }
+      return (reponse as ActionAppliquee).resultat;
+    }
+
+    test('le laboratoire ne sert ni à diagnostiquer ni à traiter ; sans '
+        'diagnostic, aucune piste', () {
       final partie = _partie();
       _appliquer(partie, ['PAT-001'], 'admettre');
       for (final qrs in [
         _labo,
-        [..._labo, 'OBJ-001'],
-        ['MED-001', 'MED-002', 'PAT-001', 'SAL-011'],
+        [..._labo, 'OBJ-017'],
       ]) {
         expect(
           _refus(partie.valider(qrs)),
-          'Aucune action possible avec ces cartes.',
+          'Aucune piste pour Mme Garnier : faire d\'abord un diagnostic.',
         );
       }
+      expect(
+        _refus(partie.valider(['MED-001', 'MED-002', 'PAT-001', 'SAL-011'])),
+        'Aucune action possible avec ces cartes.',
+        reason: 'deux médecins : seul le motif standard correspond',
+      );
       expect(
         (partie.confirmer(_labo, 'diagnostiquer') as ActionRefusee).message,
         'Cette action n\'est pas possible avec ces cartes — action non '
         'appliquée.',
       );
+      expect(
+        (partie.confirmer(
+          _labo,
+          'analyser',
+          maladie: 'fracture_ouverte',
+        ) as ActionRefusee).message,
+        'Aucune piste pour Mme Garnier : faire d\'abord un diagnostic — '
+        'action non appliquée.',
+      );
+      expect(partie.etat.ticks, 0, reason: 'refus sans coût');
+    });
+
+    test('après un diagnostic, le laboratoire ne propose qu\'« analyser », '
+        'avec les maladies suspectées ; les autres salles ne le proposent '
+        'pas', () {
+      final partie = diagnostiquee();
+      final liste = [
+        for (final l in partie.historique.last.resultat.diagnostic!.maladies)
+          l.id,
+      ];
+      for (final qrs in [
+        _labo,
+        [..._labo, 'OBJ-017'],
+      ]) {
+        final r = partie.valider(qrs) as SelectionAcceptee;
+        expect(r.actions.map((a) => a.id), ['analyser']);
+        expect(r.actions.single.maladies!.map((m) => m.id), liste);
+        expect(r.actions.single.toJson()['maladies'], hasLength(5));
+      }
+      final ailleurs = partie.valider(_diag) as SelectionAcceptee;
+      expect(ailleurs.actions.map((a) => a.id), ['diagnostiquer', 'traiter']);
+      expect(ailleurs.actions.first.maladies, isNull);
+      expect(ailleurs.actions.first.toJson().containsKey('maladies'), isFalse);
+    });
+
+    test('la maladie analysée doit être choisie parmi les suspectées', () {
+      final partie = diagnostiquee();
+      final suspectees = partie.maladiesSuspectees('PAT-001').map((m) => m.id);
+      final absente = _jeu.maladies
+          .map((m) => m.id)
+          .firstWhere((id) => !suspectees.contains(id));
+      for (final maladie in [null, absente, 'inconnue']) {
+        expect(
+          (partie.confirmer(
+            _labo,
+            'analyser',
+            maladie: maladie,
+          ) as ActionRefusee).message,
+          'Choisissez la maladie à analyser parmi les maladies suspectées — '
+          'action non appliquée.',
+          reason: '$maladie',
+        );
+      }
+      expect(partie.etat.ticks, 1, reason: 'seul le diagnostic a compté');
+    });
+
+    test('maladies suspectées : cumulées d\'un diagnostic à l\'autre, sans '
+        'doublon, remises à zéro à l\'admission', () {
+      final partie = _partie(tirages: [tirageMauxDeTete, 0.5]);
+      _appliquer(partie, ['PAT-001'], 'admettre');
+      final d1 = _appliquer(partie, _diag, 'diagnostiquer').diagnostic!;
+      final d2 = _appliquer(partie, _psy, 'diagnostiquer').diagnostic!;
+      final attendues = {
+        for (final l in [...d1.maladies, ...d2.maladies]) l.id,
+      };
+      final suspectees = partie.etat.patients['PAT-001']!.suspectees;
+      expect(suspectees.toSet(), attendues);
+      expect(suspectees, hasLength(attendues.length));
+      expect(suspectees.take(5), d1.maladies.map((l) => l.id));
+
+      partie.etat.patients['PAT-001']!.statut = StatutPatient.sorti;
+      _appliquer(partie, ['PAT-001'], 'admettre');
+      expect(partie.etat.patients['PAT-001']!.suspectees, isEmpty);
+      expect(partie.maladiesSuspectees('PAT-001'), isEmpty);
+      expect(partie.maladiesSuspectees('PAT-002'), isEmpty);
+    });
+
+    test('passages : compteur commun par maladie, capacité « recherche », '
+        'recette révélée puis affichée de nouveau', () {
+      final partie = diagnostiquee();
+      partie.etat.patients['PAT-001']!.suspecter(['fracture_ouverte']);
+      final pv = partie.etat.patients['PAT-001']!.pv;
+
+      final r1 = analyser(partie, _labo, 'fracture_ouverte');
+      expect(r1.action, 'analyser');
+      expect(
+        r1.phrase,
+        'Analyse du cas de Mme Garnier par le Dr Moreau au laboratoire de '
+        'recherche.',
+      );
+      expect(r1.analyse!.maladie.id, 'fracture_ouverte');
+      expect(r1.analyse!.maladie.nom, 'Fracture ouverte');
+      expect(r1.analyse!.maladie.specialite.id, 'orthopedie');
+      expect(r1.analyse!.passagesRestants, 2);
+      expect(r1.analyse!.recetteRevelee, isFalse);
+      expect(r1.analyse!.recette, isNull);
+      expect(r1.pieces, 0, reason: 'une analyse ne rapporte rien');
+      expect(r1.presence, 2, reason: 'l\'analyse fait avancer l\'horloge');
+      expect(r1.pvApres, pv, reason: 'patient encore stable');
+      expect(r1.maladieRevelee, isNull, reason: 'le patient reste en jeu');
+      expect(partie.etat.recherche, {'fracture_ouverte': 1});
+
+      // Le microscope (recherche 1) compte pour un passage de plus.
+      final r2 = analyser(partie, [..._labo, 'OBJ-017'], 'fracture_ouverte');
+      expect(r2.analyse!.passagesRestants, 0);
+      expect(r2.analyse!.recetteRevelee, isTrue);
+      expect(
+        r2.analyse!.recette,
+        '2 médecins de spécialité Orthopédie (l\'un d\'eux peut être '
+        'remplacé par un médecin muni du diplôme de cette spécialité), au '
+        'bloc opératoire.',
+      );
+      expect(partie.etat.recherche, {'fracture_ouverte': 3});
+
+      // Le compteur est commun : un autre patient en profite.
+      _appliquer(partie, ['PAT-002'], 'admettre');
+      partie.etat.patients['PAT-002']!.suspecter(['fracture_ouverte']);
+      final r3 = analyser(partie, [
+        'MED-002',
+        'PAT-002',
+        'SAL-011',
+      ], 'fracture_ouverte');
+      expect(r3.analyse!.passagesRestants, 0);
+      expect(r3.analyse!.recette, r2.analyse!.recette);
+      expect(partie.etat.recherche, {'fracture_ouverte': 3});
+    });
+
+    test('une maladie sans champ « recherche » se révèle en un passage', () {
+      final partie = diagnostiquee();
+      partie.etat.patients['PAT-001']!.suspecter(['maux_de_tete']);
+      final r = analyser(partie, _labo, 'maux_de_tete');
+      expect(r.analyse!.passagesRestants, 0);
+      expect(r.analyse!.recette, isNotEmpty);
+    });
+
+    test('une analyse aggrave le patient et coûte la pénalité d\'attente', () {
+      final partie = diagnostiquee();
+      final p = partie.etat.patients['PAT-001']!..admission = -30;
+      p.suspecter(['fracture_ouverte']);
+      final pv = p.pv;
+      final r = analyser(partie, _labo, 'fracture_ouverte');
+      expect(r.pvApres, pv - 3, reason: 'palier 4 de la fracture ouverte');
+      expect(r.attenteDepassee, isTrue);
+      expect(r.reputation, -1);
+    });
+
+    test('annulation, sauvegarde et résultat sérialisé', () {
+      final partie = diagnostiquee();
+      partie.etat.patients['PAT-001']!.suspecter(['fracture_ouverte']);
+      analyser(partie, _labo, 'fracture_ouverte');
+      final r = analyser(partie, _labo, 'fracture_ouverte');
+
+      final json = r.toJson();
+      expect(json['analyse'], {
+        'maladie': {
+          'id': 'fracture_ouverte',
+          'nom': 'Fracture ouverte',
+          'specialite': {
+            'id': 'orthopedie',
+            'nom': 'Orthopédie',
+            'couleur': '#E66E17',
+            'icone': '🦴',
+          },
+        },
+        'passages_restants': 1,
+        'recette': null,
+      });
+      expect(ResultatAction.fromJson(json).toJson(), json);
+
+      final sauvegarde =
+          jsonDecode(jsonEncode(partie.sauvegarde())) as Map<String, dynamic>;
+      expect(sauvegarde['etat']['format_etat'], 3);
+      expect(sauvegarde['etat']['recherche'], {'fracture_ouverte': 2});
+      expect(
+        sauvegarde['etat']['patients']['PAT-001']['suspectees'],
+        contains('fracture_ouverte'),
+      );
+      final reprise = Partie.restaurer(
+        jeu: _jeu,
+        sauvegarde: sauvegarde,
+        alea: Alea(2),
+      );
+      expect(reprise.etat.recherche, {'fracture_ouverte': 2});
+      expect(
+        reprise.maladiesSuspectees('PAT-001').map((m) => m.id),
+        partie.maladiesSuspectees('PAT-001').map((m) => m.id),
+      );
+
+      partie.annulerDerniereAction();
+      expect(partie.etat.recherche, {'fracture_ouverte': 1});
+      partie.annulerDerniereAction();
+      expect(partie.etat.recherche, isEmpty);
+    });
+
+    test('format_etat 2 (sans laboratoire) encore relu', () {
+      final partie = diagnostiquee();
+      final etat = partie.etat.toJson()
+        ..['format_etat'] = 2
+        ..remove('recherche');
+      (etat['patients']['PAT-001'] as Map).remove('suspectees');
+      final relu = EtatPartie.fromJson(
+        jsonDecode(jsonEncode(etat)) as Map<String, dynamic>,
+      );
+      expect(relu.recherche, isEmpty);
+      expect(relu.patients['PAT-001']!.suspectees, isEmpty);
+      expect(
+        () => EtatPartie.fromJson({...etat, 'format_etat': 1}),
+        throwsFormatException,
+      );
+    });
+
+    test('une maladie analysée absente du paquet : avertissement à la '
+        'reprise', () {
+      final partie = diagnostiquee();
+      partie.etat.recherche['maladie_retiree'] = 1;
+      partie.etat.patients['PAT-001']!.suspecter(['autre_retiree']);
+      final c = CompatibiliteEtat.verifier(partie.etat, _jeu, _paquet);
+      expect(c.compatible, isTrue);
+      expect(
+        c.avertissements.single,
+        contains('autre_retiree, maladie_retiree'),
+      );
+      expect(
+        partie.maladiesSuspectees('PAT-001').map((m) => m.id),
+        isNot(contains('autre_retiree')),
+      );
     });
 
     test('avec un motif « recherche » déclaré en tête, les combinaisons à '
-        '3 cartes hors laboratoire restent standard, et le laboratoire ne '
-        'propose qu\'« analyser », avec ou sans accessoire', () {
+        '3 cartes hors laboratoire restent standard', () {
       final jeu = jeuExemple((brut) {
-        brut['motifs'] = {
-          'recherche': {
-            'patient': [1, 1],
-            'medecin': [1, 1],
-            'salle': [1, 1],
-            'objet|diplome': [0, 1],
-            'total': [3, 4],
-          },
-          ...(brut['motifs'] as Map<String, dynamic>),
-        };
-        (brut['actions'] as List).add({
-          'id': 'analyser',
-          'libelle': 'Analyser',
-          'motif': 'recherche',
-          'precondition': {
-            'et': [
-              'patient_en_jeu',
-              {
-                'combinaison': {
-                  'compte': {'type': 'salle', 'specialite': 'recherche'},
-                  'min': 1,
-                },
-              },
-            ],
-          },
-          'phrase': 'Analyse pour {patient} par {medecin} dans {salle}.',
-          'effets': [
-            {'effet': 'avancer_temps'},
-          ],
-        });
+        final motifs = brut['motifs'] as Map<String, dynamic>;
+        brut['motifs'] = {'recherche': motifs.remove('recherche'), ...motifs};
       });
+      expect(jeu.motifs.keys.first, 'recherche');
       final partie = Partie.nouvelle(
         jeu: jeu,
         paquet: _paquet,
@@ -761,6 +982,7 @@ void main() {
         alea: Alea(1),
       );
       _appliquer(partie, ['PAT-001'], 'admettre');
+      _appliquer(partie, _diag, 'diagnostiquer');
       List<String> actions(List<String> qrs) => [
         for (final a in (partie.valider(qrs) as SelectionAcceptee).actions)
           a.id,
@@ -770,18 +992,6 @@ void main() {
       expect(actions(_orthoDeux), ['diagnostiquer', 'traiter']);
       expect(actions(_labo), ['analyser']);
       expect(actions([..._labo, 'OBJ-001']), ['analyser']);
-      expect(
-        _refus(partie.valider(['MED-001', 'MED-002', 'PAT-001', 'SAL-011'])),
-        'Aucune action possible avec ces cartes.',
-        reason: 'deux médecins : seul le motif standard correspond',
-      );
-      final r = _appliquer(partie, _labo, 'analyser');
-      expect(
-        r.phrase,
-        'Analyse pour Mme Garnier par le Dr Moreau dans le '
-        'laboratoire de recherche.',
-      );
-      expect(r.presence, 1);
     });
   });
 

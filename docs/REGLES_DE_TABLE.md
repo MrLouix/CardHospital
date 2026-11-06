@@ -120,7 +120,7 @@ L'annulation de la dernière action, dans la page admin de l'hôte, est réserv�
 | 3 | Niveau cible de victoire, valeur de départ et seuil de fermeture, N patients en jeu | À fixer au simulateur, par difficulté |
 | 4 | Fin de partie si la pioche est vide (les morts en sortent) avant que quelqu'un gagne | — |
 | 5 | Qui choisit la salle à construire, et quand | — |
-| 6 | Quels objets sont permanents, lesquels sont consommables, et quand un consommable est-il utilisé (au traitement seulement ?) | Permanents : stéthoscope, traité de médecine, défibrillateur, électrocardiographe, thermomètre, tensiomètre, livre de psychanalyse, grimoire, amulette. Consommables : antibiotique, antalgique, anti-inflammatoire, ampoules de glucose, sirop antitussif, plâtre, attelle |
+| 6 | Quels objets sont permanents, lesquels sont consommables, et quand un consommable est-il utilisé (au traitement seulement ?) | Permanents : stéthoscope, traité de médecine, défibrillateur, électrocardiographe, thermomètre, tensiomètre, livre de psychanalyse, grimoire, amulette, et les objets d'aide à la recherche (microscope, centrifugeuse, séquenceur d'ADN). Consommables : antibiotique, antalgique, anti-inflammatoire, ampoules de glucose, sirop antitussif, plâtre, attelle |
 | 7 | Marché d'objets permanents : remplacé après chaque achat ? Prix ? | — |
 | 8 | Formation : rôle de l'appli (scan de la combinaison et validation, ou geste purement physique), nombre de formations par diplôme, choix de la spécialité du diplôme | — |
 | 9 | Budget de l'hôpital au départ | — |

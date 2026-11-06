@@ -1,26 +1,26 @@
-# Rapport de simulation — CardHospital — exemple réduit 0.4.0
+# Rapport de simulation — CardHospital — exemple réduit 0.5.0
 
 Graine 1 · 1000 parties de 10 patients par stratégie et par difficulté, 3 patients en jeu à la fois, 1 joueur · abandon au-delà de 60 actions sur un patient.
 
 ## Synthèse
 
-| Stratégie | Difficulté | Guérison | Mort | Abandon | Actions / patient | Diagnostics / patient | Pièces / action | Réputation / action | Réputation / patient |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| hasard | Interne | 16,2 % | 83,8 % | 0 | 9,40 | 4,70 | 0,74 | -0,77 | -7,27 |
-| seuil:60 | Interne | 99,8 % | 0,2 % | 0 | 2,55 | 1,34 | 1,92 | 0,72 | 1,84 |
-| seuil:80 | Interne | 99,9 % | 0,1 % | 0 | 2,60 | 1,51 | 1,92 | 0,74 | 1,92 |
-| couleur:60 | Interne | 99,9 % | 0,1 % | 0 | 2,55 | 1,34 | 1,92 | 0,73 | 1,86 |
-| couleur:80 | Interne | 99,9 % | 0,1 % | 0 | 2,58 | 1,49 | 1,93 | 0,75 | 1,93 |
-| hasard | Chirurgien | 11,0 % | 89,0 % | 0 | 6,63 | 3,31 | 1,40 | -1,32 | -8,74 |
-| seuil:60 | Chirurgien | 98,6 % | 1,4 % | 0 | 2,52 | 1,33 | 2,87 | 0,66 | 1,66 |
-| seuil:80 | Chirurgien | 99,0 % | 1,0 % | 0 | 2,62 | 1,53 | 2,88 | 0,68 | 1,79 |
-| couleur:60 | Chirurgien | 99,0 % | 1,0 % | 0 | 2,51 | 1,32 | 2,88 | 0,68 | 1,71 |
-| couleur:80 | Chirurgien | 99,2 % | 0,8 % | 0 | 2,56 | 1,48 | 2,91 | 0,71 | 1,82 |
-| hasard | Réanimation | 8,8 % | 91,1 % | 0 | 5,36 | 2,68 | 2,04 | -1,86 | -9,96 |
-| seuil:60 | Réanimation | 97,2 % | 2,8 % | 0 | 2,50 | 1,32 | 3,82 | 0,59 | 1,46 |
-| seuil:80 | Réanimation | 97,4 % | 2,6 % | 0 | 2,56 | 1,49 | 3,86 | 0,64 | 1,63 |
-| couleur:60 | Réanimation | 98,0 % | 2,0 % | 0 | 2,49 | 1,31 | 3,84 | 0,61 | 1,52 |
-| couleur:80 | Réanimation | 98,0 % | 2,0 % | 0 | 2,55 | 1,47 | 3,88 | 0,66 | 1,69 |
+| Stratégie | Difficulté | Guérison | Mort | Abandon | Actions / patient | Diagnostics / patient | Analyses / patient | Pièces / action | Réputation / action | Réputation / patient |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| hasard | Interne | 14,8 % | 85,2 % | 0 | 9,51 | 4,75 | 0,00 | 0,73 | -0,78 | -7,46 |
+| seuil:60 | Interne | 99,8 % | 0,2 % | 0 | 2,55 | 1,34 | 0,00 | 1,92 | 0,72 | 1,84 |
+| seuil:80 | Interne | 99,9 % | 0,1 % | 0 | 2,60 | 1,51 | 0,00 | 1,92 | 0,74 | 1,91 |
+| couleur:60 | Interne | 99,9 % | 0,1 % | 0 | 2,55 | 1,34 | 0,00 | 1,92 | 0,73 | 1,86 |
+| couleur:80 | Interne | 99,9 % | 0,1 % | 0 | 2,58 | 1,49 | 0,00 | 1,93 | 0,74 | 1,93 |
+| hasard | Chirurgien | 10,7 % | 89,3 % | 0 | 6,64 | 3,33 | 0,00 | 1,40 | -1,31 | -8,73 |
+| seuil:60 | Chirurgien | 98,6 % | 1,4 % | 0 | 2,52 | 1,33 | 0,00 | 2,87 | 0,66 | 1,66 |
+| seuil:80 | Chirurgien | 98,9 % | 1,1 % | 0 | 2,62 | 1,52 | 0,00 | 2,88 | 0,68 | 1,79 |
+| couleur:60 | Chirurgien | 99,0 % | 1,0 % | 0 | 2,51 | 1,32 | 0,00 | 2,88 | 0,68 | 1,71 |
+| couleur:80 | Chirurgien | 99,2 % | 0,8 % | 0 | 2,57 | 1,48 | 0,00 | 2,91 | 0,71 | 1,82 |
+| hasard | Réanimation | 8,3 % | 91,7 % | 0 | 5,35 | 2,68 | 0,00 | 2,03 | -1,88 | -10,04 |
+| seuil:60 | Réanimation | 97,2 % | 2,8 % | 0 | 2,49 | 1,31 | 0,00 | 3,82 | 0,59 | 1,47 |
+| seuil:80 | Réanimation | 97,4 % | 2,6 % | 0 | 2,56 | 1,49 | 0,00 | 3,86 | 0,64 | 1,64 |
+| couleur:60 | Réanimation | 98,0 % | 2,1 % | 0 | 2,49 | 1,31 | 0,00 | 3,84 | 0,61 | 1,51 |
+| couleur:80 | Réanimation | 98,1 % | 1,9 % | 0 | 2,55 | 1,47 | 0,00 | 3,88 | 0,67 | 1,70 |
 
 ## Réputation sur une partie
 
@@ -28,18 +28,18 @@ Cumul des impacts sur une partie (départ à 0). « Minimum » est le point le p
 
 | Stratégie | Difficulté | Finale C5 | Finale C50 | Finale C95 | Minimum C5 | Minimum C50 |
 |---|---|---:|---:|---:|---:|---:|
-| hasard | Interne | -100 | -72 | -48 | -100 | -73 |
+| hasard | Interne | -104 | -74 | -48 | -104 | -74 |
 | seuil:60 | Interne | 14 | 19 | 20 | -1 | 0 |
 | seuil:80 | Interne | 16 | 20 | 20 | 0 | 0 |
 | couleur:60 | Interne | 15 | 19 | 20 | -1 | 0 |
 | couleur:80 | Interne | 17 | 20 | 20 | -1 | 0 |
-| hasard | Chirurgien | -119 | -86 | -62 | -119 | -86 |
+| hasard | Chirurgien | -117 | -86 | -62 | -117 | -86 |
 | seuil:60 | Chirurgien | 6 | 18 | 20 | -3 | 0 |
 | seuil:80 | Chirurgien | 10 | 20 | 20 | -2 | 0 |
 | couleur:60 | Chirurgien | 8 | 18 | 20 | -3 | 0 |
 | couleur:80 | Chirurgien | 10 | 20 | 20 | -2 | 0 |
-| hasard | Réanimation | -127 | -99 | -72 | -127 | -99 |
-| seuil:60 | Réanimation | 3 | 17 | 20 | -7 | 0 |
+| hasard | Réanimation | -128 | -99 | -75 | -128 | -99 |
+| seuil:60 | Réanimation | 3 | 17 | 20 | -6 | 0 |
 | seuil:80 | Réanimation | 4 | 20 | 20 | -4 | 0 |
 | couleur:60 | Réanimation | 3 | 17 | 20 | -6 | 0 |
 | couleur:80 | Réanimation | 7 | 20 | 20 | -4 | 0 |
@@ -50,9 +50,9 @@ Taux de guérison et actions par patient, par stratégie, au niveau Interne.
 
 | Maladie | Spécialité | Poids | hasard | seuil:60 | seuil:80 | couleur:60 | couleur:80 |
 |---|---|---:|---:|---:|---:|---:|---:|
-| Fracture ouverte | orthopedie | 1 | 6,3 % en 7,40 | 99,4 % en 2,69 | 99,5 % en 2,71 | 99,9 % en 2,62 | 99,5 % en 2,68 |
-| Fracture fermée | orthopedie | 2 | 13,0 % en 13,35 | 99,8 % en 2,56 | 99,9 % en 2,56 | 100,0 % en 2,56 | 99,9 % en 2,57 |
-| Angine bactérienne | generale | 1 | 21,2 % en 9,69 | 99,9 % en 2,66 | 99,4 % en 2,83 | 99,9 % en 2,76 | 99,9 % en 2,74 |
-| Maux de tête | generale | 2 | 21,7 % en 10,54 | 99,8 % en 2,54 | 99,9 % en 2,62 | 99,9 % en 2,53 | 99,9 % en 2,57 |
-| Phobie des blouses blanches | psychiatrie | 3 | 20,3 % en 7,26 | 99,9 % en 2,48 | 99,9 % en 2,54 | 99,9 % en 2,45 | 100,0 % en 2,52 |
-| Hypocondrie aiguë | psychiatrie | 2 | 10,1 % en 8,46 | 99,9 % en 2,55 | 99,9 % en 2,58 | 100,0 % en 2,58 | 100,0 % en 2,59 |
+| Fracture ouverte | orthopedie | 1 | 6,4 % en 7,36 | 99,4 % en 2,71 | 99,5 % en 2,71 | 99,9 % en 2,62 | 99,5 % en 2,68 |
+| Fracture fermée | orthopedie | 2 | 11,6 % en 13,56 | 99,8 % en 2,57 | 99,9 % en 2,56 | 100,0 % en 2,56 | 99,9 % en 2,57 |
+| Angine bactérienne | generale | 1 | 17,0 % en 9,79 | 99,9 % en 2,66 | 99,4 % en 2,83 | 99,9 % en 2,76 | 99,9 % en 2,74 |
+| Maux de tête | generale | 2 | 19,8 % en 10,91 | 99,8 % en 2,53 | 99,9 % en 2,62 | 99,9 % en 2,53 | 99,9 % en 2,57 |
+| Phobie des blouses blanches | psychiatrie | 3 | 20,1 % en 7,23 | 99,9 % en 2,48 | 99,9 % en 2,54 | 99,9 % en 2,45 | 100,0 % en 2,52 |
+| Hypocondrie aiguë | psychiatrie | 2 | 8,5 % en 8,47 | 99,9 % en 2,54 | 99,9 % en 2,58 | 100,0 % en 2,58 | 100,0 % en 2,59 |

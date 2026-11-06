@@ -61,7 +61,8 @@ Future<void> main(List<String> args) async {
       abbr: 's',
       help:
           'Stratégies, séparées par des virgules : hasard, seuil:<X>, '
-          'couleur:<X>, novice:<X>.',
+          'couleur:<X>, novice:<X>, novice+labo:<X> (novice qui analyse au '
+          'laboratoire).',
       defaultsTo: 'hasard,seuil:60,seuil:80,couleur:60,couleur:80',
     )
     ..addOption(

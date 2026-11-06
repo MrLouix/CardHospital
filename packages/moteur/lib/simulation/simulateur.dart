@@ -102,6 +102,7 @@ class StatsStrategie {
   /// Actions hors admission.
   int actions = 0;
   int diagnostics = 0;
+  int analyses = 0;
   int pieces = 0;
   int reputation = 0;
 
@@ -131,6 +132,7 @@ class StatsStrategie {
     'abandons': abandons,
     'actions': actions,
     'diagnostics': diagnostics,
+    'analyses': analyses,
     'pieces': pieces,
     'reputation': reputation,
     'taux_guerison': _arrondi(tauxGuerison, 4),
@@ -177,16 +179,17 @@ class RapportSimulation {
       ..writeln()
       ..writeln(
         '| Stratégie | Difficulté | Guérison | Mort | Abandon | '
-        'Actions / patient | Diagnostics / patient | Pièces / action | '
-        'Réputation / action | Réputation / patient |',
+        'Actions / patient | Diagnostics / patient | Analyses / patient | '
+        'Pièces / action | Réputation / action | Réputation / patient |',
       )
-      ..writeln('|---|---|---:|---:|---:|---:|---:|---:|---:|---:|');
+      ..writeln('|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|');
     for (final r in resultats) {
       b.writeln(
         '| ${r.strategie} | ${_nomDifficulte(r.difficulte)} '
         '| ${_pct(r.tauxGuerison)} | ${_pct(r.tauxMort)} '
         '| ${r.abandons} | ${_dec(r.actionsParPatient)} '
         '| ${_dec(r.patients == 0 ? 0 : r.diagnostics / r.patients)} '
+        '| ${_dec(r.patients == 0 ? 0 : r.analyses / r.patients)} '
         '| ${_dec(r.piecesParAction)} | ${_dec(r.reputationParAction)} '
         '| ${_dec(r.reputationParPatient)} |',
       );
@@ -417,10 +420,12 @@ class Simulateur {
           _catalogue,
           alea,
         );
-        final r = _appliquer(partie, [
-          suivi.carte,
-          ...choix.cartes,
-        ], choix.action);
+        final r = _appliquer(
+          partie,
+          [suivi.carte, ...choix.cartes],
+          choix.action,
+          maladie: choix.maladie,
+        );
         suivi.historique.add(r);
         if (partage == false) suivi.parJoueur[joueur].add(r);
         if (r.diagnostic != null) suivi.diagnostiqueurs.add(joueur);
@@ -429,6 +434,7 @@ class Simulateur {
         stats.actions++;
         suivi.stats.actions++;
         if (r.diagnostic != null) stats.diagnostics++;
+        if (r.analyse != null) stats.analyses++;
         stats.pieces += r.pieces;
         stats.reputation += r.reputation;
         cumul += r.reputation;
@@ -461,8 +467,13 @@ class Simulateur {
     return stats;
   }
 
-  ResultatAction _appliquer(Partie partie, List<String> qrs, String action) {
-    final reponse = partie.confirmer(qrs, action);
+  ResultatAction _appliquer(
+    Partie partie,
+    List<String> qrs,
+    String action, {
+    String? maladie,
+  }) {
+    final reponse = partie.confirmer(qrs, action, maladie: maladie);
     return switch (reponse) {
       ActionAppliquee(:final resultat) => resultat,
       ActionRefusee(:final message) => throw StateError(

@@ -63,7 +63,7 @@ Serveur HTTP embarqué (Dart, `shelf`) sur le réseau local et **WebSocket** pou
 | H → C | `bienvenue` | `id_client`, `paquet` (`id`, `version`) | Session acceptée |
 | H → C | `rejet` | `raison` | Jeton invalide ou protocole incompatible |
 | C → H | `valider` | `qrs` : liste des contenus QR sélectionnés | Appui sur « Valider la sélection » |
-| H → C | `apercu` | `apercu_id`, `cartes` (identifiants), `actions` : liste de `{id, libelle, phrase}` | Combinaison reconnue |
+| H → C | `apercu` | `apercu_id`, `cartes` (identifiants), `actions` : liste de `{id, libelle, phrase}`, plus `maladies` (maladies suspectées du patient, `{id, nom, specialite}`) pour l'action `analyser` | Combinaison reconnue |
 | H → C | `refus` | `raison` (message affichable) | Sélection non conforme, patient non admis… |
 | C → H | `confirmer` | `apercu_id`, `action_id`, `maladie_id` (facultatif : maladie choisie pour l'action `analyser`) | Appui sur une action |
 | C → H | `annuler` | `apercu_id` | Appui sur « Annuler » |
@@ -86,7 +86,7 @@ Serveur HTTP embarqué (Dart, `shelf`) sur le réseau local et **WebSocket** pou
 - **Service de premier plan** (*foreground service*, avec notification permanente « Partie CardHospital en cours ») : il porte le serveur et l'état, et survit à un appel entrant ou à un changement d'application.
 - **Verrou de veille partiel** pendant une partie : l'écran peut s'éteindre sans couper le serveur.
 - **Sauvegarde automatique** de l'état après chaque action confirmée. L'écriture est atomique (fichier temporaire puis renommage).
-- **Format de la sauvegarde** (code : `packages/moteur/lib/moteur/etat.dart` et `partie.dart`) : `{ "format_sauvegarde": 1, "etat": …, "historique": [ { "avant": …, "resultat": … } ] }`. L'état contient `format_etat` (2), l'identité du `paquet` (`id`, `version`, `empreinte` SHA-256 du `jeu.json`), la `difficulte`, le nombre d'`actions` confirmées, l'horloge de l'hôpital (`ticks`) et les `patients` déjà admis, par identifiant de carte : `statut` (`en_jeu` ou `sorti`), `maladie`, `pv`, `admission` (tick d'admission) et, pour un patient sorti, `issue` (`gueri` ou `mort`). Un patient jamais admis n'y figure pas. L'historique garde les 5 dernières actions annulables, chacune avec l'instantané pris avant elle. L'état du générateur aléatoire n'est pas sauvegardé : une partie reprise continue avec un hasard neuf.
+- **Format de la sauvegarde** (code : `packages/moteur/lib/moteur/etat.dart` et `partie.dart`) : `{ "format_sauvegarde": 1, "etat": …, "historique": [ { "avant": …, "resultat": … } ] }`. L'état contient `format_etat` (3), l'identité du `paquet` (`id`, `version`, `empreinte` SHA-256 du `jeu.json`), la `difficulte`, le nombre d'`actions` confirmées, l'horloge de l'hôpital (`ticks`) et les `patients` déjà admis, par identifiant de carte : `statut` (`en_jeu` ou `sorti`), `maladie`, `pv`, `admission` (tick d'admission), `suspectees` (maladies apparues dans ses diagnostics, s'il y en a) et, pour un patient sorti, `issue` (`gueri` ou `mort`). Un patient jamais admis n'y figure pas. L'état contient aussi `recherche` : les passages en laboratoire comptés par maladie, communs à toute la partie. Une sauvegarde au format d'état 2, antérieur au laboratoire, est encore relue. L'historique garde les 5 dernières actions annulables, chacune avec l'instantané pris avant elle. L'état du générateur aléatoire n'est pas sauvegardé : une partie reprise continue avec un hasard neuf.
 - **Reprise** : au redémarrage de l'appli hôte, si une partie est en cours, l'appli propose de la reprendre. Le jeton est conservé : les clients se reconnectent seuls si l'adresse IP n'a pas changé, et sinon ils doivent rescanner le QR de connexion.
 - **Reconnexion des clients** : automatique, avec des délais croissants (1, 2, 4, 8 s, puis toutes les 10 s), et un bandeau « Connexion à l'hôte perdue… » tant qu'elle n'est pas rétablie.
 
@@ -126,7 +126,7 @@ Le bouton **« Valider la sélection »** envoie la liste des QR à l'hôte (`va
 ### 5.3 Écran de confirmation
 
 1. Les **images des cartes** de la combinaison, côte à côte.
-2. Pour chaque action possible, un bouton (« Admettre », « Diagnostiquer », « Traiter », « Analyser » selon les motifs reconnus et les préconditions : le laboratoire ne propose qu'« Analyser ») accompagné de sa **phrase d'aperçu** calculée par l'hôte, par exemple : *« Tentative de soin de M. Dupont par le Dr Cassagne et le Dr Vasseur dans le bloc opératoire. »*
+2. Pour chaque action possible, un bouton (« Admettre », « Diagnostiquer », « Traiter », « Analyser » selon les motifs reconnus et les préconditions : le laboratoire ne propose qu'« Analyser ») accompagné de sa **phrase d'aperçu** calculée par l'hôte, par exemple : *« Tentative de soin de M. Dupont par le Dr Cassagne et le Dr Vasseur au bloc opératoire. »* Pour « Analyser », l'écran affiche aussi la liste des maladies suspectées du patient, avec la couleur et l'icône de leur spécialité : le joueur en choisit une avant de confirmer.
 3. Un bouton **« Annuler »** : rien n'est appliqué et l'appli revient à la sélection.
 
 L'aperçu ne révèle **aucune information cachée** (maladie, PV).
@@ -137,12 +137,12 @@ L'aperçu ne révèle **aucune information cachée** (maladie, PV).
 
 ### 5.5 Confirmation et revalidation
 
-À la réception de `confirmer`, l'hôte **réévalue la précondition** de l'action sur l'état courant, car celui-ci a pu changer depuis l'aperçu. Si elle n'est plus vérifiée (patient mort, sorti, ou déjà admis entre-temps), l'action n'est pas appliquée et le client reçoit un refus : « M. Dupont n'est plus en jeu — action non appliquée ». Sinon, l'hôte prend un instantané, applique les effets, sauvegarde, puis envoie le résultat.
+À la réception de `confirmer`, l'hôte **réévalue la précondition** de l'action sur l'état courant, car celui-ci a pu changer depuis l'aperçu. Si elle n'est plus vérifiée (patient mort, sorti, ou déjà admis entre-temps), l'action n'est pas appliquée et le client reçoit un refus : « M. Dupont n'est plus en jeu — action non appliquée ». Pour une analyse, la maladie choisie doit figurer parmi les maladies suspectées du patient, sinon l'action est refusée de la même façon. Sinon, l'hôte prend un instantané, applique les effets, sauvegarde, puis envoie le résultat.
 
 ### 5.6 Écran de résultat
 
 - Visible **uniquement** sur le téléphone de l'acteur. Il n'existe ni bouton « révéler », ni envoi aux autres téléphones.
-- Contenu : PV avant → après, durée de présence du patient et éventuelle attente dépassée, diagnostic (liste des 5 maladies les plus suspectes, chacune avec son indice de suspicion, la couleur et l'icône de sa spécialité), issue (en jeu, guéri ou mort, avec la maladie révélée à la sortie), pièces gagnées, impact sur la réputation. Pour une **analyse** (laboratoire de recherche) s'ajoutent : la liste des maladies suspectées du patient, la maladie choisie, et les passages restants ou la recette révélée. Le détail figure dans [MODELE_DE_JEU.md §11](MODELE_DE_JEU.md#11-contenu-dun-résultat).
+- Contenu : PV avant → après, durée de présence du patient et éventuelle attente dépassée, diagnostic (liste des 5 maladies les plus suspectes, chacune avec son indice de suspicion, la couleur et l'icône de sa spécialité), issue (en jeu, guéri ou mort, avec la maladie révélée à la sortie), pièces gagnées, impact sur la réputation. Pour une **analyse** (laboratoire de recherche) s'ajoutent : la maladie choisie, et les passages restants ou la recette révélée (« L'antibiotique, dans la salle de consultation ou à la pharmacie. »). Le détail figure dans [MODELE_DE_JEU.md §11](MODELE_DE_JEU.md#11-contenu-dun-résultat).
 - Deux rappels : « Pièces : à garder, à donner à l'hôpital ou à verser à une construction ou à un réapprovisionnement » et, si l'impact n'est pas nul, « Réputation : +4 à garder pour votre médecin ou à laisser à l'hôpital » pour un gain, « Réputation : −2 à reporter sur la piste de l'hôpital ou à prendre pour vous » pour une perte ([règles de table §3](REGLES_DE_TABLE.md#3-pièces-réputation-et-points-de-victoire)).
 - À la mort d'un patient, un rappel : « Défaussez la carte de Mme Garnier ».
 - Un bouton **« OK / Fin de l'action »** ramène à l'écran de sélection.
@@ -206,7 +206,7 @@ Le contenu et les règles sont décrits par un **paquet de jeu** :
 - le **paquet de base** est embarqué ; les **extensions** sont des `.zip` importés, contenant `jeu.json` et un dossier `images/` réservé ;
 - en v1, les extensions **n'ajoutent ni ne modifient de cartes** : elles modifient les maladies, les traitements, les paramètres, les récompenses, les difficultés et les phrases ;
 - **ce qui est imprimé** sur une carte : son image, son QR code, son type, son nom, sa spécialité (couleur et icône) et ses capacités ; c'est pourquoi une extension ne peut pas les changer ([MOTEUR_EFFETS.md §1.2](MOTEUR_EFFETS.md#12-ce-quune-extension-peut-faire-en-v1)) ;
-- le **catalogue** du paquet de base compte 10 médecins, 12 patients, 21 objets et diplômes (plus les objets d'aide à la recherche, à créer), 11 salles dont le laboratoire de recherche, et 103 maladies ;
+- le **catalogue** du paquet de base compte 10 médecins, 12 patients, 24 objets et diplômes (dont 3 objets d'aide à la recherche), 11 salles dont le laboratoire de recherche, et 103 maladies ;
 - chaque paquet est validé à l'import (JSON Schema et contrôles sémantiques) et versionné.
 
 Le détail est dans [MOTEUR_EFFETS.md](MOTEUR_EFFETS.md).
@@ -268,7 +268,7 @@ Permissions Android : `CAMERA`, `INTERNET`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK
 | D17 | L'aperçu est calculé par l'hôte | §5.2 |
 | D18 | Extensions au format `.zip` (JSON + images) | [Moteur §1](MOTEUR_EFFETS.md#1-paquet-de-jeu) |
 | D19 | Les extensions n'ajoutent ni ne modifient de cartes en v1 (type, nom, spécialité et capacités sont imprimés) | [Moteur §1.2](MOTEUR_EFFETS.md#12-ce-quune-extension-peut-faire-en-v1) |
-| D20 | Catalogue du paquet de base : 10 médecins, 12 patients, 21 objets/diplômes, 11 salles dont le laboratoire, 103 maladies | §8 |
+| D20 | Catalogue du paquet de base : 10 médecins, 12 patients, 24 objets/diplômes (dont 3 d'aide à la recherche), 11 salles dont le laboratoire, 103 maladies | §8 |
 | D21 | La page admin sert au démarrage et à la connexion ; le reste est du debug | §7 |
 | D22 | Réputation tenue à la main ; sous un seuil, l'hôpital ferme et tous les joueurs perdent (règle de table, l'appli ne tient pas le total) | [Modèle §7.1](MODELE_DE_JEU.md#71-réputation-et-fermeture-de-lhôpital) |
 | D26 | L'appli n'est pas intrusive : elle gère les maladies et les résultats ; tours, économie, formation et victoire se jouent à la table | [Règles de table](REGLES_DE_TABLE.md) |
@@ -276,7 +276,7 @@ Permissions Android : `CAMERA`, `INTERNET`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK
 | D28 | Patients guéris remis dans la pioche, patients morts défaussés | [Modèle §4.2](MODELE_DE_JEU.md#42-sortie) |
 | D29 | Traitements secrets : le livret ne donne pas la correspondance maladie – traitement | [Règles de table §9](REGLES_DE_TABLE.md#9-traitements-secrets) |
 | D30 | Pas de bluff : on peut garder un résultat pour soi, pas mentir | [Règles de table §8](REGLES_DE_TABLE.md#8-partager-linformation) |
-| D23 | Salle recherche : motif `recherche` (médecin + patient + salle + accessoire facultatif) ; les actions de tous les motifs reconnus sont réunies puis filtrées par précondition, si bien que le laboratoire ne sert qu'à analyser et qu'aucune autre salle ne permet d'analyser ; action `analyser` avec choix d'une maladie suspectée, révélation de la recette complète du traitement adapté après `recherche.passages` passages (global à la partie), coût = temps + aggravation, aucune pièce | [Modèle §12](MODELE_DE_JEU.md#12-recherche-en-laboratoire) |
+| D23 | Salle recherche : motif `recherche` (médecin + patient + salle + accessoire facultatif) ; les actions de tous les motifs reconnus sont réunies puis filtrées par précondition, si bien que le laboratoire ne sert qu'à analyser et qu'aucune autre salle ne permet d'analyser ; action `analyser` avec choix d'une maladie suspectée, révélation de la recette complète du traitement adapté après `recherche.passages` passages (global à la partie), coût = temps + aggravation, aucune pièce. Implémentée dans `schema_version` 1 (aucun paquet n'est encore publié) ; paquet de base : 1, 2 ou 3 passages selon le palier de gravité, 3 objets d'aide à la recherche | [Modèle §12](MODELE_DE_JEU.md#12-recherche-en-laboratoire) |
 | D24 | Les joueurs jouent à tour de rôle, même avec plusieurs smartphones ; l'appli n'impose aucun ordre de jeu et ne bloque pas deux actions simultanées | §1, [Modèle §1](MODELE_DE_JEU.md#1-partage-des-responsabilités) |
 | D25 | Les joueurs peuvent partager leurs diagnostics ou les garder pour eux ; les probabilités sont réglées pour que ne rien mettre en commun rende la défaite commune (réputation sous le seuil de fermeture) quasi inévitable | [Modèle §8.6](MODELE_DE_JEU.md#86-partage-des-diagnostics-entre-joueurs) |
 

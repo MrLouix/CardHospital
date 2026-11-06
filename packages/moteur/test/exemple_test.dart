@@ -13,13 +13,15 @@ void main() {
     final jeu = Jeu.fromJson(brut);
     expect(jeu.format, 'cardhospital');
     expect(jeu.schemaVersion, 1);
-    expect(jeu.cartes.length, 21);
+    expect(jeu.cartes.length, 22);
     expect(jeu.maladies.length, 6);
-    expect(jeu.motifs.keys, containsAll(['admission', 'standard']));
-    expect(
-      jeu.actions.map((a) => a.id),
-      containsAll(['admettre', 'diagnostiquer', 'traiter']),
-    );
+    expect(jeu.motifs.keys, ['admission', 'standard', 'recherche']);
+    expect(jeu.actions.map((a) => a.id), [
+      'admettre',
+      'diagnostiquer',
+      'traiter',
+      'analyser',
+    ]);
     expect(jeu.cartes['MED-001']!.type, TypeCarte.medecin);
     expect(
       jeu.maladies.first.traitement.adapte.toJson(),
@@ -64,6 +66,52 @@ void main() {
     }
   });
 
+  test('laboratoire : passages d\'au moins 1, analyse réservée aux patients '
+      'diagnostiqués, laboratoire sans action : avertissement', () {
+    for (final passages in [0, -1, 'deux']) {
+      final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
+      (copie['maladies'] as List)[1]['recherche'] = {'passages': passages};
+      expect(
+        Validateur().validerJson(copie).erreurs,
+        contains(startsWith('maladies[1].recherche.passages')),
+        reason: '$passages',
+      );
+    }
+
+    final sansPiste = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
+    final analyser = (sansPiste['actions'] as List).last as Map;
+    expect(analyser['id'], 'analyser');
+    analyser['precondition'] = {
+      'et': [
+        'patient_en_jeu',
+        {
+          'ou': ['patient_diagnostique', 'gueri'],
+        },
+      ],
+    };
+    expect(
+      Validateur().validerJson(sansPiste, jeu: Jeu.fromJson(sansPiste)).erreurs,
+      contains(
+        startsWith(
+          'actions[3].precondition : une action avec '
+          'l\'effet « rechercher »',
+        ),
+      ),
+    );
+
+    final sansAnalyse = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
+    (sansAnalyse['actions'] as List).removeLast();
+    final rapport = Validateur().validerJson(
+      sansAnalyse,
+      jeu: Jeu.fromJson(sansAnalyse),
+    );
+    expect(rapport.valide, isTrue);
+    expect(
+      rapport.avertissements,
+      contains(startsWith('cartes.SAL-011 : aucune action n\'a l\'effet')),
+    );
+  });
+
   test('une spécialité non déclarée est refusée', () {
     final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
     (copie['maladies'] as List)[0]['specialite'] = 'cardiologie';
@@ -103,9 +151,9 @@ void main() {
   test('combinaisons de traitement énumérées sans doublon de carte, '
       'laboratoire exclu', () {
     final combinaisons = Validateur.combinaisonsPossibles(Jeu.fromJson(brut));
-    // 6 salles hors laboratoire, 7 accessoires. 1 médecin : 5 × 6 × (1 + 7) ;
-    // 2 médecins : 10 paires × 6 × (1 + 7).
-    expect(combinaisons, hasLength(5 * 6 * 8 + 10 * 6 * 8));
+    // 6 salles hors laboratoire, 8 accessoires. 1 médecin : 5 × 6 × (1 + 8) ;
+    // 2 médecins : 10 paires × 6 × (1 + 8).
+    expect(combinaisons, hasLength(5 * 6 * 9 + 10 * 6 * 9));
     for (final c in combinaisons) {
       expect(c.ids.toSet(), hasLength(c.ids.length));
       expect(c.ids, isNot(contains('SAL-011')));

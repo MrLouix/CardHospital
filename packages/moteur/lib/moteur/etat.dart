@@ -37,7 +37,8 @@ class EtatPatient {
     required this.pv,
     required this.admission,
     this.issue,
-  });
+    List<String>? suspectees,
+  }) : suspectees = suspectees ?? [];
 
   factory EtatPatient.fromJson(Map<String, dynamic> json) => EtatPatient(
     statut: _decoder(_statuts, json['statut']),
@@ -47,6 +48,7 @@ class EtatPatient {
     issue: json['issue'] == null
         ? null
         : issueDepuisNom(json['issue'] as String),
+    suspectees: (json['suspectees'] as List?)?.cast<String>().toList(),
   );
 
   StatutPatient statut;
@@ -65,6 +67,19 @@ class EtatPatient {
   /// Issue de la sortie (`gueri` ou `mort`), quand le patient est sorti.
   IssuePatient? issue;
 
+  /// Maladies suspectées : identifiants des maladies apparues dans les
+  /// listes de ses diagnostics depuis l'admission, dans l'ordre de première
+  /// apparition (MODELE_DE_JEU.md §12.2). Vide tant qu'il n'a pas été
+  /// diagnostiqué.
+  final List<String> suspectees;
+
+  /// Ajoute les maladies [ids] aux maladies suspectées, sans doublon.
+  void suspecter(Iterable<String> ids) {
+    for (final id in ids) {
+      if (!suspectees.contains(id)) suspectees.add(id);
+    }
+  }
+
   bool get enJeu => statut == StatutPatient.enJeu;
 
   EtatPatient copie() => EtatPatient(
@@ -73,6 +88,7 @@ class EtatPatient {
     pv: pv,
     admission: admission,
     issue: issue,
+    suspectees: [...suspectees],
   );
 
   Map<String, dynamic> toJson() => {
@@ -81,6 +97,7 @@ class EtatPatient {
     'pv': pv,
     'admission': admission,
     if (issue != null) 'issue': nomIssue(issue!),
+    if (suspectees.isNotEmpty) 'suspectees': suspectees,
   };
 }
 
@@ -145,11 +162,15 @@ class EtatPartie {
     this.actions = 0,
     this.ticks = 0,
     Map<String, EtatPatient>? patients,
-  }) : patients = patients ?? {};
+    Map<String, int>? recherche,
+  }) : patients = patients ?? {},
+       recherche = recherche ?? {};
 
+  /// Lit un état sérialisé, au format courant ou au format 2 (sans
+  /// laboratoire : aucune maladie suspectée, aucune analyse).
   factory EtatPartie.fromJson(Map<String, dynamic> json) {
     final version = json['format_etat'];
-    if (version != formatEtat) {
+    if (version != formatEtat && version != 2) {
       throw FormatException('format_etat non supporté : $version');
     }
     return EtatPartie(
@@ -161,11 +182,14 @@ class EtatPartie {
         (id, p) =>
             MapEntry(id, EtatPatient.fromJson(p as Map<String, dynamic>)),
       ),
+      recherche: (json['recherche'] as Map<String, dynamic>?)?.map(
+        (id, n) => MapEntry(id, n as int),
+      ),
     );
   }
 
   /// Version du format de l'état sérialisé.
-  static const formatEtat = 2;
+  static const formatEtat = 3;
 
   final IdentitePaquet paquet;
 
@@ -185,6 +209,11 @@ class EtatPartie {
   /// carte.
   final Map<String, EtatPatient> patients;
 
+  /// Passages en laboratoire déjà comptés pour chaque maladie analysée,
+  /// tous joueurs et tous patients confondus (MODELE_DE_JEU.md §12.3),
+  /// plafonnés au nombre de passages de la maladie.
+  final Map<String, int> recherche;
+
   /// Le patient [id] est-il en jeu ?
   bool enJeu(String id) => patients[id]?.enJeu ?? false;
 
@@ -195,6 +224,7 @@ class EtatPartie {
     actions: actions,
     ticks: ticks,
     patients: patients.map((id, p) => MapEntry(id, p.copie())),
+    recherche: {...recherche},
   );
 
   Map<String, dynamic> toJson() => {
@@ -204,6 +234,7 @@ class EtatPartie {
     'actions': actions,
     'ticks': ticks,
     'patients': patients.map((id, p) => MapEntry(id, p.toJson())),
+    'recherche': recherche,
   };
 }
 
@@ -245,6 +276,18 @@ class CompatibiliteEtat {
           'n\'existe plus',
         );
       }
+    }
+    // Analyses et maladies suspectées : une maladie disparue du paquet est
+    // simplement oubliée à la reprise, sans bloquer la partie.
+    final oubliees = {
+      ...etat.recherche.keys,
+      for (final p in etat.patients.values) ...p.suspectees,
+    }.difference(maladies);
+    if (oubliees.isNotEmpty) {
+      avertissements.add(
+        'Maladies analysées ou suspectées absentes du paquet actif, '
+        'ignorées : ${(oubliees.toList()..sort()).join(', ')}.',
+      );
     }
     return CompatibiliteEtat._(erreurs, avertissements);
   }

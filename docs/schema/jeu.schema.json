@@ -202,7 +202,14 @@
             "partiel": { "$ref": "#/$defs/predicat" }
           }
         },
-        "recompenses": { "$ref": "#/$defs/recompenses" }
+        "recompenses": { "$ref": "#/$defs/recompenses" },
+        "recherche": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "passages": { "$ref": "#/$defs/entier_positif", "description": "Passages en laboratoire nécessaires pour révéler la recette (défaut 1)." }
+          }
+        }
       }
     },
 
@@ -280,7 +287,7 @@
 
     "condition": {
       "oneOf": [
-        { "enum": ["traitement_adapte", "traitement_partiel", "attente_depassee", "gueri", "patient_en_jeu", "patient_hors_jeu"] },
+        { "enum": ["traitement_adapte", "traitement_partiel", "attente_depassee", "gueri", "patient_en_jeu", "patient_hors_jeu", "patient_diagnostique"] },
         {
           "type": "object", "additionalProperties": false, "required": ["et"],
           "properties": { "et": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/condition" } } }
@@ -315,7 +322,7 @@
       "oneOf": [
         {
           "type": "object", "additionalProperties": false, "required": ["effet"],
-          "properties": { "effet": { "enum": ["admettre", "avancer_temps", "diagnostiquer", "aggraver", "soigner"] } }
+          "properties": { "effet": { "enum": ["admettre", "avancer_temps", "diagnostiquer", "aggraver", "soigner", "rechercher"] } }
         },
         {
           "type": "object", "additionalProperties": false, "required": ["effet", "valeur"],

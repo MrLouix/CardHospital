@@ -29,7 +29,7 @@ Règle de table, hors appli, détaillée dans les [règles de table §1](REGLES_
 |---|---|---|
 | Médecins | 10 | carte |
 | Patients | 12 | carte |
-| Objets et diplômes | 21 (16 objets, 5 diplômes), plus les objets d'aide à la recherche à créer (§12.6) | carte |
+| Objets et diplômes | 24 (19 objets, dont 3 d'aide à la recherche, et 5 diplômes) | carte |
 | Salles | 11, dont le laboratoire de recherche | carte |
 | Maladies | 103 (20 par spécialité, 23 en médecine générale) | virtuelle (dans le JSON) |
 | Spécialités | 5 + extensibles | virtuelle |
@@ -91,11 +91,11 @@ Dans le paquet de base, chaque spécialité suit le **même gabarit de gravité*
 |---|---|---|
 | **Admission** | 1 patient, seul | `admettre` (si le patient n'est pas en jeu) |
 | **Standard** | 1 médecin + 1 patient + 1 salle, plus au choix 0 ou 1 second médecin et 0 ou 1 accessoire (objet ou diplôme) : 3 à 5 cartes | `diagnostiquer`, `traiter` — **hors laboratoire** |
-| **Recherche** (`schema_version` 2) | 1 médecin + 1 patient + 1 salle + 0 ou 1 accessoire (objet ou diplôme) | `analyser` (§12) — **au laboratoire seulement** |
+| **Recherche** | 1 médecin + 1 patient + 1 salle + 0 ou 1 accessoire (objet ou diplôme) : 3 ou 4 cartes | `analyser` (§12) — **au laboratoire seulement** |
 
 Toute autre sélection est **refusée avec un message explicite** indiquant ce qui manque ou ce qui est en trop (« Il faut une carte salle », « Une seule carte patient par action », « 2 cartes médecin au maximum »). Une même carte détectée deux fois ne compte qu'une fois.
 
-Une même sélection peut correspondre à plusieurs motifs : médecin + patient + salle correspond à la fois à `standard` et à `recherche`. L'appli **réunit alors les actions** de tous les motifs reconnus, puis ne garde que celles dont la précondition est vérifiée. Ce sont les préconditions qui rendent le laboratoire exclusif : **le laboratoire ne permet que d'analyser, et les autres salles ne permettent pas d'analyser**. Si aucune action ne reste, la sélection est refusée (« Aucune action possible avec ces cartes. »).
+Une même sélection peut correspondre à plusieurs motifs : médecin + patient + salle correspond à la fois à `standard` et à `recherche`. L'appli **réunit alors les actions** de tous les motifs reconnus, puis ne garde que celles dont la précondition est vérifiée. Ce sont les préconditions qui rendent le laboratoire exclusif : **le laboratoire ne permet que d'analyser, et les autres salles ne permettent pas d'analyser**. Si aucune action ne reste, la sélection est refusée : « Aucune action possible avec ces cartes. » quand les cartes sont en cause, ou un message sur le patient quand c'est son état (« Mme Garnier n'est pas en jeu. », « Aucune piste pour Mme Garnier : faire d'abord un diagnostic. »).
 
 ### 3.2 Choix de l'action
 
@@ -340,7 +340,7 @@ Chaque résultat de diagnostic n'apparaît que sur le téléphone du joueur qui 
 
 Les probabilités du diagnostic (§8.3) doivent être calculées et réglées — avec le simulateur, qui devra comporter une stratégie « sans partage » où chaque joueur ne voit que ses propres diagnostics — pour que si les joueurs ne mettent **rien en commun**, la défaite commune (réputation de l'hôpital sous le seuil de fermeture, §7.1) soit **quasi inévitable**.
 
-État mesuré au simulateur, à 3 joueurs ([plan de codage §5.4](PLAN_DE_CODAGE.md#54-premiers-constats-du-simulateur)) : pour des joueurs **vétérans**, qui connaissent les traitements, le partage ne change pas le taux de guérison ; pour des **novices**, il le fait passer de 28 à 34 % en Interne, sans empêcher l'hôpital de fermer. L'objectif n'est pas encore atteint.
+État mesuré au simulateur, à 3 joueurs ([plan de codage §5.4](PLAN_DE_CODAGE.md#54-premiers-constats-du-simulateur)) : pour des joueurs **vétérans**, qui connaissent les traitements, le partage ne change pas le taux de guérison ; pour des **novices** sans laboratoire, il le fait passer de 28 à 34 % en Interne, sans empêcher l'hôpital de fermer. Avec le **laboratoire** (§12), un novice soigne presque autant qu'un vétéran, et l'hôpital tient même sans partage. L'objectif n'est donc pas atteint : le laboratoire est le levier principal à régler (coût d'une analyse, nombre de passages, accès au laboratoire).
 
 ## 9. Ordre de résolution d'une action
 
@@ -403,7 +403,7 @@ Trois niveaux, choisis au lancement de la partie. Chacun ajoute un **bonus entie
 
 ### 11.1 Format du résultat
 
-Le moteur renvoie le résultat sous la forme d'un objet JSON, qui est aussi le contenu du message `resultat` du protocole ([SPECIFICATION.md §3.3](SPECIFICATION.md#33-protocole)). Code : `packages/moteur/lib/moteur/resultat.dart`. Les champs propres à l'analyse (§12) seront ajoutés avec la salle recherche.
+Le moteur renvoie le résultat sous la forme d'un objet JSON, qui est aussi le contenu du message `resultat` du protocole ([SPECIFICATION.md §3.3](SPECIFICATION.md#33-protocole)). Code : `packages/moteur/lib/moteur/resultat.dart`.
 
 | Clé | Type | Contenu |
 |---|---|---|
@@ -418,6 +418,7 @@ Le moteur renvoie le résultat sous la forme d'un objet JSON, qui est aussi le c
 | `attente_depassee` | booléen | `presence > attente_max` |
 | `issue` | `en_jeu`, `gueri` ou `mort` | Issue pour le patient |
 | `diagnostic` | objet ou `null` | `niveau` (N) et `maladies` : liste de `{id, nom, indice, specialite}` triée par indice de suspicion décroissant, où `specialite` vaut `{id, nom, couleur, icone}`. La couleur et l'icône sont recopiées dans le résultat, pour qu'un client puisse afficher la liste sans connaître le paquet actif de l'hôte |
+| `analyse` | objet ou `null` | Pour une analyse (§12) : `maladie` (la maladie choisie, `{id, nom, specialite}`), `passages_restants` (0 : recette révélée) et `recette` (texte, ou `null` tant que des passages restent) |
 | `maladie_revelee` | `{id, nom}` ou `null` | Maladie, si le patient est sorti |
 | `pieces` | entier | Pièces gagnées par l'acteur, bonus de difficulté compris (0 si le patient meurt) |
 | `reputation` | entier signé | Impact total sur la réputation (soin, échec, attente et mort cumulés) |
@@ -430,7 +431,7 @@ Une salle de spécialité `recherche` — le **laboratoire** — permet d'analys
 
 ### 12.2 Maladies suspectées
 
-L'hôte mémorise, pour chaque patient en jeu, l'ensemble des maladies qui ont figuré dans les listes affichées lors de ses diagnostics précédents (§8) : ce sont ses **maladies suspectées**. La liste est remise à zéro à chaque admission (le patient revient avec une nouvelle maladie). Chaque diagnostic affichant 5 maladies, un patient diagnostiqué au moins une fois a toujours des maladies suspectées. Si le patient n'a encore jamais été diagnostiqué, l'action `analyser` n'est pas proposée : la sélection est refusée (« Aucune piste — faire d'abord un diagnostic »), sans rien coûter ni faire avancer l'horloge.
+L'hôte mémorise, pour chaque patient en jeu, l'ensemble des maladies qui ont figuré dans les listes affichées lors de ses diagnostics précédents (§8), dans l'ordre de leur première apparition : ce sont ses **maladies suspectées**. La liste est remise à zéro à chaque admission (le patient revient avec une nouvelle maladie). Chaque diagnostic affichant 5 maladies, un patient diagnostiqué au moins une fois a toujours des maladies suspectées. Si le patient n'a encore jamais été diagnostiqué, l'action `analyser` n'est pas proposée : la sélection est refusée (« Aucune piste pour Mme Garnier : faire d'abord un diagnostic. »), sans rien coûter ni faire avancer l'horloge.
 
 ### 12.3 Déroulement d'un passage
 
@@ -438,7 +439,11 @@ L'hôte mémorise, pour chaque patient en jeu, l'ensemble des maladies qui ont f
 2. L'appli propose la liste des maladies suspectées du patient ; le joueur en choisit une — même une fausse, l'information reste utile pour toute la partie. On peut choisir une maladie déjà analysée : le résultat s'affiche de nouveau, au coût normal d'un passage.
 3. L'hôte retire 1, plus la capacité `recherche` de la combinaison (§12.6), au compteur de **passages restants** de cette maladie, sans descendre sous 0. Ce compteur est **commun à toute la partie** et mémorisé par maladie : les passages de tous les joueurs s'additionnent, et une recette découverte l'est pour tous les patients.
 4. Tant que des passages restent : « Analyse en cours — X passage(s) restant(s) ».
-5. Quand le compteur atteint 0, l'hôte révèle la **recette complète** du traitement adapté : la description des cartes requises, générée depuis le prédicat `traitement.adapte` (ex. « 2 médecins ou diplômes d'orthopédie + le bloc opératoire », « l'antibiotique »).
+5. Quand le compteur atteint 0, l'hôte révèle la **recette complète** du traitement adapté : la description des cartes requises, rédigée depuis le prédicat `traitement.adapte` (code : `packages/moteur/lib/moteur/recette.dart`). Exemples tirés du paquet de base :
+   - « L'antibiotique, dans la salle de consultation ou à la pharmacie. »
+   - « 2 médecins, dont un de spécialité Cardiologie (ou muni du diplôme de cette spécialité), au bloc opératoire. »
+   - « 2 médecins de spécialité Orthopédie (l'un d'eux peut être remplacé par un médecin muni du diplôme de cette spécialité), au bloc opératoire. »
+   - « Un médecin de spécialité Médecine générale (ou muni du diplôme de cette spécialité), dans la salle de consultation, sans aucun objet. »
 
 La recette n'est **pas publique** : comme un diagnostic, elle ne s'affiche que sur le téléphone du joueur qui a analysé, qui la partage ou non. Les autres joueurs la découvrent de toute façon la première fois qu'il l'utilise, en voyant les cartes qu'il joue.
 
@@ -446,14 +451,34 @@ La recette n'est **pas publique** : comme un diagnostic, elle ne s'affiche que s
 
 Chaque maladie peut définir `recherche.passages` dans le JSON (entier ≥ 1, défaut 1) : nombre de passages en laboratoire nécessaires pour révéler sa recette. Sans le champ, la recette se révèle en un seul passage.
 
+Dans le paquet de base, le nombre de passages suit le palier de gravité de la maladie (§2.3) :
+
+| Palier de gravité | PV initiaux | Passages |
+|---|---|---|
+| A, B | 6 à 11 | 1 (champ absent) |
+| C | 12 à 14 | 2 |
+| D | 15 et 16 | 3 |
+
 ### 12.5 Coût d'un passage
 
 Un passage en laboratoire est une action sur le patient comme les autres : il fait avancer l'horloge d'un tick, fait subir au patient la perte de son palier de présence et éventuellement la pénalité d'attente dépassée. Il ne rapporte **aucune pièce**. Analyser plusieurs fois fait donc courir le risque de perdre le patient.
 
 ### 12.6 Capacité `recherche`
 
-Une carte (médecin, objet ou diplôme) peut porter la capacité `recherche` : chaque point retire un passage de plus au compteur commun de la maladie analysée (§12.3). Un passage reste toujours nécessaire pour révéler une recette. La combinaison de recherche accepte un accessoire pour cela : des **objets d'aide à la recherche** sont à créer (le paquet de base n'en contient pas encore).
+Une carte (médecin, objet ou diplôme) peut porter la capacité `recherche` : chaque point retire un passage de plus au compteur commun de la maladie analysée (§12.3). Un passage reste toujours nécessaire pour révéler une recette. La combinaison de recherche accepte un accessoire pour cela. Le paquet de base contient trois **objets d'aide à la recherche**, sans spécialité :
+
+| Carte | Objet | `recherche` |
+|---|---|---|
+| OBJ-017 | Microscope | 1 |
+| OBJ-018 | Centrifugeuse | 1 |
+| OBJ-019 | Séquenceur d'ADN | 2 |
+
+Ce sont des objets permanents ([règles de table §6.1](REGLES_DE_TABLE.md#61-objets-permanents)). Ils peuvent aussi servir d'accessoire dans une combinaison standard, sans effet sur le diagnostic.
 
 ### 12.7 Exclusivité du laboratoire
 
-Le laboratoire ne sert **qu'à analyser** : on ne peut ni y diagnostiquer ni y traiter. Inversement, on ne peut analyser **que** dans le laboratoire. Le paquet de base contient déjà la carte du laboratoire (`SAL-011`) ; tant que l'action `analyser` n'existe pas (`schema_version` 1), elle ne permet donc aucune action.
+Le laboratoire ne sert **qu'à analyser** : on ne peut ni y diagnostiquer ni y traiter. Inversement, on ne peut analyser **que** dans le laboratoire (carte `SAL-011` dans le paquet de base).
+
+### 12.8 Effet mesuré au simulateur
+
+La stratégie `novice+labo:X` du simulateur joue comme le novice (`novice:X`), mais analyse au laboratoire la maladie en tête de liste dès qu'elle atteint l'indice X et que sa recette lui est inconnue, puis la traite avec la recette révélée ([plan de codage §5.4](PLAN_DE_CODAGE.md#54-premiers-constats-du-simulateur)). Le laboratoire change tout pour lui : en Interne, il soigne 89 % de ses patients, contre 28 % sans laboratoire et 95 à 97 % pour un vétéran ; en Réanimation, 67 %, contre 23 % et 81 à 84 %. Le nombre de passages et les objets d'aide à la recherche pèsent peu : même sans objet, il soigne 87 % en Interne, car une seule analyse, juste après le diagnostic, révèle la recette de la plupart des maladies (paliers A et B). Le simulateur suppose toutefois toutes les salles et toutes les cartes disponibles dès le départ, alors qu'à la table le laboratoire s'achète en cours de partie ([règles de table §1 et §5](REGLES_DE_TABLE.md#5-construire-une-salle)) : son prix de construction est donc un levier d'équilibrage.

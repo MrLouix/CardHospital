@@ -29,8 +29,15 @@ void main() {
     () {
       final resultat = reco.reconnaitre(['MED-001', 'PAT-001', 'SAL-001']);
       expect(resultat, isA<Apercu>());
-      expect((resultat as Apercu).motifs, ['standard']);
-      expect(ids(resultat), containsAll(['diagnostiquer', 'traiter']));
+      expect(
+        (resultat as Apercu).motifs,
+        ['standard', 'recherche'],
+        reason:
+            'un médecin, un patient et une salle : aussi le motif de '
+            'recherche, que la précondition d\'« analyser » écarte hors '
+            'laboratoire',
+      );
+      expect(ids(resultat), ['diagnostiquer', 'traiter', 'analyser']);
     },
   );
 
@@ -42,7 +49,7 @@ void main() {
       'OBJ-001',
     ]);
     expect(resultat, isA<Apercu>());
-    expect((resultat as Apercu).motifs, ['standard']);
+    expect((resultat as Apercu).motifs, ['standard', 'recherche']);
   });
 
   test('standard avec second médecin à la place de l’accessoire', () {
@@ -133,25 +140,7 @@ void main() {
       'l\'ordre de déclaration des actions', () {
     final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
     final motifs = copie['motifs'] as Map<String, dynamic>;
-    copie['motifs'] = {
-      'recherche': {
-        'patient': [1, 1],
-        'medecin': [1, 1],
-        'salle': [1, 1],
-        'objet|diplome': [0, 1],
-        'total': [3, 4],
-      },
-      ...motifs,
-    };
-    (copie['actions'] as List).add({
-      'id': 'analyser',
-      'libelle': 'Analyser',
-      'motif': 'recherche',
-      'phrase': 'Analyse pour {patient}.',
-      'effets': [
-        {'effet': 'avancer_temps'},
-      ],
-    });
+    copie['motifs'] = {'recherche': motifs.remove('recherche'), ...motifs};
     final r = ReconnaissanceCombinaisons(Jeu.fromJson(copie));
     final trois = r.reconnaitre(['MED-001', 'PAT-001', 'SAL-001']);
     expect((trois as Apercu).motifs, ['recherche', 'standard']);
