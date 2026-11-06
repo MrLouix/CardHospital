@@ -129,7 +129,7 @@ Stratégies disponibles :
 | `seuil:X` | Diagnostiquer sans spécialité, à la meilleure précision, jusqu'à ce que la maladie en tête de liste, non encore essayée, atteigne l'indice de suspicion X ; puis la traiter |
 | `couleur:X` | Comme `seuil:X`, mais après un premier diagnostic sans spécialité, diagnostiquer avec la spécialité de la couleur dominante de la dernière liste (la couleur qui a le plus de lignes), pour la confirmer ou l'écarter |
 
-Les stratégies voient ce que voit un joueur (résultats des actions, spécialités des cartes) et sont supposées connaître les traitements des maladies, comme s'ils figuraient dans le livret de règles.
+Les stratégies voient ce que voit un joueur (résultats des actions, spécialités des cartes). Elles sont aussi supposées connaître les traitements des maladies : c'est une **hypothèse optimiste**, car le livret ne les donne pas ([règles de table §9](REGLES_DE_TABLE.md#9-traitements-secrets)). Elles jouent donc comme des joueurs vétérans, et leurs taux de guérison sont des plafonds.
 
 ### 5.4 Premiers constats du simulateur
 
@@ -156,3 +156,15 @@ Les stratégies voient ce que voit un joueur (résultats des actions, spécialit
 | Fin de phase 1 | Reporter les points P1 à P4 dans la spec ; fixer par simulation les paramètres du diagnostic, les récompenses, la réputation de départ et le seuil de fermeture |
 | Début de phase 2 | Maquettes basse fidélité des écrans ([SPECIFICATION.md §6.1](SPECIFICATION.md#61-écrans)) |
 | Début de phase 3 | Détail des champs de chaque message du protocole ; type de service de premier plan pour Android 14 |
+
+### 6.1 Travaux issus des règles de table
+
+Décisions de la [revue de cohérence](REVUE_COHERENCE.md) (R1 à R7, E2) qui demandent du travail :
+
+| Sujet | Travail | Prérequis |
+|---|---|---|
+| Aggravation selon l'attente entre deux prises en charge (R2) | Moteur : compter les actions faites sur les autres patients, nouvelle aggravation plafonnée ([MODELE_DE_JEU.md §5.1](MODELE_DE_JEU.md#51-évolution-décidée--aggravation-selon-lattente-entre-deux-prises-en-charge)) ; simulateur : plusieurs patients en jeu en même temps, plusieurs joueurs | Préciser la règle (§5.1) |
+| Traitements secrets (E2) | Simulateur : stratégie « novice » qui apprend les traitements par essais et au laboratoire | — |
+| Réglages de table (R1, R2, R3) | Simulateur : réputation de départ, seuil de fermeture, nombre N de patients en jeu et niveau cible de victoire, par difficulté | Simulateur multi-patients |
+| Formation (R1, R4) | Contenu : salle de formation, objets de formation, piste de diplôme ; décider si l'appli valide la combinaison | [Règles de table §11](REGLES_DE_TABLE.md#11-points-à-préciser) |
+| Économie (R4) | Contenu : prix des salles (verso), tuiles de stock des consommables, classement des objets permanents et consommables | [Règles de table §11](REGLES_DE_TABLE.md#11-points-à-préciser) |

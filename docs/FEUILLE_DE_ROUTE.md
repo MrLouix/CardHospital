@@ -86,6 +86,7 @@ Principe : **traiter les risques en premier**. Le démarrage concret (organisati
 - Import de `.zip` (système de fichiers, partage Android), rapport de validation, sélection du paquet actif.
 - Contenu complet du paquet de base : 10 médecins, 12 patients, 21 objets et diplômes plus les objets d'aide à la recherche, 11 salles dont le laboratoire, **103 maladies** réparties entre 5 spécialités.
 - Équilibrage au simulateur, puis en parties réelles.
+- Contenu des [règles de table](REGLES_DE_TABLE.md) : prix de construction au verso des salles, tuiles de stock des consommables, salle et objets de formation, piste de diplôme, objets d'aide à la recherche.
 - Création des illustrations et impression des cartes selon les recommandations de la phase 0.
 
 **Critères de sortie** : paquet de base complet et validé ; une extension d'exemple (nouvelles maladies) importée et jouée ; au moins 5 parties réelles jouées.

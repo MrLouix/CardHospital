@@ -90,10 +90,13 @@ class CatalogueCombinaisons {
       cartes[indices[(alea.flottant() * indices.length).floor()]];
 }
 
-/// Stratégie de jeu automatique. Elle ne voit que ce que voit un joueur :
-/// les résultats des actions sur le patient courant et les règles publiques
-/// du paquet (spécialités des cartes, traitements des maladies, supposés
-/// connus des joueurs via le livret de règles).
+/// Stratégie de jeu automatique. Elle voit les résultats des actions sur le
+/// patient courant et les spécialités des cartes.
+///
+/// Hypothèse optimiste : elle connaît aussi les traitements des maladies,
+/// alors que le livret de règles ne les donne pas (REGLES_DE_TABLE.md §9).
+/// Elle joue donc comme un joueur vétéran ; une stratégie qui apprend les
+/// traitements reste à écrire.
 abstract class Strategie {
   /// Nom affiché dans le rapport.
   String get nom;

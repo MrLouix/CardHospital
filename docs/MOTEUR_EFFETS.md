@@ -318,7 +318,7 @@ Le laboratoire ne permet donc **ni de diagnostiquer ni de traiter**, et aucune a
 `{ "effet": "rechercher", "maladie": "<id_maladie>" }` :
 
 1. ajoute au résultat la liste des maladies suspectées du patient (noms mémorisés lors des effets `diagnostiquer` précédents, remis à zéro à chaque admission) ;
-2. décrémente de 1 le compteur de passages restants de la maladie choisie — état **global à la partie**, mémorisé par maladie ; la capacité `recherche` de la combinaison réduit le nombre de passages requis (minimum 1) ;
+2. retire 1 + la capacité `recherche` de la combinaison au compteur de passages restants de la maladie choisie, sans descendre sous 0 — état **commun à toute la partie**, mémorisé par maladie ; une maladie déjà analysée peut l'être de nouveau : la recette s'affiche une nouvelle fois ;
 3. si le compteur atteint 0 : ajoute au résultat la **recette** de `traitement.adapte`, générée depuis le prédicat (`carte` → « la carte X », `compte` → « N cartes de type/spécialité … », en écrivant « médecins ou diplômes de X » quand un diplôme peut compter, `tous` → conjonction, `non` → « sans … ») ;
 4. sinon : indique le nombre de passages restants (« Analyse en cours — X passage(s) restant(s) »).
 
@@ -332,4 +332,4 @@ Le laboratoire ne permet donc **ni de diagnostiquer ni de traiter**, et aucune a
 
 ### 9.6 Capacité `recherche`
 
-Déclarable comme toute capacité dans `capacites`, portée par des médecins ou des accessoires : chaque point réduit de 1 le nombre de passages requis pour l'analyse en cours, sans descendre sous 1. L'accessoire du motif `recherche` permet de jouer des **objets d'aide à la recherche**, à créer (aucun dans le paquet de base).
+Déclarable comme toute capacité dans `capacites`, portée par des médecins ou des accessoires : chaque point retire un passage de plus au compteur commun de la maladie analysée (9.4). Un passage reste toujours nécessaire. L'accessoire du motif `recherche` permet de jouer des **objets d'aide à la recherche**, à créer (aucun dans le paquet de base).

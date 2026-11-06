@@ -6,7 +6,7 @@ Les joueurs incarnent des médecins. Des patients arrivent, atteints d'une malad
 
 Les joueurs jouent **à tour de rôle**, même si plusieurs smartphones sont disponibles : l'application n'impose aucun ordre de jeu et ne bloque pas deux actions simultanées : c'est aux joueurs de jouer chacun leur tour. Chaque joueur peut partager ses résultats de diagnostic avec les autres ou les garder pour lui.
 
-Le suivi global de la partie (tours, points de victoire, cumul des pièces et de la réputation) reste **manuel**, hors application. Si la réputation de l'hôpital devient strictement inférieure au seuil de fermeture, l'hôpital ferme et **tous les joueurs ont perdu**.
+Le suivi global de la partie (tours, points de victoire, cumul des pièces et de la réputation, achats et constructions) reste **manuel**, hors application : l'appli n'est pas intrusive, elle gère les maladies et calcule le résultat des actions. Si la réputation de l'hôpital devient strictement inférieure au seuil de fermeture, l'hôpital ferme et **tous les joueurs ont perdu**.
 
 ## Fonctionnement
 
@@ -24,7 +24,7 @@ Le suivi global de la partie (tours, points de victoire, cumul des pièces et de
 ## Documentation
 
 - [Spécification de l'application](docs/SPECIFICATION.md)
-- [Modèle de jeu](docs/MODELE_DE_JEU.md)
+- [Modèle de jeu](docs/MODELE_DE_JEU.md) et [règles de table](docs/REGLES_DE_TABLE.md)
 - [Paquets de jeu et moteur d'effets](docs/MOTEUR_EFFETS.md), avec le [JSON Schema](docs/schema/jeu.schema.json) et un [exemple](docs/exemples/jeu.exemple.json)
 - [Feuille de route](docs/FEUILLE_DE_ROUTE.md) et [plan de codage](docs/PLAN_DE_CODAGE.md)
 - [Glossaire](docs/GLOSSAIRE.md)

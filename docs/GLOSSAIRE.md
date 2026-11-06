@@ -33,11 +33,18 @@ Termes utilisés dans l'ensemble de la documentation. En cas de doute, ce glossa
 | **Maladies suspectées** | Maladies qui ont figuré dans les listes des diagnostics d'un patient. Mémorisées par l'hôte, remises à zéro à chaque admission. |
 | **Analyse / passage** | Action `analyser` (motif `recherche`) : un passage en laboratoire sur une maladie suspectée choisie par le joueur. Certaines maladies exigent plusieurs passages. |
 | **Recette** | Description des cartes requises par le traitement adapté d'une maladie, révélée quand les passages de l'analyse sont terminés. |
-| **Guéri / mort / sorti** | Issues finales d'un patient. *Sorti* regroupe guéri et mort : la carte retourne dans la pioche et pourra être réadmise avec une nouvelle maladie. |
-| **Pièces** | Monnaie gagnée par l'acteur. Il décide, hors appli, de la garder (achat d'objets/diplômes) ou d'en céder une partie à l'hôpital (achat de salles). |
-| **Réputation** | Jauge collective de l'hôpital, tenue à la main par les joueurs. L'appli affiche l'impact entier (positif ou négatif) de chaque action ; le cumul est manuel. |
+| **Guéri / mort / sorti** | Issues finales d'un patient. *Sorti* regroupe guéri et mort. La carte d'un patient guéri retourne dans la pioche et pourra être réadmise avec une nouvelle maladie ; celle d'un patient mort est défaussée et sort de la partie. |
+| **Pièces** | Monnaie gagnée par l'acteur. Il décide, hors appli, de la garder (réserve personnelle, qui paie les objets permanents), de la donner au budget de l'hôpital, ou de la verser à une construction de salle ou à un réapprovisionnement de consommables. Chaque lot de 3 pièces gagnées rapporte 1 point de victoire. |
+| **Réputation** | Jauge collective de l'hôpital, tenue à la main par les joueurs. L'appli affiche l'impact entier (positif ou négatif) de chaque action ; le cumul est manuel. Un gain peut être gardé par l'acteur (réputation personnelle) ou laissé à l'hôpital. |
+| **Réputation personnelle** | Réputation gagnée qu'un joueur garde pour son médecin au lieu de la laisser à l'hôpital. Chaque point rapporte 1 point de victoire. |
+| **Points de victoire** | Score d'un joueur : 1 par point de réputation personnelle, 1 par lot de 3 pièces gagnées. Le premier médecin qui atteint le niveau cible gagne ([règles de table §3](REGLES_DE_TABLE.md#3-pièces-réputation-et-points-de-victoire)). |
+| **Budget de l'hôpital** | Pièces données à l'hôpital par les joueurs. Il finance les constructions de salles et les réapprovisionnements, après accord à la majorité. |
+| **Objet permanent** | Objet (livre, instrument…) acheté par un joueur sur sa réserve personnelle ; l'argent sort du jeu et l'objet lui appartient. |
+| **Objet consommable** | Objet de l'hôpital (médicament, bistouri, plâtre…) stocké sur une tuile de stock, avec son prix de réapprovisionnement. |
+| **Formation** | Action de table (médecin + salle de formation + objet de formation) qui fait avancer le pion du joueur sur la piste de diplôme ; elle occupe tout le tour. Après plusieurs formations, le joueur obtient un diplôme. À créer. |
 | **Fermeture de l'hôpital** | Défaite collective : si la réputation devient strictement inférieure au seuil de fermeture, la partie s'arrête et tous les joueurs ont perdu. Règle de table, non gérée par l'appli. |
 | **Hôte** | Smartphone unique par partie, qui héberge le serveur et l'état du jeu. C'est aussi le téléphone d'un joueur. |
 | **Client** | Smartphone connecté à l'hôte, qui sert de scanner et affiche les résultats de ses propres actions. L'hôte est lui-même client via loopback. |
 | **Paquet** | Archive `.zip` contenant un `jeu.json` (règles et contenu) et un dossier `images/` réservé. Le paquet de base est embarqué ; les extensions sont importées. |
-| **Instantané** | Copie complète de l'état de la partie, prise avant chaque action pour permettre l'annulation. |
+| **Instantané** | Copie complète de l'état de la partie, prise avant chaque action pour permettre l'annulation, réservée aux erreurs de scan. |
+| **Tour** | Tour d'un joueur : s'il y a moins de N patients en jeu, il pioche et admet un patient ; puis il achète un objet permanent **ou** réalise une action (diagnostic, traitement, recherche, formation). Règle de table, non suivie par l'appli. |

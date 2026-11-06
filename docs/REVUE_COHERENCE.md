@@ -24,7 +24,7 @@ Chaque constat indique **où** se trouve le problème, **pourquoi** c'en est un,
 
 ## Suivi des corrections
 
-Corrections appliquées à la demande (même branche, après la revue) : **B1 à B5, T1 à T14 et D1 à D12**. Les constats R1 à R7 et E1 à E15 attendent une décision.
+Corrections appliquées à la demande (même branche, après la revue) : **B1 à B5, T1 à T14 et D1 à D12**. Décisions prises ensuite pour **R1 à R7 et E2**, rédigées dans les [règles de table](REGLES_DE_TABLE.md). Les constats E1 et E3 à E15 attendent une décision.
 
 Choix retenus :
 
@@ -37,6 +37,14 @@ Choix retenus :
 - **T14** : la couleur dominante est la couleur la plus présente dans la liste (« 3 bleus sur 5 ») ; en cas d'égalité, la mieux classée.
 - **D3** : le catalogue cible est aligné sur le paquet de base (12 patients, 21 objets et diplômes, 11 salles, 103 maladies), puisque les patients sortis retournent dans la pioche.
 - **D4** : l'exemple est maintenant un sous-ensemble exact du paquet de base (18 cartes, 6 maladies), vérifié par un test.
+
+Décisions sur les règles manquantes (R1 à R7) et les traitements (E2) :
+
+- **R1, R3, R4, R5, R7** : rédigées dans un nouveau document, les [règles de table](REGLES_DE_TABLE.md) — mise en place, tour, partage des gains, points de victoire, constructions, objets permanents et consommables, formation, absence de bluff, annulation réservée aux erreurs de scan. L'appli n'est pas intrusive : elle gère les maladies et les résultats, rien de plus. Les patients morts sont défaussés.
+- **R2** : l'aggravation dépendra du nombre d'actions faites sur d'autres patients depuis la dernière prise en charge, avec un plafond. La règle est décrite comme décidée mais non codée ([modèle de jeu §5.1](MODELE_DE_JEU.md#51-évolution-décidée--aggravation-selon-lattente-entre-deux-prises-en-charge)) : sa forme exacte reste à préciser.
+- **R6** : réanalyse possible, recette privée comme un diagnostic, compteur de passages commun à toute la partie ([modèle de jeu §12.3](MODELE_DE_JEU.md#123-déroulement-dun-passage)).
+- **E2** : les traitements sont secrets. Les stratégies du simulateur, qui les connaissent, jouent comme des vétérans : leurs taux de guérison sont des plafonds.
+- Les points encore ouverts sont listés dans les [règles de table §11](REGLES_DE_TABLE.md#11-points-à-préciser).
 
 ## Tableau des constats
 
@@ -73,15 +81,15 @@ Choix retenus :
 | [D10](#d10) | 2 à 3 joueurs, mais critères de test à 8 téléphones | Mineur | Corrigé |
 | [D11](#d11) | Message d'erreur « 4 cartes total maximum. » | Mineur | Corrigé |
 | [D12](#d12) | Aucune carte laboratoire dans le paquet de base, et les 10 salles sont déjà prises | Mineur | Corrigé |
-| [R1](#r1) | Mise en place incomplète | Important | En attente |
-| [R2](#r2) | Tour de jeu non défini : un patient laissé de côté ne s'aggrave jamais | Important | En attente |
-| [R3](#r3) | Victoire individuelle et fin de partie non définies | Important | En attente |
-| [R4](#r4) | Économie non définie : prix, propriété des cartes, cartes des autres joueurs | Important | En attente |
-| [R5](#r5) | Partage des diagnostics : a-t-on le droit de mentir ? | Mineur | En attente |
-| [R6](#r6) | Laboratoire : réanalyse, diffusion des recettes, effet de la capacité `recherche` | Mineur | En attente |
-| [R7](#r7) | L'annulation permet de voir un diagnostic gratuitement ou de relancer un tirage | Important | En attente |
+| [R1](#r1) | Mise en place incomplète | Important | Décidé : règles de table §1 ; formation à créer |
+| [R2](#r2) | Tour de jeu non défini : un patient laissé de côté ne s'aggrave jamais | Important | Décidé : à préciser puis coder (modèle de jeu §5.1) |
+| [R3](#r3) | Victoire individuelle et fin de partie non définies | Important | Décidé : règles de table §3 et §4 |
+| [R4](#r4) | Économie non définie : prix, propriété des cartes, cartes des autres joueurs | Important | Décidé : règles de table §2, §5 et §6 |
+| [R5](#r5) | Partage des diagnostics : a-t-on le droit de mentir ? | Mineur | Corrigé : règles de table §8 |
+| [R6](#r6) | Laboratoire : réanalyse, diffusion des recettes, effet de la capacité `recherche` | Mineur | Décidé : modèle de jeu §12.3 |
+| [R7](#r7) | L'annulation permet de voir un diagnostic gratuitement ou de relancer un tirage | Important | Corrigé : règles de table §10, sans code |
 | [E1](#e1) | Traitements génériques : connaître la spécialité suffit presque toujours | Important | En attente |
-| [E2](#e2) | Traitements « connus via le livret de règles », mais laboratoire chargé de les révéler | Important | En attente |
+| [E2](#e2) | Traitements « connus via le livret de règles », mais laboratoire chargé de les révéler | Important | Décidé : règles de table §9 ; stratégie « novice » à écrire |
 | [E3](#e3) | Les PV et l'attente trahissent la maladie | Important | En attente |
 | [E4](#e4) | Arrondis : Chirurgien et Réanimation donnent le même résultat sur les petites valeurs | Important | En attente |
 | [E5](#e5) | Le modificateur de réputation s'applique aussi aux gains : Réanimation est plus facile | Important | En attente |

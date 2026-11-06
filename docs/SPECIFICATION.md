@@ -8,6 +8,7 @@
 | [schema/jeu.schema.json](schema/jeu.schema.json) | JSON Schema du fichier `jeu.json` |
 | [FEUILLE_DE_ROUTE.md](FEUILLE_DE_ROUTE.md) | Phases de développement, risques en premier |
 | [PLAN_DE_CODAGE.md](PLAN_DE_CODAGE.md) | État de préparation, points à trancher, organisation du dépôt, démarrage des phases 0 et 1 |
+| [REGLES_DE_TABLE.md](REGLES_DE_TABLE.md) | Règles hors appli : mise en place, tour, économie, victoire, formation |
 | [GLOSSAIRE.md](GLOSSAIRE.md) | Définition des termes |
 
 ## 1. Objet et périmètre
@@ -21,7 +22,8 @@ L'application Android (transposable iOS) sert de **moteur d'actions**. Elle lit 
 - tour de jeu : les joueurs jouent **à tour de rôle**, même si plusieurs smartphones sont disponibles ; l'appli n'impose aucun ordre de jeu et ne bloque pas deux actions simultanées (§5.4) : c'est aux joueurs de jouer chacun leur tour ;
 - partage ou non des résultats de diagnostic entre joueurs (les probabilités sont réglées pour que ne rien mettre en commun rende la défaite commune quasi inévitable, [MODELE_DE_JEU.md §8.6](MODELE_DE_JEU.md#86-partage-des-diagnostics-entre-joueurs)) ;
 - points de victoire et conditions de victoire ou de défaite, dont la **fermeture de l'hôpital** quand la réputation devient strictement inférieure au seuil de fermeture (tous les joueurs perdent, [MODELE_DE_JEU.md §7.1](MODELE_DE_JEU.md#71-réputation-et-fermeture-de-lhôpital)) ;
-- cumul des pièces et de la réputation, partage des pièces entre médecin et hôpital, achats ;
+- cumul des pièces et de la réputation, partage des gains entre le joueur et l'hôpital, achats, constructions, réapprovisionnements, formation ([règles de table](REGLES_DE_TABLE.md)) ;
+- pioche des patients et nombre de patients en jeu ;
 - identité des joueurs : l'appli n'en connaît aucune ;
 - fonctionnement via Internet : tout se passe en réseau local.
 
@@ -35,6 +37,7 @@ L'application Android (transposable iOS) sert de **moteur d'actions**. Elle lit 
 6. **Hors ligne** : aucune dépendance à Internet.
 7. **Aucune identité de joueur** : un téléphone peut servir successivement à plusieurs joueurs.
 8. **Montants entiers** : PV, pièces et réputation sont toujours des entiers (règle d'arrondi : [MODELE_DE_JEU.md §7](MODELE_DE_JEU.md#7-récompenses)).
+9. **Appli non intrusive** : l'appli gère les maladies et calcule le résultat des actions ; elle ne suit ni les tours, ni les joueurs, ni l'économie, ni les scores, qui se jouent à la table ([règles de table](REGLES_DE_TABLE.md)).
 
 ## 3. Architecture
 
@@ -140,7 +143,8 @@ L'aperçu ne révèle **aucune information cachée** (maladie, PV).
 
 - Visible **uniquement** sur le téléphone de l'acteur. Il n'existe ni bouton « révéler », ni envoi aux autres téléphones.
 - Contenu : PV avant → après, temps du patient et éventuelle attente dépassée, diagnostic (liste des 5 maladies les plus suspectes, chacune avec son indice de suspicion, la couleur et l'icône de sa spécialité), issue (en jeu, guéri ou mort, avec la maladie révélée à la sortie), pièces gagnées, impact sur la réputation. Pour une **analyse** (laboratoire de recherche) s'ajoutent : la liste des maladies suspectées du patient, la maladie choisie, et les passages restants ou la recette révélée. Le détail figure dans [MODELE_DE_JEU.md §11](MODELE_DE_JEU.md#11-contenu-dun-résultat).
-- Deux rappels : « Pièces : à garder ou à céder en partie à l'hôpital » et, si l'impact n'est pas nul, « Réputation : reportez −2 sur la piste de l'hôpital ».
+- Deux rappels : « Pièces : à garder, à donner à l'hôpital ou à verser à une construction ou à un réapprovisionnement » et, si l'impact n'est pas nul, « Réputation : +4 à garder pour votre médecin ou à laisser à l'hôpital » pour un gain, « Réputation : reportez −2 sur la piste de l'hôpital » pour une perte ([règles de table §3](REGLES_DE_TABLE.md#3-pièces-réputation-et-points-de-victoire)).
+- À la mort d'un patient, un rappel : « Défaussez la carte de Mme Garnier ».
 - Un bouton **« OK / Fin de l'action »** ramène à l'écran de sélection.
 
 ## 6. Écrans et cas d'erreur
@@ -190,7 +194,7 @@ En jeu normal, la page admin ne sert **qu'au démarrage** et pour **connecter de
 - **Informations cachées masquées par défaut** : l'hôte est un joueur. L'affichage de la maladie des patients demande une confirmation explicite (« Vous allez voir les maladies des patients ») et se remasque en quittant la page.
 - État des patients : en jeu ou sorti, PV, temps (et maladie si elle est démasquée).
 - **5 dernières actions** : résumé de chaque résultat.
-- **Annuler la dernière action** : annulation strictement dans l'ordre inverse (LIFO), jusqu'à 5 actions, par restauration de l'instantané pris avant chacune. Annuler une action plus ancienne sans annuler les suivantes n'est pas possible, car cela casserait la cohérence de l'état. L'appli affiche alors les pièces et la réputation de l'action annulée, que les joueurs doivent **reporter en sens inverse** à la main.
+- **Annuler la dernière action** : annulation strictement dans l'ordre inverse (LIFO), jusqu'à 5 actions, par restauration de l'instantané pris avant chacune. Annuler une action plus ancienne sans annuler les suivantes n'est pas possible, car cela casserait la cohérence de l'état. L'appli affiche alors les pièces et la réputation de l'action annulée, que les joueurs doivent **reporter en sens inverse** à la main. L'annulation est réservée aux **erreurs de scan** : ce n'est pas une action de jeu ([règles de table §10](REGLES_DE_TABLE.md#10-annulation)). Il n'est donc pas prévu de rejouer le même tirage après une annulation.
 - Sauvegarder ou charger une partie dans un emplacement nommé (en plus de la sauvegarde automatique).
 - Journal : sélections reçues, aperçus, refus, confirmations, connexions et déconnexions, erreurs serveur.
 - Graine aléatoire fixable, pour reproduire un comportement (tests).
@@ -245,7 +249,7 @@ Permissions Android : `CAMERA`, `INTERNET`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK
 |---|---|---|
 | D1 | Android 8.0 (API 26) minimum | §9 |
 | D2 | Clients illimités, testé avec 3 téléphones, et 5 pour la marge | §9 |
-| D3 | Pas de partie rejouable ni de journal rejouable ; instantanés limités aux 5 dernières actions | §7.3 |
+| D3 | Pas de partie rejouable ni de journal rejouable ; instantanés limités aux 5 dernières actions ; annulation réservée aux erreurs de scan, sans rejouer le même tirage | §7.3 |
 | D4 | Confirmation obligatoire | §5.3 |
 | D5 | Résultat privé, sur le seul téléphone de l'acteur | §5.6 |
 | D6 | Hôte unique, téléphone d'un joueur, qui scanne en loopback | §3.1 |
@@ -256,7 +260,7 @@ Permissions Android : `CAMERA`, `INTERNET`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK
 | D11 | Diagnostic probabiliste, tiré à nouveau à chaque fois, pouvant être faux : liste des 5 maladies les plus suspectes, indices de suspicion indépendants (pas des probabilités), couleur et icône par spécialité, bruit corrigé selon le nombre de maladies par spécialité ; une spécialité concordante renforce sa couleur, une discordante la fait reculer ; seule une tête à 95 ou plus est presque toujours juste | [Modèle §8](MODELE_DE_JEU.md#8-diagnostic-probabiliste) |
 | D12 | Traitements définis par maladie dans le JSON (carte précise, nombre de médecins par spécialité, salle) | [Modèle §6](MODELE_DE_JEU.md#6-traitement) |
 | D13 | Temps propre à chaque patient, avancé par chaque action confirmée sur lui | [Modèle §5](MODELE_DE_JEU.md#5-temps-et-aggravation) |
-| D14 | Pièces gagnées par l'acteur, partagées hors appli entre lui (objets, diplômes) et l'hôpital (salles) | [Modèle §7](MODELE_DE_JEU.md#7-récompenses) |
+| D14 | Pièces et réputation gagnées par l'acteur, partagées hors appli entre lui et l'hôpital ; objets permanents payés par les joueurs, salles et consommables par l'hôpital | [Règles de table §3 à §6](REGLES_DE_TABLE.md) |
 | D15 | Bouton « Valider la sélection » | §5.2 |
 | D16 | Combinaison standard : médecin + patient + salle + (accessoire ou second médecin) | [Modèle §3](MODELE_DE_JEU.md#3-combinaisons) |
 | D17 | L'aperçu est calculé par l'hôte | §5.2 |
@@ -265,6 +269,11 @@ Permissions Android : `CAMERA`, `INTERNET`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK
 | D20 | Catalogue du paquet de base : 10 médecins, 12 patients, 21 objets/diplômes, 11 salles dont le laboratoire, 103 maladies | §8 |
 | D21 | La page admin sert au démarrage et à la connexion ; le reste est du debug | §7 |
 | D22 | Réputation tenue à la main ; sous un seuil, l'hôpital ferme et tous les joueurs perdent (règle de table, l'appli ne tient pas le total) | [Modèle §7.1](MODELE_DE_JEU.md#71-réputation-et-fermeture-de-lhôpital) |
+| D26 | L'appli n'est pas intrusive : elle gère les maladies et les résultats ; tours, économie, formation et victoire se jouent à la table | [Règles de table](REGLES_DE_TABLE.md) |
+| D27 | Victoire individuelle : un médecin atteint un niveau cible de points de victoire (réputation personnelle + 1 point par lot de 3 pièces) | [Règles de table §3](REGLES_DE_TABLE.md#3-pièces-réputation-et-points-de-victoire) |
+| D28 | Patients guéris remis dans la pioche, patients morts défaussés | [Modèle §4.2](MODELE_DE_JEU.md#42-sortie) |
+| D29 | Traitements secrets : le livret ne donne pas la correspondance maladie – traitement | [Règles de table §9](REGLES_DE_TABLE.md#9-traitements-secrets) |
+| D30 | Pas de bluff : on peut garder un résultat pour soi, pas mentir | [Règles de table §8](REGLES_DE_TABLE.md#8-partager-linformation) |
 | D23 | Salle recherche : motif `recherche` (médecin + patient + salle + accessoire facultatif) ; les actions de tous les motifs reconnus sont réunies puis filtrées par précondition, si bien que le laboratoire ne sert qu'à analyser et qu'aucune autre salle ne permet d'analyser ; action `analyser` avec choix d'une maladie suspectée, révélation de la recette complète du traitement adapté après `recherche.passages` passages (global à la partie), coût = temps + aggravation, aucune pièce | [Modèle §12](MODELE_DE_JEU.md#12-recherche-en-laboratoire) |
 | D24 | Les joueurs jouent à tour de rôle, même avec plusieurs smartphones ; l'appli n'impose aucun ordre de jeu et ne bloque pas deux actions simultanées | §1, [Modèle §1](MODELE_DE_JEU.md#1-partage-des-responsabilités) |
 | D25 | Les joueurs peuvent partager leurs diagnostics ou les garder pour eux ; les probabilités sont réglées pour que ne rien mettre en commun rende la défaite commune (réputation sous le seuil de fermeture) quasi inévitable | [Modèle §8.6](MODELE_DE_JEU.md#86-partage-des-diagnostics-entre-joueurs) |
@@ -278,6 +287,6 @@ Les choix ci-dessous ont été pris par défaut dans cette version et restent à
 3. **Choix de l'action** : une combinaison standard propose « Diagnostiquer » et « Traiter » sur l'écran de confirmation.
 4. **Révélation de la maladie** à la sortie du patient (guéri ou mort) : choix actuel, oui.
 5. **PV affichés à l'acteur** après chaque action : choix actuel, oui (les PV ne sont pas une information cachée).
-6. **Valeur de départ et seuil de fermeture** de la réputation : à fixer par simulation (phase 1), éventuellement différents selon le niveau de difficulté.
+6. **Valeur de départ et seuil de fermeture** de la réputation : différents selon le niveau de difficulté, à fixer par simulation (phase 1).
 7. **Traitement partiel** (stabilisation : gain de PV sans guérison ni aggravation) : niveau intermédiaire introduit pour conserver « gagne des PV sans être guéri ». À garder ou à supprimer.
-8. **Fin de partie** : comment sont comptés les patients encore en jeu ? C'est une règle de table, mais elle peut influencer l'équilibrage.
+8. **Fin de partie** : un joueur gagne en atteignant le niveau cible ; tous perdent si l'hôpital ferme. Reste à décider ce qui se passe si la pioche se vide avant (les patients morts en sortent), et comment comptent les patients encore en jeu ([règles de table §11](REGLES_DE_TABLE.md#11-points-à-préciser)).

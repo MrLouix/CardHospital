@@ -10,14 +10,16 @@ Toutes les valeurs numériques citées ici sont des **valeurs par défaut du paq
 |---|---|
 | Maladie cachée de chaque patient, PV, temps du patient, maladies suspectées et passages restants des analyses (§12) | **Tour de jeu : les joueurs jouent à tour de rôle**, même si plusieurs smartphones sont disponibles dans la partie. L'appli n'impose aucun ordre de jeu et ne bloque pas deux actions simultanées : c'est aux joueurs de jouer chacun leur tour |
 | Diagnostic probabiliste, issue des traitements (guérison, traitement partiel, échec) | Points de victoire, conditions de victoire et de défaite (dont la **fermeture de l'hôpital**, §7.1) |
-| Calcul des pièces gagnées et de l'impact sur la réputation, **par action** | Cumul des pièces et de la réputation |
-| | Partage des pièces entre le médecin et l'hôpital, achats (salles, objets, diplômes) |
-| | Partage ou non des résultats de diagnostic entre joueurs (§8.6) |
-| | Pioche des cartes patient, retour des cartes sorties dans la pioche |
+| Calcul des pièces gagnées et de l'impact sur la réputation, **par action** | Cumul des pièces, de la réputation de l'hôpital et de la réputation personnelle de chaque médecin |
+| | Partage des gains (pièces et réputation) entre le joueur et l'hôpital, achats, constructions, réapprovisionnements, formation |
+| | Partage ou non des résultats de diagnostic et des recettes entre joueurs (§8.6) |
+| | Pioche des cartes patient, nombre de patients en jeu, retour des patients guéris dans la pioche, défausse des patients morts |
+
+L'appli **n'est pas intrusive** : elle gère les maladies et calcule le résultat de chaque action, rien de plus. Les règles hors appli sont décrites dans les [règles de table](REGLES_DE_TABLE.md).
 
 ### 1.1 Mise en place
 
-Règle de table, hors appli : **2 à 3 joueurs**. Chaque joueur reçoit au départ **1 carte médecin et 1 carte diplôme**. Chaque médecin porte **une seule spécialité**, ou est polyvalent (sans spécialité).
+Règle de table, hors appli, détaillée dans les [règles de table §1](REGLES_DE_TABLE.md#1-mise-en-place) : l'hôpital démarre avec la salle de consultation, la pharmacie et la radiologie ; chaque joueur tire au hasard **1 médecin**, et aussi **1 diplôme** à 2 ou 3 joueurs ; on mélange les 12 patients et on en révèle 2. Chaque médecin porte **une seule spécialité**, ou est polyvalent (sans spécialité).
 
 ## 2. Entités
 
@@ -32,7 +34,7 @@ Règle de table, hors appli : **2 à 3 joueurs**. Chaque joueur reçoit au dépa
 | Maladies | 103 (20 par spécialité, 23 en médecine générale) | virtuelle (dans le JSON) |
 | Spécialités | 5 + extensibles | virtuelle |
 
-12 cartes patient suffisent pour 2 ou 3 joueurs : un patient sorti retourne dans la pioche et peut être réadmis avec une nouvelle maladie (§4.2).
+Un patient guéri retourne dans la pioche et peut être réadmis avec une nouvelle maladie ; un patient mort est défaussé (§4.2).
 
 Spécialités du paquet de base (`contenu/paquet_base.json`) : `generale` (médecine générale), `cardiologie`, `psychiatrie`, `orthopedie`, `paranormal`.
 
@@ -108,8 +110,8 @@ Hors laboratoire, une combinaison standard permet deux actions ; au laboratoire,
  [hors jeu] ────────► [en jeu] ◄──────────────────────────────┐
      ▲                   │  └─────────────────────────────────┘
      │                   ├── traiter (adapté) ───► [guéri] ──┐
-     │                   └── PV ≤ 0 ─────────────► [mort]  ──┤
-     └─────────────── la carte retourne dans la pioche ◄─────┘   (état « sorti »)
+     │                   └── PV ≤ 0 ─────────────► [mort] ──► carte défaussée, hors de la partie
+     └────────── la carte retourne dans la pioche ◄──────────┘   (« sorti » = guéri ou mort)
 ```
 
 ### 4.1 Admission
@@ -124,7 +126,10 @@ Scanner seul un patient déjà en jeu ne déclenche rien (« M. Dupont est déj�
 
 ### 4.2 Sortie
 
-Un patient guéri ou mort passe à l'état **sorti** : sa maladie est révélée dans le résultat (« Guérison de M. Dupont — fracture fermée », « Décès de Mme Garnier — arythmie »). La carte retourne dans la pioche ; si elle est de nouveau piochée et scannée seule, elle est **réadmise avec une nouvelle maladie**. Une combinaison contenant un patient hors jeu (jamais admis ou sorti) est refusée (« M. Dupont n'est pas en jeu »).
+Un patient guéri ou mort passe à l'état **sorti** : sa maladie est révélée dans le résultat (« Guérison de M. Dupont — fracture fermée », « Décès de Mme Garnier — arythmie »). Règle de table :
+
+- la carte d'un patient **guéri** retourne dans la pioche ; si elle est de nouveau piochée et scannée seule, elle est **réadmise avec une nouvelle maladie** ;
+- la carte d'un patient **mort** est **défaussée** : elle sort de la partie. Une combinaison contenant un patient hors jeu (jamais admis ou sorti) est refusée (« M. Dupont n'est pas en jeu »).
 
 Les messages évitent tout accord, qui deviendrait fautif selon la personne : style nominal (« Admission de… », « Guérison de… », « Décès de… ») et « n'est pas en jeu » plutôt que « n'est pas admis », qui deviendrait fautif pour Mme Garnier.
 
@@ -141,6 +146,17 @@ Le temps est **propre à chaque patient** et n'avance que lorsqu'on agit sur lui
 **Attente dépassée** : le temps avance avant le test. À partir de la (`attente_max` + 1)ᵉ action sur ce patient, chaque action, **même celle qui le guérit**, coûte `reputation_attente` en réputation (défaut : −1), avec le modificateur de difficulté `reputation`. Exemple : avec une attente maximale de 5, les 5 premières actions sont gratuites, la 6ᵉ est la première pénalisée. L'attente maximale dépend de la maladie et reste donc cachée ; le résultat signale le dépassement.
 
 **Mort** : si les PV tombent à 0 ou moins à la fin d'une action, le patient meurt (`PV` affichés = 0). Un traitement adapté l'emporte toujours : un patient guéri ne subit pas d'aggravation lors de cette action.
+
+### 5.1 Évolution décidée : aggravation selon l'attente entre deux prises en charge
+
+> **État** : décidée (revue de cohérence, R2), **non implémentée**. Le moteur applique encore la règle ci-dessus.
+
+L'aggravation dépendra du **nombre d'actions faites sur d'autres patients depuis la dernière prise en charge** du patient (diagnostic ou traitement). L'hôte connaît ce nombre sans rien demander aux joueurs :
+
+- deux actions de suite sur le même patient : **pas d'aggravation** entre les deux ;
+- plus il a attendu, plus il s'aggrave, avec une **limite haute** : par exemple, après 5 actions sur d'autres patients, l'aggravation est maximale.
+
+Restent à préciser avant de coder : la forme de l'aggravation propre à chaque maladie, ce qui compte comme action (admission, analyse, formation), le moment où elle s'applique (avant ou après l'effet de l'action, et si une guérison l'annule), et ce que devient l'attente maximale. Le simulateur devra alors jouer plusieurs patients en même temps.
 
 ## 6. Traitement
 
@@ -163,6 +179,8 @@ Exemples tirés du paquet de base :
 
 Un diplôme de spécialité X compte comme un médecin X dans ces recettes : voir l'encadré « Diplôme » (§2.2).
 
+Les traitements sont **secrets** : le livret ne donne pas la correspondance entre maladies et traitements. Les joueurs la découvrent par des essais ou au laboratoire (§12, [règles de table §9](REGLES_DE_TABLE.md#9-traitements-secrets)).
+
 Le validateur de paquet vérifie que **chaque maladie a au moins un traitement adapté réalisable** avec les cartes du catalogue, hors laboratoire (on ne traite pas au laboratoire). Il avertit si un traitement adapté est satisfait par toutes les combinaisons, ou si aucune combinaison ne mène à un échec.
 
 Le laboratoire de recherche (§12) révèle ce traitement sous forme de **recette lisible**, générée depuis le prédicat `adapte`.
@@ -181,7 +199,7 @@ Tous les montants sont des **entiers**. Après application des modificateurs de 
 | Attente dépassée (par action) | — | `reputation_attente` (défaut −1) |
 | Mort du patient | — | `reputation_mort` (défaut −3) |
 
-Chaque maladie peut surcharger ces valeurs (les maladies graves paient plus). Le résultat rappelle que l'acteur choisit, hors appli, la part qu'il garde (achat d'objets et de diplômes) et la part qu'il cède à l'hôpital (achat de salles).
+Chaque maladie peut surcharger ces valeurs (les maladies graves paient plus). Le résultat rappelle que l'acteur décide, hors appli, de ses gains ([règles de table §3](REGLES_DE_TABLE.md#3-pièces-réputation-et-points-de-victoire)) : ses pièces (les garder, les donner au budget de l'hôpital ou les verser à une construction ou à un réapprovisionnement) et la réputation gagnée (la garder pour son médecin ou la laisser à l'hôpital).
 
 ### 7.1 Réputation et fermeture de l'hôpital
 
@@ -191,7 +209,7 @@ La réputation de l'hôpital est une **jauge collective** tenue à la main par l
 - chaque résultat d'action indique l'impact à reporter sur la piste ;
 - si elle devient **strictement inférieure au seuil de fermeture**, l'hôpital ferme : la partie s'arrête et **tous les joueurs ont perdu**.
 
-C'est le seul enjeu coopératif du jeu : chaque médecin joue pour ses pièces, mais un patient négligé, mal traité ou qui meurt pénalise tout le monde.
+C'est le seul enjeu coopératif du jeu : chaque médecin joue pour ses propres points de victoire (sa réputation personnelle et ses pièces, [règles de table §3](REGLES_DE_TABLE.md#3-pièces-réputation-et-points-de-victoire)), mais un patient négligé, mal traité ou qui meurt pénalise tout le monde.
 
 L'appli ne connaît ni la valeur de départ, ni le seuil, ni le total : elle n'annonce donc pas la fermeture. Ces deux valeurs sont des règles de table, à fixer avec le simulateur de la [feuille de route](FEUILLE_DE_ROUTE.md) (phase 1) selon les montants de réputation du paquet et le niveau de difficulté.
 
@@ -290,7 +308,7 @@ Ces paramètres sont dans le JSON (`parametres.diagnostic`). Leur réglage se fa
 
 ### 8.6 Partage des diagnostics entre joueurs
 
-Chaque résultat de diagnostic n'apparaît que sur le téléphone du joueur qui a agi : les joueurs peuvent **partager leurs résultats de diagnostic ou les garder pour eux**. Mettre en commun les listes oriente tous les joueurs ; ne rien mettre en commun laisse chacun agir dans le brouillard, au prix de patients qui s'aggravent et d'une réputation qui fond (§7.1).
+Chaque résultat de diagnostic n'apparaît que sur le téléphone du joueur qui a agi : les joueurs peuvent **partager leurs résultats de diagnostic ou les garder pour eux**. Ce n'est pas un jeu de bluff : on peut se taire, mais mentir ne fait pas partie du comportement attendu ([règles de table §8](REGLES_DE_TABLE.md#8-partager-linformation)). Mettre en commun les listes oriente tous les joueurs ; ne rien mettre en commun laisse chacun agir dans le brouillard, au prix de patients qui s'aggravent et d'une réputation qui fond (§7.1).
 
 Les probabilités du diagnostic (§8.3) doivent être calculées et réglées — avec le simulateur, qui devra comporter une stratégie « sans partage » où chaque joueur ne voit que ses propres diagnostics — pour que si les joueurs ne mettent **rien en commun**, la défaite commune (réputation de l'hôpital sous le seuil de fermeture, §7.1) soit **quasi inévitable**.
 
@@ -370,10 +388,12 @@ L'hôte mémorise, pour chaque patient en jeu, l'ensemble des maladies qui ont f
 ### 12.3 Déroulement d'un passage
 
 1. Le joueur scanne 1 médecin + 1 patient + le laboratoire, avec éventuellement un accessoire (objet ou diplôme, §12.6), puis confirme « Analyser ».
-2. L'appli propose la liste des maladies suspectées du patient ; le joueur en choisit une — même une fausse, l'information reste utile pour toute la partie.
-3. L'hôte décrémente de 1 le compteur de **passages restants** de cette maladie. Ce compteur est **global à la partie** et mémorisé par maladie : une recette découverte l'est pour tous les patients.
+2. L'appli propose la liste des maladies suspectées du patient ; le joueur en choisit une — même une fausse, l'information reste utile pour toute la partie. On peut choisir une maladie déjà analysée : le résultat s'affiche de nouveau, au coût normal d'un passage.
+3. L'hôte retire 1, plus la capacité `recherche` de la combinaison (§12.6), au compteur de **passages restants** de cette maladie, sans descendre sous 0. Ce compteur est **commun à toute la partie** et mémorisé par maladie : les passages de tous les joueurs s'additionnent, et une recette découverte l'est pour tous les patients.
 4. Tant que des passages restent : « Analyse en cours — X passage(s) restant(s) ».
 5. Quand le compteur atteint 0, l'hôte révèle la **recette complète** du traitement adapté : la description des cartes requises, générée depuis le prédicat `traitement.adapte` (ex. « 2 médecins ou diplômes d'orthopédie + le bloc opératoire », « l'antibiotique »).
+
+La recette n'est **pas publique** : comme un diagnostic, elle ne s'affiche que sur le téléphone du joueur qui a analysé, qui la partage ou non. Les autres joueurs la découvrent de toute façon la première fois qu'il l'utilise, en voyant les cartes qu'il joue.
 
 ### 12.4 Nombre de passages
 
@@ -385,7 +405,7 @@ Un passage en laboratoire est une action sur le patient comme les autres : il av
 
 ### 12.6 Capacité `recherche`
 
-Une carte (médecin, objet ou diplôme) peut porter la capacité `recherche` : chaque point réduit d'autant le nombre de passages requis pour l'analyse en cours, sans descendre sous 1. La combinaison de recherche accepte un accessoire pour cela : des **objets d'aide à la recherche** sont à créer (le paquet de base n'en contient pas encore).
+Une carte (médecin, objet ou diplôme) peut porter la capacité `recherche` : chaque point retire un passage de plus au compteur commun de la maladie analysée (§12.3). Un passage reste toujours nécessaire pour révéler une recette. La combinaison de recherche accepte un accessoire pour cela : des **objets d'aide à la recherche** sont à créer (le paquet de base n'en contient pas encore).
 
 ### 12.7 Exclusivité du laboratoire
 
