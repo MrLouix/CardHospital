@@ -366,6 +366,13 @@ class Simulateur {
       final libres = [..._cartesPatient];
       final enJeu = <_PatientSimule>[];
       final piecesJoueurs = List.filled(joueurs, 0);
+      // Recettes vues réussir : communes si les joueurs partagent leurs
+      // informations, propres à chacun sinon.
+      final carnetCommun = Carnet(_catalogue);
+      final carnets = [
+        for (var j = 0; j < joueurs; j++)
+          partage == false ? Carnet(_catalogue) : carnetCommun,
+      ];
       var tour = 0;
       var admissions = 0;
       var cumul = 0;
@@ -381,7 +388,7 @@ class Simulateur {
           enJeu.add(
             _PatientSimule(carte, [
               for (var j = 0; j < joueurs; j++)
-                strategie.nouvelle()..debutPatient(),
+                strategie.nouvelle(carnet: carnets[j])..debutPatient(),
             ], stats.parMaladie.putIfAbsent(maladie, StatsMaladie.new)),
           );
           stats.patients++;
@@ -417,6 +424,7 @@ class Simulateur {
         suivi.historique.add(r);
         if (partage == false) suivi.parJoueur[joueur].add(r);
         if (r.diagnostic != null) suivi.diagnostiqueurs.add(joueur);
+        carnets[joueur].noter(r);
         piecesJoueurs[joueur] += r.pieces;
         stats.actions++;
         suivi.stats.actions++;

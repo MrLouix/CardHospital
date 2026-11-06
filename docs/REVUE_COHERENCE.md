@@ -54,6 +54,7 @@ Décisions sur les règles manquantes (R1 à R7) et les traitements (E2) :
 - **E6** : aucune pièce pour une action pendant laquelle le patient meurt. Enchaîner les diagnostics fait avancer l'horloge, donc vieillir tous les patients.
 - **E7** : « 2 médecins d'une spécialité » exige deux vrais médecins (un spécialiste et un médecin muni du diplôme, ou deux spécialistes) ; la combinaison standard accepte donc 2 médecins **et** 1 accessoire. Un polyvalent muni d'un diplôme remplace un spécialiste : c'est voulu. Le diplôme s'obtient lentement (règles de table §7).
 - **E11** : le simulateur joue 2 ou 3 joueurs à tour de rôle, avec informations partagées ou privées ([rapport à 3 joueurs](simulations/rapport_paquet_base_3_joueurs.md)). En partageant, 74 à 80 % des guérisons sont faites par un joueur qui n'avait pas diagnostiqué le patient : le dilemme existe. Mais **le partage ne change pas le taux de guérison** de l'équipe (97 à 98 % en Interne, 84 à 86 % en Réanimation, partage ou non) : l'objectif « défaite quasi inévitable sans partage » n'est pas atteint, parce que les stratégies connaissent les traitements et qu'un diagnostic à précision maximale suffit souvent.
+- **E2 (suite)** : stratégie `novice:X` ajoutée au simulateur : elle ne connaît pas les traitements et les apprend pendant la partie (carnet de recettes, commun quand les joueurs partagent). Elle ne guérit que 28 % des patients en Interne, contre 96 % pour un vétéran. À 3 joueurs, le partage l'aide : 34 % de guérisons au lieu de 28 %, mais avec plus de traitements ratés, donc une réputation par patient encore plus négative.
 - **E12** : le bruit du diagnostic est pondéré par `(poids / poids moyen)^0,25`.
 - **E13** : sont imprimés l'image, le QR, le type, le nom, la spécialité et les capacités ; une extension ne peut pas les modifier ; le validateur compare les cartes au catalogue embarqué quand on le lui fournit.
 - **E14** : champ `lieu_phrase` des salles et variable `{lieu}` (« en radiologie », « à la pharmacie »).
@@ -102,7 +103,7 @@ Décisions sur les règles manquantes (R1 à R7) et les traitements (E2) :
 | [R6](#r6) | Laboratoire : réanalyse, diffusion des recettes, effet de la capacité `recherche` | Mineur | Décidé : modèle de jeu §12.3 |
 | [R7](#r7) | L'annulation permet de voir un diagnostic gratuitement ou de relancer un tirage | Important | Corrigé : règles de table §10, sans code |
 | [E1](#e1) | Traitements génériques : connaître la spécialité suffit presque toujours | Important | Corrigé : familles de traitements (≤ 35 % par combinaison) |
-| [E2](#e2) | Traitements « connus via le livret de règles », mais laboratoire chargé de les révéler | Important | Décidé : règles de table §9 ; stratégie « novice » à écrire |
+| [E2](#e2) | Traitements « connus via le livret de règles », mais laboratoire chargé de les révéler | Important | Décidé : règles de table §9 ; stratégie `novice` simulée |
 | [E3](#e3) | Les PV et l'attente trahissent la maladie | Important | Corrigé : gabarit de gravité commun (≤ 25 % par valeur de PV) |
 | [E4](#e4) | Arrondis : Chirurgien et Réanimation donnent le même résultat sur les petites valeurs | Important | Corrigé : bonus +0/+1/+2, table effective (modèle §10) |
 | [E5](#e5) | Le modificateur de réputation s'applique aussi aux gains : Réanimation est plus facile | Important | Corrigé : pertes seulement |

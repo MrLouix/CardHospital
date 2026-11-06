@@ -340,6 +340,8 @@ Chaque résultat de diagnostic n'apparaît que sur le téléphone du joueur qui 
 
 Les probabilités du diagnostic (§8.3) doivent être calculées et réglées — avec le simulateur, qui devra comporter une stratégie « sans partage » où chaque joueur ne voit que ses propres diagnostics — pour que si les joueurs ne mettent **rien en commun**, la défaite commune (réputation de l'hôpital sous le seuil de fermeture, §7.1) soit **quasi inévitable**.
 
+État mesuré au simulateur, à 3 joueurs ([plan de codage §5.4](PLAN_DE_CODAGE.md#54-premiers-constats-du-simulateur)) : pour des joueurs **vétérans**, qui connaissent les traitements, le partage ne change pas le taux de guérison ; pour des **novices**, il le fait passer de 28 à 34 % en Interne, sans empêcher l'hôpital de fermer. L'objectif n'est pas encore atteint.
+
 ## 9. Ordre de résolution d'une action
 
 Pour `diagnostiquer`, `traiter` et `analyser`, l'ordre par défaut est le suivant (il est écrit explicitement dans le JSON, voir [MOTEUR_EFFETS.md §6.1](MOTEUR_EFFETS.md#61-actions-du-paquet-de-base)) :
