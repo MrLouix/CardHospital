@@ -79,16 +79,37 @@ void main() {
     expect((resultat as Refus).message, 'Une seule carte patient par action.');
   });
 
-  test('refus : 4 cartes au maximum (second médecin + accessoire)', () {
+  test('standard : second médecin et accessoire (5 cartes)', () {
     final resultat = reco.reconnaitre([
       'MED-001',
       'MED-002',
       'PAT-001',
       'SAL-001',
-      'OBJ-001',
+      'DIP-004',
     ]);
-    expect(resultat, isA<Refus>());
-    expect((resultat as Refus).message, '4 cartes au maximum.');
+    expect((resultat as Apercu).motifs, ['standard']);
+  });
+
+  test('refus : 2 médecins et 1 accessoire au plus', () {
+    final troisMedecins = reco.reconnaitre([
+      'MED-001',
+      'MED-002',
+      'MED-005',
+      'PAT-001',
+      'SAL-001',
+    ]);
+    expect((troisMedecins as Refus).message, '2 cartes médecin au maximum.');
+    final deuxAccessoires = reco.reconnaitre([
+      'MED-001',
+      'PAT-001',
+      'SAL-001',
+      'OBJ-001',
+      'DIP-004',
+    ]);
+    expect(
+      (deuxAccessoires as Refus).message,
+      'Une seule carte accessoire (objet ou diplôme) par action.',
+    );
   });
 
   test('refus : aucune carte reconnue', () {

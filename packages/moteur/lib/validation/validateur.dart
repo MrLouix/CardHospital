@@ -4,6 +4,7 @@ import 'dart:io';
 import '../modeles/jeu.dart';
 import '../moteur/combinaison.dart';
 import '../moteur/reconnaissance.dart';
+import 'couleurs.dart';
 
 /// Résultat d'une validation : erreurs bloquantes et avertissements.
 class RapportValidation {
@@ -36,7 +37,15 @@ class Validateur {
 
   /// Valide le JSON brut d'un paquet. Retourne le rapport ; en cas de succès
   /// strict, [jeu] est renseigné.
-  RapportValidation validerJson(Map<String, dynamic> brut, {Jeu? jeu}) {
+  ///
+  /// [catalogue] : les cartes imprimées (catalogue embarqué). S'il est
+  /// fourni, chaque carte du paquet doit y figurer, avec les mêmes attributs
+  /// imprimés (règle 3 de MOTEUR_EFFETS.md §7).
+  RapportValidation validerJson(
+    Map<String, dynamic> brut, {
+    Jeu? jeu,
+    Map<String, Carte>? catalogue,
+  }) {
     final erreurs = <String>[];
     final avertissements = <String>[];
 
@@ -55,6 +64,7 @@ class Validateur {
         'schema_version : ce paquet nécessite une version plus récente de l\'application',
       );
     }
+    if (catalogue != null) erreurs.addAll(_verifierCatalogue(j, catalogue));
     erreurs.addAll(_verifierDoublons(j));
     erreurs.addAll(_verifierReferences(j));
     erreurs.addAll(_verifierPhrases(j));
@@ -153,6 +163,45 @@ class Validateur {
         final index = (brut['maladies'] as List).indexOf(m);
         erreurs.add(
           'maladies[$index].poids : une maladie doit avoir un poids d\'au moins 1 ; pour l\'écarter, retirez-la du paquet',
+        );
+      }
+    }
+    return erreurs;
+  }
+
+  /// Règle 3 : en v1, une carte du paquet est une carte imprimée du
+  /// catalogue embarqué, sans modification de ses attributs imprimés (type,
+  /// nom, spécialité, capacités). `generaliste`, `polyvalent` et l'absence
+  /// de spécialité sont équivalents.
+  List<String> _verifierCatalogue(Jeu j, Map<String, Carte> catalogue) {
+    String? specialite(Carte c) => switch (c.specialite) {
+      null || specialitePolyvalent || ancienNomPolyvalent => null,
+      final s => s,
+    };
+    String capacites(Carte c) {
+      final e = (c.capacites ?? const <String, int>{}).entries.toList()
+        ..removeWhere((e) => e.value == 0)
+        ..sort((a, b) => a.key.compareTo(b.key));
+      return e.map((e) => '${e.key}:${e.value}').join(',');
+    }
+
+    final erreurs = <String>[];
+    for (final MapEntry(key: id, value: carte) in j.cartes.entries) {
+      final imprimee = catalogue[id];
+      if (imprimee == null) {
+        erreurs.add('cartes.$id : carte absente du catalogue embarqué');
+        continue;
+      }
+      final ecarts = [
+        if (carte.type != imprimee.type) 'type',
+        if (carte.nom != imprimee.nom) 'nom',
+        if (specialite(carte) != specialite(imprimee)) 'spécialité',
+        if (capacites(carte) != capacites(imprimee)) 'capacités',
+      ];
+      if (ecarts.isNotEmpty) {
+        erreurs.add(
+          'cartes.$id : ${ecarts.join(', ')} différent(s) de la carte '
+          'imprimée ; une extension ne peut pas modifier une carte en v1',
         );
       }
     }
@@ -463,6 +512,7 @@ class Validateur {
       'medecin',
       'medecin2',
       'salle',
+      'lieu',
       'accessoire',
     };
     for (var i = 0; i < j.actions.length; i++) {
@@ -482,6 +532,7 @@ class Validateur {
               variablesDuMotif.add('accessoire');
             } else {
               variablesDuMotif.add(type);
+              if (type == 'salle') variablesDuMotif.add('lieu');
             }
           }
         }
@@ -608,6 +659,37 @@ class Validateur {
           );
         } else {
           vues[valeur(s)] = s.id;
+        }
+      }
+    }
+    // Accessibilité : contraste sur fond clair et sombre, couleurs
+    // distinguables en vision normale et pour les daltoniens.
+    for (var i = 0; i < j.specialites.length; i++) {
+      final s = j.specialites[i];
+      for (final (fond, nom) in [
+        (fondClair, 'clair'),
+        (fondSombre, 'sombre'),
+      ]) {
+        final c = contraste(s.couleur, fond);
+        if (c < contrasteMin) {
+          avertissements.add(
+            'specialites[$i].couleur : contraste de ${c.toStringAsFixed(2)}:1 '
+            'sur fond $nom, sous le minimum de $contrasteMin:1',
+          );
+        }
+      }
+      for (var k = i + 1; k < j.specialites.length; k++) {
+        final autre = j.specialites[k];
+        if (autre.couleur.toUpperCase() == s.couleur.toUpperCase()) continue;
+        for (final vision in Vision.values) {
+          final e = ecart(s.couleur, autre.couleur, vision);
+          if (e < ecartMin) {
+            avertissements.add(
+              'specialites[$k].couleur : trop proche de « ${s.id} » en '
+              '${vision.nom} (écart ${e.toStringAsFixed(1)}, minimum '
+              '${ecartMin.toStringAsFixed(0)})',
+            );
+          }
         }
       }
     }

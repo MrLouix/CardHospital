@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math' as math;
 
 import '../modeles/jeu.dart';
 import '../moteur/alea.dart';
@@ -14,6 +15,8 @@ class ParametresSimulation {
     this.parties = 1000,
     this.patientsParPartie = 10,
     this.patientsEnJeu = 3,
+    this.joueurs = 1,
+    this.partages = const [true],
     this.actionsMax = 60,
   });
 
@@ -30,6 +33,14 @@ class ParametresSimulation {
   /// nombre de cartes patient du paquet.
   final int patientsEnJeu;
 
+  /// Nombre de joueurs, qui jouent à tour de rôle (une action par tour).
+  final int joueurs;
+
+  /// Modes simulés quand il y a plusieurs joueurs : `true`, les résultats
+  /// des diagnostics sont mis en commun ; `false`, chacun ne voit que les
+  /// siens.
+  final List<bool> partages;
+
   /// Au-delà, le patient est abandonné (compté à part).
   final int actionsMax;
 
@@ -38,6 +49,8 @@ class ParametresSimulation {
     'parties': parties,
     'patients_par_partie': patientsParPartie,
     'patients_en_jeu': patientsEnJeu,
+    'joueurs': joueurs,
+    'partages': partages,
     'actions_max': actionsMax,
   };
 }
@@ -59,10 +72,27 @@ class StatsMaladie {
 
 /// Mesures d'une stratégie à un niveau de difficulté.
 class StatsStrategie {
-  StatsStrategie(this.strategie, this.difficulte);
+  StatsStrategie(this.strategie, this.difficulte, {this.partage});
 
   final String strategie;
   final String difficulte;
+
+  /// Mode d'information, quand il y a plusieurs joueurs (sinon nul).
+  final bool? partage;
+
+  /// Guérisons faites par un joueur qui n'avait pas diagnostiqué ce patient,
+  /// alors qu'un autre l'avait fait : il profite du diagnostic d'autrui.
+  int guerisonsParAutrui = 0;
+
+  /// Écart de pièces entre le joueur le plus riche et le plus pauvre, à la
+  /// fin de chaque partie.
+  final ecartsPieces = <int>[];
+
+  double get partGuerisonsParAutrui =>
+      gueris == 0 ? 0 : guerisonsParAutrui / gueris;
+  double get ecartPiecesMoyen => ecartsPieces.isEmpty
+      ? 0
+      : ecartsPieces.fold(0, (a, b) => a + b) / ecartsPieces.length;
 
   int patients = 0;
   int gueris = 0;
@@ -92,6 +122,9 @@ class StatsStrategie {
   Map<String, dynamic> toJson() => {
     'strategie': strategie,
     'difficulte': difficulte,
+    if (partage != null) 'partage': partage,
+    if (partage != null) 'guerisons_par_autrui': guerisonsParAutrui,
+    if (partage != null) 'ecart_pieces_moyen': _arrondi(ecartPiecesMoyen, 2),
     'patients': patients,
     'gueris': gueris,
     'morts': morts,
@@ -135,8 +168,9 @@ class RapportSimulation {
         'Graine ${parametres.graine} · ${parametres.parties} parties de '
         '${parametres.patientsParPartie} patients par stratégie et par '
         'difficulté, ${parametres.patientsEnJeu} patients en jeu à la fois, '
-        'pris en charge à tour de rôle · abandon au-delà de '
-        '${parametres.actionsMax} actions sur un patient.',
+        '${parametres.joueurs == 1 ? '1 joueur' : '${parametres.joueurs} joueurs à tour de rôle'} '
+        '· abandon au-delà de ${parametres.actionsMax} actions sur un '
+        'patient.',
       )
       ..writeln()
       ..writeln('## Synthèse')
@@ -180,6 +214,32 @@ class RapportSimulation {
         '| ${r.strategie} | ${_nomDifficulte(r.difficulte)} '
         '| ${f['c5']} | ${f['c50']} | ${f['c95']} | ${m['c5']} | ${m['c50']} |',
       );
+    }
+    if (resultats.any((r) => r.partage != null)) {
+      b
+        ..writeln()
+        ..writeln('## Joueurs')
+        ..writeln()
+        ..writeln(
+          '« Par un autre » : part des guérisons faites par un joueur qui '
+          'n\'avait pas diagnostiqué le patient, alors qu\'un autre l\'avait '
+          'fait. « Écart de pièces » : écart moyen, en fin de partie, entre le '
+          'joueur le plus riche et le plus pauvre.',
+        )
+        ..writeln()
+        ..writeln(
+          '| Stratégie | Difficulté | Informations | Guérison | '
+          'Réputation / patient | Par un autre | Écart de pièces |',
+        )
+        ..writeln('|---|---|---|---:|---:|---:|---:|');
+      for (final r in resultats) {
+        b.writeln(
+          '| ${r.strategie} | ${_nomDifficulte(r.difficulte)} '
+          '| ${r.partage! ? 'partagées' : 'privées'} '
+          '| ${_pct(r.tauxGuerison)} | ${_dec(r.reputationParPatient)} '
+          '| ${_pct(r.partGuerisonsParAutrui)} | ${_dec(r.ecartPiecesMoyen, 1)} |',
+        );
+      }
     }
     b
       ..writeln()
@@ -261,15 +321,24 @@ class Simulateur {
     List<String>? difficultes,
   }) {
     final niveaux = difficultes ?? jeu.difficultes.map((d) => d.id).toList();
+    final modes = parametres.joueurs > 1 ? parametres.partages : [null];
     final resultats = <StatsStrategie>[];
     for (var n = 0; n < niveaux.length; n++) {
-      for (var s = 0; s < strategies.length; s++) {
-        // Une graine dérivée par couple (stratégie, niveau) : ajouter une
-        // stratégie ne change pas les résultats des autres.
-        final graine = parametres.graine * 1000003 + n * 1009 + s * 7919;
-        resultats.add(
-          _simulerStrategie(strategies[s], niveaux[n], Alea(graine)),
-        );
+      for (var m = 0; m < modes.length; m++) {
+        for (var s = 0; s < strategies.length; s++) {
+          // Une graine dérivée par (stratégie, niveau, mode) : ajouter une
+          // stratégie ou un mode ne change pas les autres résultats.
+          final graine =
+              parametres.graine * 1000003 + n * 1009 + s * 7919 + m * 104729;
+          resultats.add(
+            _simulerStrategie(
+              strategies[s],
+              niveaux[n],
+              Alea(graine),
+              partage: modes[m],
+            ),
+          );
+        }
       }
     }
     return RapportSimulation(jeu, parametres, resultats);
@@ -278,9 +347,14 @@ class Simulateur {
   StatsStrategie _simulerStrategie(
     Strategie strategie,
     String difficulte,
-    SourceAleatoire alea,
-  ) {
-    final stats = StatsStrategie(strategie.nom, difficulte);
+    SourceAleatoire alea, {
+    bool? partage,
+  }) {
+    final nom = partage == null
+        ? strategie.nom
+        : '${strategie.nom} · ${partage ? 'partage' : 'privé'}';
+    final stats = StatsStrategie(nom, difficulte, partage: partage);
+    final joueurs = parametres.joueurs < 1 ? 1 : parametres.joueurs;
     final enJeuMax = parametres.patientsEnJeu.clamp(1, _cartesPatient.length);
     for (var p = 0; p < parametres.parties; p++) {
       final partie = Partie.nouvelle(
@@ -291,6 +365,8 @@ class Simulateur {
       );
       final libres = [..._cartesPatient];
       final enJeu = <_PatientSimule>[];
+      final piecesJoueurs = List.filled(joueurs, 0);
+      var tour = 0;
       var admissions = 0;
       var cumul = 0;
       var minimum = 0;
@@ -303,26 +379,34 @@ class Simulateur {
           admissions++;
           final maladie = partie.etat.patients[carte]!.maladie;
           enJeu.add(
-            _PatientSimule(
-              carte,
-              strategie.nouvelle()..debutPatient(),
-              stats.parMaladie.putIfAbsent(maladie, StatsMaladie.new),
-            ),
+            _PatientSimule(carte, [
+              for (var j = 0; j < joueurs; j++)
+                strategie.nouvelle()..debutPatient(),
+            ], stats.parMaladie.putIfAbsent(maladie, StatsMaladie.new)),
           );
           stats.patients++;
           enJeu.last.stats.patients++;
         }
         if (enJeu.isEmpty) break;
 
-        final suivi = enJeu.removeAt(0);
+        // Le joueur du tour traite d'abord un patient qu'il est prêt à
+        // soigner ; sinon il prend en charge le suivant dans la file.
+        final joueur = tour % joueurs;
+        tour++;
+        List<ResultatAction> visible(_PatientSimule s) =>
+            partage == false ? s.parJoueur[joueur] : s.historique;
+        final pret = enJeu.indexWhere(
+          (s) => s.strategies[joueur].pret(visible(s), _catalogue),
+        );
+        final suivi = enJeu.removeAt(pret < 0 ? 0 : pret);
         if (suivi.historique.length >= parametres.actionsMax) {
           // Abandonné : il reste en jeu dans le moteur, sa carte n'est pas
           // libérée.
           stats.abandons++;
           continue;
         }
-        final choix = suivi.strategie.choisir(
-          suivi.historique,
+        final choix = suivi.strategies[joueur].choisir(
+          visible(suivi),
           _catalogue,
           alea,
         );
@@ -331,6 +415,9 @@ class Simulateur {
           ...choix.cartes,
         ], choix.action);
         suivi.historique.add(r);
+        if (partage == false) suivi.parJoueur[joueur].add(r);
+        if (r.diagnostic != null) suivi.diagnostiqueurs.add(joueur);
+        piecesJoueurs[joueur] += r.pieces;
         stats.actions++;
         suivi.stats.actions++;
         if (r.diagnostic != null) stats.diagnostics++;
@@ -344,6 +431,10 @@ class Simulateur {
           case IssuePatient.gueri:
             stats.gueris++;
             suivi.stats.gueris++;
+            if (suivi.diagnostiqueurs.isNotEmpty &&
+                !suivi.diagnostiqueurs.contains(joueur)) {
+              stats.guerisonsParAutrui++;
+            }
             libres.add(suivi.carte);
           case IssuePatient.mort:
             stats.morts++;
@@ -353,6 +444,11 @@ class Simulateur {
       }
       stats.reputationFinale.add(cumul);
       stats.reputationMin.add(minimum);
+      if (partage != null) {
+        stats.ecartsPieces.add(
+          piecesJoueurs.reduce(math.max) - piecesJoueurs.reduce(math.min),
+        );
+      }
     }
     return stats;
   }
@@ -385,13 +481,19 @@ String _pct(double x) => '${_dec(x * 100, 1)} %';
 String _dec(double x, [int decimales = 2]) =>
     x.toStringAsFixed(decimales).replaceAll('.', ',');
 
-/// Un patient en jeu pendant une simulation : sa carte, sa stratégie et
-/// l'historique de ses résultats depuis son admission.
+/// Un patient en jeu pendant une simulation : sa carte, une stratégie par
+/// joueur, et l'historique de ses résultats depuis son admission (commun,
+/// et par joueur pour les informations privées).
 class _PatientSimule {
-  _PatientSimule(this.carte, this.strategie, this.stats);
+  _PatientSimule(this.carte, this.strategies, this.stats)
+    : parJoueur = [for (final _ in strategies) <ResultatAction>[]];
 
   final String carte;
-  final Strategie strategie;
+  final List<Strategie> strategies;
   final StatsMaladie stats;
   final historique = <ResultatAction>[];
+  final List<List<ResultatAction>> parJoueur;
+
+  /// Joueurs qui ont diagnostiqué ce patient.
+  final diagnostiqueurs = <int>{};
 }

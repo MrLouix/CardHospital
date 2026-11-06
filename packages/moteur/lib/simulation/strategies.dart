@@ -105,8 +105,14 @@ abstract class Strategie {
   void debutPatient() {}
 
   /// Nouvelle instance de la même stratégie, sans mémoire : le simulateur
-  /// en crée une par patient, plusieurs patients étant en jeu à la fois.
+  /// en crée une par patient et par joueur.
   Strategie nouvelle();
+
+  /// Au vu de l'[historique] visible, la stratégie veut-elle traiter ce
+  /// patient maintenant ? Sert à choisir le patient pris en charge quand
+  /// plusieurs joueurs se partagent les patients.
+  bool pret(List<ResultatAction> historique, CatalogueCombinaisons catalogue) =>
+      false;
 
   /// Choisit la prochaine action sur le patient, au vu de l'[historique]
   /// de ses résultats depuis l'admission (exclue).
@@ -178,6 +184,21 @@ class StrategieSeuil extends Strategie {
   @override
   Strategie nouvelle() => StrategieSeuil(seuil);
 
+  LigneDiagnostic? _candidate(List<ResultatAction> historique) => historique
+      .lastOrNull
+      ?.diagnostic
+      ?.maladies
+      .where((l) => !_essayees.contains(l.id))
+      .firstOrNull;
+
+  @override
+  bool pret(List<ResultatAction> historique, CatalogueCombinaisons catalogue) {
+    final c = _candidate(historique);
+    return c != null &&
+        c.indice >= seuil &&
+        catalogue.adaptees(c.id).isNotEmpty;
+  }
+
   /// Spécialités de la combinaison du prochain diagnostic.
   Set<String> specialitesDiagnostic(List<ResultatAction> historique) =>
       const {};
@@ -188,9 +209,7 @@ class StrategieSeuil extends Strategie {
     CatalogueCombinaisons catalogue,
     SourceAleatoire alea,
   ) {
-    final candidate = historique.lastOrNull?.diagnostic?.maladies
-        .where((l) => !_essayees.contains(l.id))
-        .firstOrNull;
+    final candidate = _candidate(historique);
     if (candidate != null && candidate.indice >= seuil) {
       final combinaisons = catalogue.adaptees(candidate.id);
       if (combinaisons.isNotEmpty) {

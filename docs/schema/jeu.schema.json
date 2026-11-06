@@ -75,7 +75,7 @@
         "diagnostic": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["precision_max", "verite", "par_niveau", "affinite_specialite", "bonus_specialite", "exclusion", "taille_liste", "score_bruit"],
+          "required": ["precision_max", "verite", "par_niveau", "affinite_specialite", "bonus_specialite", "exclusion", "taille_liste", "score_bruit", "ponderation_poids"],
           "properties": {
             "precision_max": { "$ref": "#/$defs/entier_positif_ou_nul" },
             "verite": { "type": "number", "minimum": 0 },
@@ -84,7 +84,8 @@
             "bonus_specialite": { "type": "number", "minimum": 0 },
             "exclusion": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
             "taille_liste": { "$ref": "#/$defs/entier_positif" },
-            "score_bruit": { "type": "integer", "minimum": 1, "maximum": 99 }
+            "score_bruit": { "type": "integer", "minimum": 1, "maximum": 99 },
+            "ponderation_poids": { "type": "number", "minimum": 0, "description": "Exposant de la pondération du bruit par le poids de la maladie (0 : aucune)." }
           }
         },
         "recompenses": {
@@ -124,9 +125,9 @@
           "additionalProperties": false,
           "required": ["pv_perdus", "pieces", "reputation"],
           "properties": {
-            "pv_perdus": { "type": "number", "exclusiveMinimum": 0 },
-            "pieces": { "type": "number", "exclusiveMinimum": 0 },
-            "reputation": { "type": "number", "exclusiveMinimum": 0 }
+            "pv_perdus": { "type": "integer", "description": "Bonus ajouté à chaque perte de PV non nulle." },
+            "pieces": { "type": "integer", "description": "Bonus ajouté à chaque gain de pièces non nul." },
+            "reputation": { "type": "integer", "description": "Bonus ajouté à chaque perte de réputation non nulle ; les gains ne sont pas modifiés." }
           }
         }
       }
@@ -163,6 +164,7 @@
         "type": { "$ref": "#/$defs/type_carte" },
         "nom": { "$ref": "#/$defs/texte" },
         "nom_phrase": { "$ref": "#/$defs/texte" },
+        "lieu_phrase": { "$ref": "#/$defs/texte", "description": "Pour une salle : le lieu avec sa préposition (« en réanimation »). Par défaut : « dans » + nom_phrase." },
         "specialite": { "$ref": "#/$defs/identifiant", "description": "Spécialité déclarée, ou valeur réservée : « polyvalent » (sans spécialité, comme l'absence du champ ; « generaliste » est son ancien nom) ou « recherche » (salles seulement)." },
         "capacites": {
           "type": "object",

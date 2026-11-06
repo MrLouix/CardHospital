@@ -39,7 +39,7 @@ void main() {
 
   test('aucune maladie n\'est soignée par plus de 10 % des combinaisons, et '
       'chacune peut échouer', () {
-    expect(combinaisons, hasLength(2650));
+    expect(combinaisons, hasLength(12100));
     for (final m in jeu.maladies) {
       final adaptees = combinaisons
           .where((c) => c.satisfait(m.traitement.adapte))
@@ -63,11 +63,11 @@ void main() {
     Maladie maladie(String id) => jeu.maladies.firstWhere((m) => m.id == id);
     bool soigne(String id, List<String> cartes) =>
         Combinaison(jeu, cartes).satisfait(maladie(id).traitement.adapte);
-    expect(soigne('rhume_carabine', ['MED-001', 'SAL-007', 'OBJ-011']), isTrue);
+    expect(soigne('rhume_carabine', ['MED-001', 'SAL-007', 'OBJ-016']), isTrue);
     expect(
-      soigne('rhume_carabine', ['MED-001', 'SAL-003', 'OBJ-011']),
+      soigne('rhume_carabine', ['MED-001', 'SAL-003', 'OBJ-016']),
       isFalse,
-      reason: 'il faut la pharmacie',
+      reason: 'il faut la consultation ou la pharmacie',
     );
     expect(soigne('burn_out', ['MED-005', 'SAL-002']), isTrue);
     expect(
@@ -106,6 +106,40 @@ void main() {
       jeu.cartes.values.where((c) => c.specialite == ancienNomPolyvalent),
       isEmpty,
     );
+  });
+
+  test('familles de traitements : aucune combinaison ne soigne plus de 40 % '
+      'des maladies d\'une spécialité', () {
+    for (final s in jeu.specialites) {
+      final maladies = jeu.maladies.where((m) => m.specialite == s.id);
+      var meilleure = 0;
+      for (final c in combinaisons) {
+        final n = maladies
+            .where((m) => c.satisfait(m.traitement.adapte))
+            .length;
+        if (n > meilleure) meilleure = n;
+      }
+      expect(
+        meilleure / maladies.length,
+        lessThanOrEqualTo(0.40),
+        reason: s.id,
+      );
+    }
+  });
+
+  test('les PV initiaux ne trahissent pas la spécialité : au plus 30 % du '
+      'poids d\'une valeur pour une même spécialité', () {
+    final parPv = <int, Map<String, int>>{};
+    for (final m in jeu.maladies) {
+      final t = parPv.putIfAbsent(m.pvInitial, () => {});
+      t[m.specialite] = (t[m.specialite] ?? 0) + (m.poids ?? 1);
+    }
+    parPv.forEach((pv, t) {
+      final total = t.values.fold(0, (a, b) => a + b);
+      final max = t.values.reduce((a, b) => a > b ? a : b);
+      expect(max / total, lessThanOrEqualTo(0.30), reason: 'PV $pv');
+    });
+    expect(parPv.keys.length, greaterThanOrEqualTo(8), reason: 'PV variés');
   });
 
   test('diagnostic : précision plafonnée à 4, bonus par niveau de 0,8', () {

@@ -336,8 +336,10 @@ class _Execution {
       } else if (p.pv <= 0) {
         p.pv = 0;
         issue = IssuePatient.mort;
-        reputation += moduler(_recompense('reputation_mort'), mod.reputation);
+        reputation += _reputation(_recompense('reputation_mort'));
       }
+      // Pas de pièce quand le patient meurt pendant l'action.
+      if (issue == IssuePatient.mort) pieces = 0;
       if (issue != IssuePatient.enJeu) {
         p.statut = StatutPatient.sorti;
         p.issue = issue;
@@ -406,7 +408,7 @@ class _Execution {
       case 'payer':
         pieces += moduler(_valeur(e.valeur!), mod.pieces);
       case 'reputation':
-        reputation += moduler(_valeur(e.valeur!), mod.reputation);
+        reputation += _reputation(_valeur(e.valeur!));
       case 'si':
         if (evaluer(e.condition!)) {
           _effets(e.alors ?? const []);
@@ -439,6 +441,10 @@ class _Execution {
   }
 
   int _presence(EtatPatient p) => p.presence(partie._etat.ticks);
+
+  /// Impact sur la réputation : la difficulté ne modifie que les pertes.
+  int _reputation(int valeur) =>
+      valeur < 0 ? moduler(valeur, mod.reputation) : valeur;
 
   bool _attenteDepassee(EtatPatient p, Maladie m) =>
       _presence(p) > (m.attenteMax ?? jeu.parametres.attenteMaxDefaut);
@@ -525,14 +531,12 @@ int perteAggravation(Maladie m, int presence, Parametres parametres) {
   return m.aggravation[(palier - 1).clamp(0, m.aggravation.length - 1)];
 }
 
-/// Applique un modificateur de difficulté à un montant entier, puis arrondit
-/// à l'entier le plus proche (demi éloigné de zéro). Une base non nulle
-/// reste au moins égale à 1 en valeur absolue (MODELE_DE_JEU.md §7).
-int moduler(int base, double facteur) {
+/// Applique le bonus de difficulté [bonus] à un montant entier [base] : il
+/// s'ajoute à sa valeur absolue. Un montant nul reste nul, et un montant non
+/// nul reste au moins égal à 1 en valeur absolue, même avec un bonus négatif
+/// (MODELE_DE_JEU.md §10).
+int moduler(int base, int bonus) {
   if (base == 0) return 0;
-  // Arrondi préalable au millionième : 1,15 × 10 doit donner 11,5 (et non
-  // 11,499…), donc 12.
-  final produit = (base * facteur * 1e6).round() / 1e6;
-  final arrondi = produit.round();
-  return arrondi == 0 ? base.sign : arrondi;
+  final valeur = base.abs() + bonus;
+  return base.sign * (valeur < 1 ? 1 : valeur);
 }

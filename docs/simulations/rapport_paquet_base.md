@@ -1,26 +1,26 @@
-# Rapport de simulation — CardHospital — paquet de base 1.2.0
+# Rapport de simulation — CardHospital — paquet de base 2.0.0
 
-Graine 1 · 1000 parties de 10 patients par stratégie et par difficulté, 3 patients en jeu à la fois, pris en charge à tour de rôle · abandon au-delà de 60 actions sur un patient.
+Graine 1 · 1000 parties de 10 patients par stratégie et par difficulté, 3 patients en jeu à la fois, 1 joueur · abandon au-delà de 60 actions sur un patient.
 
 ## Synthèse
 
 | Stratégie | Difficulté | Guérison | Mort | Abandon | Actions / patient | Diagnostics / patient | Pièces / action | Réputation / action | Réputation / patient |
 |---|---|---:|---:|---:|---:|---:|---:|---:|---:|
-| hasard | Interne | 6,4 % | 93,6 % | 0 | 5,78 | 2,91 | 0,64 | -1,06 | -6,11 |
-| seuil:60 | Interne | 93,4 % | 6,6 % | 0 | 2,94 | 1,59 | 1,53 | 0,41 | 1,22 |
-| seuil:80 | Interne | 94,9 % | 5,1 % | 0 | 3,50 | 2,50 | 1,54 | 0,42 | 1,46 |
-| couleur:60 | Interne | 95,1 % | 4,9 % | 0 | 2,91 | 1,57 | 1,56 | 0,46 | 1,35 |
-| couleur:80 | Interne | 97,0 % | 3,0 % | 0 | 3,32 | 2,30 | 1,59 | 0,49 | 1,64 |
-| hasard | Chirurgien | 4,7 % | 95,3 % | 0 | 3,98 | 1,97 | 0,64 | -2,09 | -8,30 |
-| seuil:60 | Chirurgien | 84,2 % | 15,8 % | 0 | 2,72 | 1,51 | 1,83 | 0,38 | 1,04 |
-| seuil:80 | Chirurgien | 85,9 % | 14,1 % | 0 | 3,26 | 2,36 | 1,79 | 0,50 | 1,63 |
-| couleur:60 | Chirurgien | 86,5 % | 13,5 % | 0 | 2,70 | 1,49 | 1,87 | 0,48 | 1,28 |
-| couleur:80 | Chirurgien | 89,9 % | 10,1 % | 0 | 3,18 | 2,24 | 1,85 | 0,62 | 1,98 |
-| hasard | Réanimation | 4,0 % | 96,0 % | 0 | 3,66 | 1,84 | 1,26 | -2,42 | -8,85 |
-| seuil:60 | Réanimation | 81,1 % | 18,9 % | 0 | 2,62 | 1,47 | 2,74 | 0,57 | 1,49 |
-| seuil:80 | Réanimation | 84,9 % | 15,1 % | 0 | 3,24 | 2,35 | 2,78 | 0,71 | 2,28 |
-| couleur:60 | Réanimation | 82,0 % | 18,0 % | 0 | 2,62 | 1,46 | 2,75 | 0,61 | 1,59 |
-| couleur:80 | Réanimation | 88,9 % | 11,1 % | 0 | 3,14 | 2,21 | 2,84 | 0,87 | 2,72 |
+| hasard | Interne | 7,8 % | 92,2 % | 0 | 7,65 | 3,80 | 0,67 | -0,94 | -7,20 |
+| seuil:60 | Interne | 95,7 % | 4,3 % | 0 | 3,27 | 1,77 | 1,57 | 0,37 | 1,21 |
+| seuil:80 | Interne | 95,5 % | 4,5 % | 0 | 3,51 | 2,50 | 1,60 | 0,39 | 1,38 |
+| couleur:60 | Interne | 96,7 % | 3,3 % | 0 | 3,23 | 1,73 | 1,59 | 0,40 | 1,30 |
+| couleur:80 | Interne | 97,4 % | 2,6 % | 0 | 3,39 | 2,34 | 1,64 | 0,45 | 1,54 |
+| hasard | Chirurgien | 5,6 % | 94,4 % | 0 | 5,28 | 2,63 | 1,26 | -1,59 | -8,40 |
+| seuil:60 | Chirurgien | 87,6 % | 12,4 % | 0 | 3,04 | 1,67 | 2,44 | 0,12 | 0,36 |
+| seuil:80 | Chirurgien | 87,9 % | 12,1 % | 0 | 3,33 | 2,39 | 2,51 | 0,21 | 0,72 |
+| couleur:60 | Chirurgien | 89,3 % | 10,7 % | 0 | 3,04 | 1,65 | 2,46 | 0,17 | 0,52 |
+| couleur:80 | Chirurgien | 91,1 % | 8,9 % | 0 | 3,24 | 2,25 | 2,57 | 0,30 | 0,98 |
+| hasard | Réanimation | 4,2 % | 95,8 % | 0 | 4,21 | 2,12 | 1,84 | -2,26 | -9,50 |
+| seuil:60 | Réanimation | 79,9 % | 20,1 % | 0 | 2,82 | 1,56 | 3,28 | -0,16 | -0,45 |
+| seuil:80 | Réanimation | 80,8 % | 19,2 % | 0 | 3,12 | 2,25 | 3,39 | 0,05 | 0,15 |
+| couleur:60 | Réanimation | 82,2 % | 17,8 % | 0 | 2,82 | 1,56 | 3,33 | -0,09 | -0,24 |
+| couleur:80 | Réanimation | 84,5 % | 15,5 % | 0 | 3,10 | 2,19 | 3,46 | 0,13 | 0,41 |
 
 ## Réputation sur une partie
 
@@ -28,21 +28,21 @@ Cumul des impacts sur une partie (départ à 0). « Minimum » est le point le p
 
 | Stratégie | Difficulté | Finale C5 | Finale C50 | Finale C95 | Minimum C5 | Minimum C50 |
 |---|---|---:|---:|---:|---:|---:|
-| hasard | Interne | -75 | -61 | -47 | -75 | -61 |
-| seuil:60 | Interne | 0 | 13 | 19 | -5 | 0 |
-| seuil:80 | Interne | 5 | 16 | 20 | -2 | 0 |
-| couleur:60 | Interne | 4 | 15 | 19 | -3 | 0 |
-| couleur:80 | Interne | 9 | 18 | 20 | -1 | 0 |
-| hasard | Chirurgien | -97 | -84 | -68 | -97 | -84 |
-| seuil:60 | Chirurgien | -14 | 11 | 28 | -17 | -1 |
-| seuil:80 | Chirurgien | 0 | 18 | 30 | -9 | 0 |
-| couleur:60 | Chirurgien | -7 | 16 | 30 | -15 | 0 |
-| couleur:80 | Chirurgien | 4 | 20 | 30 | -5 | 0 |
-| hasard | Réanimation | -102 | -90 | -72 | -102 | -90 |
-| seuil:60 | Réanimation | -12 | 16 | 38 | -18 | 0 |
-| seuil:80 | Réanimation | -2 | 26 | 40 | -10 | 0 |
-| couleur:60 | Réanimation | -12 | 16 | 38 | -16 | 0 |
-| couleur:80 | Réanimation | 6 | 28 | 40 | -6 | 0 |
+| hasard | Interne | -91 | -72 | -53 | -91 | -72 |
+| seuil:60 | Interne | 0 | 13 | 20 | -5 | 0 |
+| seuil:80 | Interne | 2 | 15 | 20 | -1 | 0 |
+| couleur:60 | Interne | 2 | 15 | 20 | -4 | 0 |
+| couleur:80 | Interne | 6 | 17 | 20 | -1 | 0 |
+| hasard | Chirurgien | -107 | -83 | -64 | -107 | -83 |
+| seuil:60 | Chirurgien | -16 | 4 | 18 | -18 | -2 |
+| seuil:80 | Chirurgien | -10 | 8 | 20 | -12 | 0 |
+| couleur:60 | Chirurgien | -14 | 7 | 20 | -17 | -2 |
+| couleur:80 | Chirurgien | -4 | 12 | 20 | -8 | 0 |
+| hasard | Réanimation | -114 | -95 | -76 | -114 | -95 |
+| seuil:60 | Réanimation | -30 | -3 | 17 | -33 | -7 |
+| seuil:80 | Réanimation | -17 | 3 | 17 | -18 | -1 |
+| couleur:60 | Réanimation | -26 | 0 | 20 | -27 | -6 |
+| couleur:80 | Réanimation | -15 | 6 | 20 | -17 | 0 |
 
 ## Par maladie
 
@@ -50,106 +50,106 @@ Taux de guérison et actions par patient, par stratégie, au niveau Interne.
 
 | Maladie | Spécialité | Poids | hasard | seuil:60 | seuil:80 | couleur:60 | couleur:80 |
 |---|---|---:|---:|---:|---:|---:|---:|
-| Angine bactérienne | generale | 3 | 11,0 % en 6,36 | 86,9 % en 3,26 | 96,6 % en 3,65 | 88,4 % en 3,39 | 95,4 % en 3,60 |
-| Rhume carabiné | generale | 3 | 4,1 % en 5,52 | 91,5 % en 2,97 | 97,8 % en 3,62 | 94,8 % en 2,82 | 96,3 % en 3,51 |
-| Gastro virale | generale | 3 | 7,3 % en 5,84 | 93,1 % en 2,97 | 96,3 % en 3,58 | 91,8 % en 3,09 | 97,7 % en 3,24 |
-| Otite moyenne aiguë | generale | 2 | 5,7 % en 5,53 | 94,2 % en 3,03 | 96,6 % en 3,33 | 92,2 % en 2,82 | 98,1 % en 3,57 |
-| Infection urinaire légère | generale | 2 | 7,6 % en 5,32 | 89,7 % en 3,04 | 93,2 % en 3,50 | 94,5 % en 2,99 | 93,9 % en 3,46 |
-| Conjonctivite | generale | 2 | 11,7 % en 5,74 | 87,3 % en 3,14 | 98,4 % en 3,67 | 93,4 % en 3,04 | 97,2 % en 3,56 |
-| Bronchite aiguë | generale | 2 | 11,4 % en 5,94 | 94,3 % en 3,00 | 93,2 % en 3,72 | 88,1 % en 3,36 | 92,2 % en 3,57 |
-| Sinusite maxillaire | generale | 2 | 5,5 % en 5,88 | 91,8 % en 2,89 | 93,7 % en 3,62 | 93,7 % en 2,84 | 93,2 % en 3,89 |
-| Piqûre de moustique infectée | generale | 2 | 11,6 % en 4,79 | 88,9 % en 2,94 | 92,5 % en 3,71 | 92,5 % en 2,80 | 95,6 % en 3,36 |
-| Intoxication alimentaire | generale | 2 | 2,9 % en 5,14 | 92,4 % en 2,81 | 87,3 % en 3,51 | 93,7 % en 3,12 | 97,3 % en 3,13 |
-| Maux de tête | generale | 3 | 9,1 % en 4,78 | 85,1 % en 3,10 | 90,5 % en 3,63 | 87,0 % en 3,08 | 95,8 % en 3,39 |
-| Maux de gorge | generale | 3 | 5,4 % en 6,02 | 95,5 % en 3,01 | 97,7 % en 3,57 | 96,8 % en 2,78 | 96,4 % en 3,55 |
-| Torticolis | generale | 2 | 3,1 % en 4,70 | 89,1 % en 2,87 | 94,8 % en 3,26 | 90,0 % en 3,08 | 97,8 % en 3,45 |
-| Fatigue chronique légère | generale | 1 | 4,9 % en 5,97 | 78,6 % en 3,29 | 96,0 % en 3,64 | 88,2 % en 3,00 | 96,9 % en 3,26 |
-| Carence en vitamine D | generale | 1 | 15,9 % en 8,35 | 98,5 % en 3,16 | 100,0 % en 3,41 | 97,9 % en 3,13 | 100,0 % en 3,38 |
-| Insomnie passagère | generale | 2 | 5,2 % en 5,67 | 92,2 % en 2,88 | 92,6 % en 3,79 | 91,0 % en 2,79 | 97,5 % en 3,50 |
-| Migraine légère | generale | 2 | 10,6 % en 5,02 | 86,9 % en 2,95 | 88,1 % en 3,47 | 85,6 % en 3,05 | 86,6 % en 3,45 |
-| Hoquet persistant | generale | 1 | 6,3 % en 6,84 | 96,6 % en 2,88 | 100,0 % en 3,24 | 98,7 % en 2,92 | 98,4 % en 3,52 |
-| Hypoglycémie légère | generale | 2 | 9,4 % en 5,55 | 85,8 % en 3,24 | 93,8 % en 3,63 | 90,2 % en 3,09 | 94,3 % en 3,53 |
-| Fièvre inexpliquée | generale | 1 | 5,2 % en 5,17 | 86,2 % en 2,74 | 89,4 % en 3,30 | 95,8 % en 2,85 | 93,0 % en 3,75 |
-| Rougeole | generale | 2 | 2,7 % en 5,41 | 91,4 % en 3,22 | 87,9 % en 4,16 | 83,2 % en 3,29 | 93,7 % en 3,34 |
-| Varicelle | generale | 3 | 5,1 % en 5,33 | 83,1 % en 3,35 | 88,5 % en 4,14 | 85,8 % en 3,57 | 95,2 % en 3,55 |
-| Gale | generale | 1 | 5,4 % en 5,34 | 84,5 % en 3,57 | 83,0 % en 3,89 | 88,1 % en 3,07 | 91,9 % en 3,50 |
-| Hypertension artérielle | cardiologie | 2 | 8,6 % en 7,03 | 98,4 % en 2,79 | 97,3 % en 3,53 | 98,4 % en 2,89 | 99,1 % en 3,35 |
-| Arythmie | cardiologie | 2 | 0,9 % en 6,05 | 94,7 % en 3,17 | 91,9 % en 3,58 | 90,4 % en 3,46 | 96,0 % en 3,30 |
-| Infarctus du myocarde | cardiologie | 1 | 0,0 % en 5,85 | 95,1 % en 3,28 | 87,7 % en 3,51 | 96,2 % en 3,11 | 92,9 % en 3,70 |
-| Angor | cardiologie | 2 | 6,6 % en 5,85 | 96,5 % en 2,83 | 96,3 % en 3,22 | 93,7 % en 2,80 | 96,6 % en 3,19 |
-| Insuffisance cardiaque | cardiologie | 1 | 8,1 % en 6,85 | 97,0 % en 2,67 | 100,0 % en 3,08 | 98,3 % en 2,88 | 100,0 % en 3,15 |
-| Tachycardie | cardiologie | 2 | 0,0 % en 6,42 | 91,7 % en 3,24 | 96,8 % en 3,52 | 96,3 % en 3,18 | 92,4 % en 3,81 |
-| Bradycardie | cardiologie | 1 | 0,0 % en 6,43 | 94,4 % en 3,20 | 88,7 % en 3,94 | 98,1 % en 3,40 | 96,0 % en 3,22 |
-| Fibrillation auriculaire | cardiologie | 2 | 0,0 % en 7,01 | 94,7 % en 3,17 | 95,5 % en 3,56 | 95,9 % en 3,07 | 93,9 % en 3,28 |
-| Péricardite | cardiologie | 1 | 4,5 % en 6,36 | 96,1 % en 2,71 | 96,2 % en 3,32 | 98,6 % en 2,66 | 94,0 % en 3,24 |
-| Endocardite | cardiologie | 1 | 12,9 % en 6,00 | 96,2 % en 2,87 | 90,3 % en 3,27 | 98,5 % en 2,65 | 96,9 % en 3,08 |
-| Syndrome du cœur brisé | cardiologie | 1 | 4,8 % en 6,52 | 98,2 % en 2,60 | 100,0 % en 3,44 | 98,3 % en 2,75 | 100,0 % en 3,07 |
-| Hypotension orthostatique | cardiologie | 2 | 9,2 % en 5,28 | 96,7 % en 2,67 | 98,3 % en 3,38 | 95,7 % en 2,68 | 98,1 % en 3,30 |
-| Varices | cardiologie | 2 | 7,6 % en 7,70 | 98,4 % en 2,97 | 100,0 % en 3,64 | 98,3 % en 2,74 | 100,0 % en 3,26 |
-| Phlébite | cardiologie | 2 | 6,1 % en 5,77 | 97,9 % en 2,71 | 94,7 % en 3,53 | 94,8 % en 2,66 | 99,2 % en 3,15 |
-| Embolie pulmonaire | cardiologie | 1 | 0,0 % en 5,84 | 96,4 % en 3,38 | 88,9 % en 3,78 | 94,3 % en 2,79 | 97,9 % en 3,19 |
-| Souffle au cœur | cardiologie | 2 | 8,1 % en 6,15 | 95,6 % en 2,74 | 98,1 % en 3,56 | 98,4 % en 2,65 | 97,2 % en 3,46 |
-| Œdème aigu du poumon | cardiologie | 1 | 0,0 % en 5,90 | 90,5 % en 3,14 | 98,4 % en 3,37 | 96,7 % en 3,12 | 94,4 % en 3,17 |
-| Malaise cardiaque | cardiologie | 3 | 7,0 % en 5,49 | 95,5 % en 2,79 | 97,7 % en 3,47 | 97,8 % en 2,65 | 97,8 % en 3,34 |
-| Cardiomyopathie | cardiologie | 1 | 6,6 % en 5,77 | 97,9 % en 2,74 | 90,8 % en 3,29 | 98,1 % en 2,50 | 94,6 % en 3,36 |
-| Suivi de greffe cardiaque | cardiologie | 1 | 2,7 % en 6,04 | 95,8 % en 2,67 | 96,2 % en 3,47 | 100,0 % en 2,77 | 96,9 % en 3,17 |
-| Phobie des blouses blanches | psychiatrie | 2 | 3,4 % en 6,76 | 97,9 % en 2,79 | 96,9 % en 3,35 | 99,1 % en 2,67 | 98,3 % en 3,08 |
-| Hypocondrie aiguë | psychiatrie | 2 | 5,3 % en 5,76 | 93,4 % en 2,85 | 95,7 % en 3,21 | 98,1 % en 2,88 | 99,2 % en 3,43 |
-| Crise d'angoisse | psychiatrie | 2 | 8,2 % en 5,04 | 93,3 % en 2,91 | 92,9 % en 3,38 | 97,5 % en 2,71 | 95,5 % en 3,12 |
-| Dépression légère | psychiatrie | 2 | 8,9 % en 7,13 | 97,1 % en 2,89 | 99,1 % en 3,43 | 100,0 % en 2,75 | 99,2 % en 3,17 |
-| Trouble du sommeil | psychiatrie | 2 | 14,0 % en 6,45 | 94,0 % en 2,78 | 98,5 % en 3,64 | 99,0 % en 2,55 | 99,0 % en 3,34 |
-| Anxiété généralisée | psychiatrie | 2 | 8,5 % en 6,16 | 97,4 % en 2,86 | 98,2 % en 3,34 | 98,4 % en 2,67 | 100,0 % en 3,25 |
-| Attaque de panique | psychiatrie | 2 | 10,5 % en 4,07 | 93,2 % en 2,60 | 81,1 % en 3,26 | 97,4 % en 2,46 | 92,6 % en 3,06 |
-| Trouble obsessionnel compulsif léger | psychiatrie | 1 | 7,9 % en 7,19 | 98,5 % en 2,48 | 100,0 % en 3,37 | 100,0 % en 2,68 | 98,4 % en 3,33 |
-| Phobie des escaliers | psychiatrie | 1 | 9,6 % en 5,25 | 100,0 % en 2,51 | 96,7 % en 3,25 | 100,0 % en 2,58 | 100,0 % en 3,19 |
-| Syndrome de Paris | psychiatrie | 1 | 9,0 % en 6,79 | 98,2 % en 2,65 | 97,7 % en 3,48 | 100,0 % en 2,64 | 98,2 % en 3,43 |
-| Burn-out | psychiatrie | 1 | 8,2 % en 6,14 | 98,5 % en 2,88 | 98,7 % en 3,34 | 92,3 % en 2,62 | 98,0 % en 2,78 |
-| Addiction aux écrans | psychiatrie | 1 | 0,0 % en 6,42 | 90,6 % en 3,64 | 86,0 % en 4,12 | 98,3 % en 3,43 | 100,0 % en 3,34 |
-| Cauchemars répétés | psychiatrie | 2 | 9,1 % en 6,15 | 95,4 % en 2,62 | 97,7 % en 3,32 | 96,3 % en 2,80 | 99,0 % en 3,39 |
-| Mutisme sélectif | psychiatrie | 1 | 13,2 % en 7,50 | 96,8 % en 2,98 | 98,2 % en 3,49 | 100,0 % en 2,36 | 100,0 % en 3,18 |
-| Trouble alimentaire léger | psychiatrie | 2 | 12,1 % en 5,27 | 92,9 % en 2,56 | 91,0 % en 3,32 | 95,9 % en 2,81 | 95,7 % en 3,06 |
-| Stress post-traumatique | psychiatrie | 1 | 5,9 % en 6,01 | 98,1 % en 2,70 | 98,3 % en 3,24 | 100,0 % en 2,55 | 98,4 % en 3,36 |
-| Jalousie délirante | psychiatrie | 1 | 10,2 % en 5,54 | 98,1 % en 2,44 | 94,8 % en 3,43 | 97,3 % en 2,74 | 98,3 % en 3,29 |
-| Insomnie chronique | psychiatrie | 2 | 3,9 % en 6,05 | 96,6 % en 2,76 | 96,6 % en 3,27 | 95,8 % en 2,82 | 95,5 % en 3,23 |
-| Dépendance à la caféine | psychiatrie | 1 | 7,3 % en 5,80 | 100,0 % en 2,56 | 98,6 % en 3,33 | 100,0 % en 2,78 | 97,1 % en 3,31 |
-| Crise de rire incontrôlée | psychiatrie | 1 | 3,0 % en 6,79 | 95,7 % en 2,66 | 98,5 % en 3,38 | 97,0 % en 2,79 | 97,9 % en 2,77 |
-| Fracture ouverte | orthopedie | 2 | 0,8 % en 4,96 | 90,7 % en 3,17 | 92,6 % en 3,54 | 94,9 % en 2,85 | 96,5 % en 3,26 |
-| Fracture fermée | orthopedie | 2 | 7,0 % en 5,24 | 100,0 % en 2,78 | 96,6 % en 3,53 | 98,2 % en 2,80 | 99,3 % en 3,13 |
-| Entorse de la cheville | orthopedie | 3 | 7,2 % en 5,47 | 93,7 % en 3,24 | 97,7 % en 3,49 | 93,5 % en 3,16 | 98,9 % en 3,44 |
-| Entorse du genou | orthopedie | 2 | 8,1 % en 6,13 | 94,6 % en 3,28 | 100,0 % en 3,24 | 98,5 % en 3,32 | 96,6 % en 3,46 |
-| Luxation de l'épaule | orthopedie | 2 | 0,8 % en 5,13 | 87,6 % en 3,16 | 93,4 % en 3,60 | 89,7 % en 3,05 | 97,7 % en 3,21 |
-| Lumbago | orthopedie | 3 | 8,2 % en 4,46 | 94,0 % en 2,75 | 96,9 % en 3,39 | 94,7 % en 2,76 | 97,8 % en 3,18 |
-| Sciatique | orthopedie | 2 | 3,2 % en 4,37 | 89,6 % en 2,90 | 89,7 % en 3,46 | 96,9 % en 3,08 | 93,5 % en 3,12 |
-| Hernie discale | orthopedie | 1 | 4,8 % en 4,84 | 91,8 % en 2,86 | 95,9 % en 3,16 | 96,4 % en 2,77 | 98,0 % en 3,16 |
-| Fracture du poignet | orthopedie | 2 | 8,2 % en 4,80 | 93,2 % en 2,85 | 94,8 % en 3,73 | 95,5 % en 2,73 | 97,7 % en 3,44 |
-| Rupture du ligament croisé | orthopedie | 1 | 3,4 % en 5,12 | 97,1 % en 2,90 | 90,9 % en 3,51 | 97,9 % en 2,77 | 98,7 % en 3,23 |
-| Scoliose | orthopedie | 1 | 8,6 % en 6,53 | 98,2 % en 2,88 | 98,1 % en 3,43 | 97,3 % en 3,21 | 100,0 % en 3,23 |
-| Arthrose du genou | orthopedie | 2 | 6,5 % en 6,20 | 96,2 % en 3,00 | 100,0 % en 3,65 | 99,2 % en 2,88 | 99,1 % en 3,38 |
-| Syndrome du canal carpien | orthopedie | 2 | 6,2 % en 4,96 | 93,4 % en 2,97 | 97,4 % en 3,71 | 96,0 % en 2,69 | 100,0 % en 3,33 |
-| Épaule gelée | orthopedie | 1 | 9,0 % en 5,54 | 94,0 % en 2,76 | 96,3 % en 3,26 | 98,5 % en 2,59 | 100,0 % en 3,16 |
-| Hallux valgus | orthopedie | 2 | 5,9 % en 5,41 | 96,9 % en 2,82 | 97,0 % en 3,43 | 97,5 % en 3,08 | 99,1 % en 3,31 |
-| Fracture du fémur | orthopedie | 1 | 0,0 % en 5,05 | 87,3 % en 3,05 | 92,5 % en 3,27 | 86,3 % en 2,94 | 95,0 % en 3,33 |
-| Périostite tibiale | orthopedie | 2 | 5,6 % en 5,69 | 89,9 % en 3,28 | 94,9 % en 3,39 | 95,2 % en 3,32 | 100,0 % en 3,51 |
-| Torticolis congénital | orthopedie | 1 | 7,5 % en 4,86 | 90,0 % en 2,96 | 98,4 % en 3,22 | 96,2 % en 2,87 | 100,0 % en 3,14 |
-| Ostéoporose | orthopedie | 1 | 2,4 % en 6,60 | 96,4 % en 2,91 | 98,5 % en 3,33 | 100,0 % en 2,85 | 98,2 % en 3,38 |
-| Contusion sévère | orthopedie | 2 | 6,2 % en 5,52 | 90,3 % en 3,19 | 96,0 % en 3,38 | 94,6 % en 3,38 | 95,7 % en 3,19 |
-| Malédiction du lundi | paranormal | 2 | 0,9 % en 5,54 | 93,9 % en 3,18 | 92,2 % en 3,42 | 92,9 % en 2,71 | 97,8 % en 3,17 |
-| Possession légère | paranormal | 1 | 0,0 % en 6,18 | 94,4 % en 3,24 | 92,3 % en 3,68 | 93,7 % en 3,10 | 96,8 % en 3,47 |
-| Vampirisme aigu | paranormal | 1 | 7,6 % en 5,70 | 95,9 % en 2,71 | 94,2 % en 3,35 | 98,4 % en 2,56 | 100,0 % en 2,85 |
-| Lycanthropie | paranormal | 1 | 7,2 % en 5,12 | 98,2 % en 2,53 | 96,9 % en 3,48 | 93,8 % en 2,50 | 97,0 % en 3,31 |
-| Mauvais œil | paranormal | 2 | 0,0 % en 5,70 | 92,4 % en 2,96 | 96,6 % en 3,53 | 93,0 % en 3,34 | 97,7 % en 3,37 |
-| Âme en double | paranormal | 1 | 17,4 % en 6,04 | 96,2 % en 2,80 | 98,1 % en 3,35 | 100,0 % en 2,67 | 100,0 % en 2,89 |
-| Malédiction des miroirs | paranormal | 1 | 1,8 % en 5,84 | 89,9 % en 3,00 | 89,6 % en 3,55 | 94,7 % en 3,14 | 91,9 % en 3,29 |
-| Fièvre des étoiles | paranormal | 1 | 8,3 % en 5,69 | 94,9 % en 2,54 | 100,0 % en 3,11 | 98,1 % en 2,30 | 98,4 % en 3,39 |
-| Murmures dans la tête | paranormal | 2 | 0,0 % en 6,09 | 93,5 % en 3,16 | 95,5 % en 3,38 | 97,5 % en 2,80 | 95,8 % en 3,38 |
-| Ombre qui suit | paranormal | 2 | 9,8 % en 5,97 | 92,3 % en 2,88 | 95,8 % en 3,23 | 97,5 % en 2,76 | 95,3 % en 3,17 |
-| Pétrification partielle | paranormal | 1 | 9,8 % en 5,90 | 95,7 % en 2,64 | 89,7 % en 3,66 | 94,8 % en 2,57 | 100,0 % en 3,00 |
-| Rire des cimetières | paranormal | 1 | 10,2 % en 5,78 | 95,3 % en 2,61 | 98,3 % en 3,43 | 98,6 % en 2,58 | 100,0 % en 3,38 |
-| Main froide éternelle | paranormal | 2 | 5,6 % en 7,02 | 97,7 % en 2,83 | 99,1 % en 3,67 | 100,0 % en 2,55 | 100,0 % en 3,24 |
-| Voix du passé | paranormal | 1 | 0,0 % en 6,91 | 93,3 % en 3,35 | 96,7 % en 3,80 | 96,0 % en 3,30 | 100,0 % en 3,30 |
-| Malédiction du nombre 7 | paranormal | 1 | 0,0 % en 6,08 | 98,4 % en 2,89 | 95,7 % en 3,75 | 100,0 % en 3,11 | 97,2 % en 3,25 |
-| Nez qui saigne de l'encre | paranormal | 1 | 4,8 % en 6,30 | 97,1 % en 2,60 | 96,9 % en 3,53 | 100,0 % en 2,71 | 100,0 % en 2,98 |
-| Glissement temporel | paranormal | 1 | 1,4 % en 5,85 | 95,4 % en 2,68 | 92,2 % en 3,39 | 96,4 % en 2,73 | 100,0 % en 2,94 |
-| Doigts qui grandissent | paranormal | 1 | 15,6 % en 5,33 | 92,3 % en 2,75 | 86,0 % en 3,42 | 100,0 % en 2,45 | 100,0 % en 2,97 |
-| Malédiction du chat noir | paranormal | 1 | 1,6 % en 5,40 | 89,9 % en 3,57 | 87,9 % en 3,35 | 93,2 % en 3,49 | 94,2 % en 3,13 |
-| Ombre vivante | paranormal | 1 | 9,2 % en 5,91 | 98,4 % en 2,45 | 88,5 % en 3,48 | 96,7 % en 2,72 | 98,5 % en 3,09 |
+| Hoquet persistant | generale | 2 | 2,0 % en 6,34 | 92,2 % en 3,29 | 93,3 % en 3,76 | 96,0 % en 3,53 | 97,1 % en 3,48 |
+| Décalage horaire | generale | 2 | 3,0 % en 5,12 | 88,6 % en 3,50 | 92,2 % en 3,62 | 89,6 % en 3,27 | 95,4 % en 3,29 |
+| Maux de tête | generale | 2 | 5,2 % en 6,77 | 96,6 % en 3,66 | 94,4 % en 3,75 | 98,3 % en 3,63 | 98,2 % en 3,73 |
+| Rhume carabiné | generale | 2 | 4,6 % en 5,97 | 94,5 % en 3,34 | 92,5 % en 3,95 | 95,8 % en 3,27 | 97,9 % en 3,75 |
+| Conjonctivite | generale | 2 | 1,0 % en 7,63 | 98,2 % en 3,52 | 97,4 % en 3,96 | 95,7 % en 3,77 | 99,0 % en 3,46 |
+| Rage de dents | generale | 1 | 6,8 % en 7,78 | 86,8 % en 3,82 | 100,0 % en 3,87 | 94,2 % en 3,63 | 100,0 % en 3,74 |
+| Laryngite | generale | 2 | 2,9 % en 6,94 | 94,8 % en 3,40 | 92,5 % en 3,73 | 99,0 % en 3,64 | 97,0 % en 3,87 |
+| Torticolis | generale | 2 | 1,8 % en 6,54 | 91,5 % en 3,40 | 90,1 % en 3,75 | 88,2 % en 3,65 | 98,3 % en 3,51 |
+| Carence en vitamine D | generale | 2 | 0,9 % en 7,44 | 95,3 % en 3,37 | 95,4 % en 3,52 | 96,5 % en 3,52 | 95,9 % en 3,46 |
+| Fatigue chronique légère | generale | 2 | 4,3 % en 7,55 | 97,1 % en 3,30 | 94,0 % en 3,81 | 97,7 % en 3,59 | 98,1 % en 3,40 |
+| Otite moyenne aiguë | generale | 2 | 4,7 % en 6,80 | 92,2 % en 3,52 | 92,3 % en 3,76 | 97,8 % en 3,57 | 93,9 % en 3,48 |
+| Sinusite maxillaire | generale | 2 | 4,5 % en 7,29 | 97,1 % en 3,10 | 92,2 % en 3,49 | 97,4 % en 2,98 | 99,1 % en 3,34 |
+| Piqûre de moustique infectée | generale | 1 | 7,1 % en 7,13 | 92,1 % en 3,29 | 77,6 % en 4,38 | 93,4 % en 3,30 | 95,5 % en 3,23 |
+| Infection urinaire légère | generale | 2 | 5,0 % en 7,83 | 98,4 % en 3,36 | 98,3 % en 3,63 | 99,1 % en 3,12 | 100,0 % en 3,53 |
+| Gale | generale | 1 | 6,5 % en 6,61 | 84,5 % en 3,94 | 95,1 % en 4,11 | 92,5 % en 3,28 | 88,7 % en 4,04 |
+| Angine bactérienne | generale | 1 | 5,5 % en 7,00 | 92,5 % en 3,43 | 88,9 % en 4,17 | 93,7 % en 3,75 | 91,1 % en 3,71 |
+| Bronchite aiguë | generale | 2 | 5,4 % en 7,34 | 93,9 % en 3,66 | 93,8 % en 3,75 | 94,3 % en 3,32 | 94,7 % en 3,52 |
+| Gastro virale | generale | 1 | 1,8 % en 7,72 | 93,8 % en 3,95 | 98,3 % en 3,95 | 98,2 % en 3,29 | 94,3 % en 4,09 |
+| Hypoglycémie légère | generale | 1 | 6,1 % en 7,31 | 96,5 % en 3,46 | 89,3 % en 4,39 | 93,5 % en 4,00 | 88,7 % en 4,40 |
+| Intoxication alimentaire | generale | 1 | 4,4 % en 6,71 | 87,7 % en 3,60 | 86,5 % en 3,77 | 93,2 % en 3,39 | 88,4 % en 4,35 |
+| Varicelle | generale | 1 | 3,7 % en 6,46 | 90,6 % en 3,55 | 90,9 % en 4,15 | 92,6 % en 4,06 | 98,4 % en 3,71 |
+| Fièvre inexpliquée | generale | 1 | 2,1 % en 7,58 | 84,7 % en 3,83 | 90,0 % en 3,88 | 93,5 % en 3,52 | 95,5 % en 3,30 |
+| Rougeole | generale | 1 | 15,6 % en 6,71 | 90,4 % en 3,73 | 91,9 % en 3,63 | 83,3 % en 3,61 | 92,2 % en 3,67 |
+| Varices | cardiologie | 3 | 11,7 % en 7,08 | 97,6 % en 2,85 | 95,5 % en 3,47 | 96,1 % en 3,04 | 100,0 % en 3,10 |
+| Extrasystoles | cardiologie | 2 | 1,5 % en 6,24 | 88,5 % en 3,06 | 91,9 % en 3,34 | 93,7 % en 2,96 | 95,5 % en 3,26 |
+| Souffle au cœur | cardiologie | 3 | 12,4 % en 7,47 | 98,1 % en 3,08 | 99,4 % en 3,39 | 97,9 % en 3,09 | 99,4 % en 3,08 |
+| Hypotension orthostatique | cardiologie | 2 | 2,5 % en 7,10 | 94,3 % en 2,83 | 99,0 % en 3,26 | 92,4 % en 3,07 | 98,0 % en 3,28 |
+| Syndrome du cœur brisé | cardiologie | 2 | 3,9 % en 10,20 | 95,2 % en 3,32 | 98,2 % en 3,45 | 98,9 % en 3,03 | 100,0 % en 3,53 |
+| Hypertension artérielle | cardiologie | 3 | 1,5 % en 7,74 | 95,7 % en 3,10 | 98,0 % en 3,10 | 98,2 % en 3,02 | 97,9 % en 3,10 |
+| Bradycardie | cardiologie | 2 | 2,1 % en 8,56 | 96,0 % en 3,34 | 94,3 % en 3,42 | 95,7 % en 3,19 | 95,1 % en 3,23 |
+| Tachycardie | cardiologie | 2 | 1,6 % en 7,87 | 91,5 % en 3,21 | 94,7 % en 3,47 | 96,5 % en 3,51 | 95,7 % en 3,48 |
+| Phlébite | cardiologie | 2 | 12,4 % en 7,85 | 97,1 % en 3,14 | 94,0 % en 3,25 | 98,3 % en 3,05 | 97,0 % en 3,57 |
+| Angor | cardiologie | 2 | 11,6 % en 6,82 | 93,3 % en 3,19 | 94,6 % en 3,57 | 92,5 % en 3,31 | 94,4 % en 3,34 |
+| Péricardite | cardiologie | 2 | 12,1 % en 7,16 | 94,5 % en 3,14 | 95,5 % en 3,40 | 95,9 % en 3,27 | 97,5 % en 3,36 |
+| Arythmie | cardiologie | 1 | 0,0 % en 8,59 | 96,8 % en 3,26 | 85,0 % en 4,18 | 98,3 % en 3,64 | 93,1 % en 3,36 |
+| Fibrillation auriculaire | cardiologie | 2 | 2,6 % en 8,83 | 95,7 % en 3,16 | 100,0 % en 3,48 | 99,0 % en 3,24 | 99,1 % en 3,33 |
+| Insuffisance cardiaque | cardiologie | 1 | 22,0 % en 7,06 | 97,4 % en 3,36 | 96,8 % en 3,58 | 93,4 % en 3,20 | 100,0 % en 3,58 |
+| Endocardite | cardiologie | 2 | 11,1 % en 7,32 | 97,4 % en 3,22 | 96,5 % en 3,65 | 95,1 % en 3,07 | 97,3 % en 3,46 |
+| Cardiomyopathie | cardiologie | 1 | 8,9 % en 7,91 | 93,5 % en 3,15 | 95,1 % en 3,88 | 98,5 % en 3,52 | 95,0 % en 3,72 |
+| Rejet de greffe cardiaque | cardiologie | 1 | 17,8 % en 7,11 | 98,1 % en 3,32 | 87,0 % en 4,24 | 95,2 % en 3,37 | 98,2 % en 3,36 |
+| Œdème aigu du poumon | cardiologie | 1 | 16,2 % en 6,93 | 100,0 % en 2,91 | 92,2 % en 3,90 | 96,4 % en 3,68 | 95,5 % en 3,64 |
+| Infarctus du myocarde | cardiologie | 1 | 14,1 % en 7,41 | 96,7 % en 3,62 | 93,9 % en 3,67 | 92,3 % en 3,56 | 87,3 % en 3,69 |
+| Embolie pulmonaire | cardiologie | 1 | 16,0 % en 6,98 | 100,0 % en 3,32 | 91,8 % en 3,67 | 94,3 % en 3,21 | 94,1 % en 3,84 |
+| Tics nerveux | psychiatrie | 3 | 12,6 % en 6,74 | 96,4 % en 3,22 | 100,0 % en 3,18 | 97,3 % en 2,90 | 100,0 % en 2,89 |
+| Phobie des escaliers | psychiatrie | 2 | 0,9 % en 6,12 | 95,5 % en 3,03 | 92,5 % en 3,50 | 95,2 % en 3,05 | 96,6 % en 3,53 |
+| Dépendance à la caféine | psychiatrie | 3 | 2,9 % en 8,56 | 98,4 % en 2,92 | 99,4 % en 3,06 | 98,8 % en 3,13 | 98,8 % en 3,23 |
+| Somnambulisme | psychiatrie | 2 | 4,1 % en 6,85 | 96,0 % en 3,53 | 100,0 % en 3,34 | 100,0 % en 3,28 | 98,5 % en 3,26 |
+| Cauchemars répétés | psychiatrie | 2 | 0,0 % en 9,36 | 96,3 % en 3,64 | 99,1 % en 3,46 | 99,1 % en 3,12 | 100,0 % en 3,63 |
+| Phobie des blouses blanches | psychiatrie | 3 | 15,8 % en 7,01 | 96,7 % en 3,24 | 97,5 % en 3,42 | 98,9 % en 2,87 | 98,2 % en 3,21 |
+| Trouble obsessionnel compulsif léger | psychiatrie | 2 | 1,5 % en 7,65 | 94,8 % en 3,12 | 94,0 % en 3,20 | 98,2 % en 3,10 | 97,4 % en 3,23 |
+| Hypocondrie aiguë | psychiatrie | 2 | 5,1 % en 7,47 | 95,9 % en 3,38 | 96,1 % en 3,66 | 98,4 % en 3,24 | 98,2 % en 3,16 |
+| Agoraphobie | psychiatrie | 2 | 4,5 % en 7,88 | 94,6 % en 3,34 | 95,9 % en 3,30 | 96,5 % en 3,20 | 98,1 % en 3,06 |
+| Hyperactivité de l'adulte | psychiatrie | 2 | 4,1 % en 6,85 | 94,4 % en 3,04 | 94,8 % en 3,35 | 96,0 % en 3,19 | 98,3 % en 3,07 |
+| Mutisme sélectif | psychiatrie | 2 | 17,8 % en 7,07 | 100,0 % en 3,03 | 95,7 % en 3,47 | 100,0 % en 2,99 | 97,2 % en 3,60 |
+| Addiction aux écrans | psychiatrie | 1 | 3,0 % en 8,05 | 100,0 % en 3,17 | 86,7 % en 3,82 | 96,2 % en 3,54 | 95,5 % en 3,70 |
+| Syndrome de Paris | psychiatrie | 2 | 13,5 % en 7,94 | 99,0 % en 2,98 | 98,4 % en 3,43 | 99,1 % en 3,20 | 98,6 % en 3,55 |
+| Dépression légère | psychiatrie | 1 | 14,6 % en 7,56 | 97,9 % en 3,33 | 95,0 % en 3,33 | 98,0 % en 3,58 | 94,9 % en 3,85 |
+| Trouble alimentaire léger | psychiatrie | 2 | 0,9 % en 8,28 | 99,2 % en 3,28 | 94,2 % en 3,69 | 98,5 % en 3,12 | 100,0 % en 3,16 |
+| Insomnie chronique | psychiatrie | 1 | 6,0 % en 8,10 | 98,2 % en 3,78 | 91,9 % en 3,94 | 98,0 % en 3,78 | 89,8 % en 4,08 |
+| Burn-out | psychiatrie | 1 | 10,3 % en 7,91 | 97,9 % en 3,36 | 100,0 % en 3,89 | 100,0 % en 3,43 | 96,7 % en 3,73 |
+| Attaque de panique | psychiatrie | 1 | 10,9 % en 7,38 | 100,0 % en 3,49 | 90,0 % en 3,72 | 97,6 % en 3,51 | 96,7 % en 3,28 |
+| Stress post-traumatique | psychiatrie | 1 | 19,1 % en 7,28 | 95,8 % en 3,50 | 96,5 % en 3,37 | 92,6 % en 3,70 | 97,8 % en 3,67 |
+| Jalousie délirante | psychiatrie | 1 | 9,8 % en 7,33 | 89,7 % en 3,90 | 93,3 % en 3,78 | 91,8 % en 3,35 | 95,7 % en 3,33 |
+| Hallux valgus | orthopedie | 3 | 15,0 % en 7,07 | 97,3 % en 2,97 | 98,8 % en 3,19 | 98,1 % en 2,96 | 99,4 % en 3,38 |
+| Périostite tibiale | orthopedie | 2 | 11,4 % en 6,70 | 92,5 % en 2,99 | 98,0 % en 3,23 | 96,2 % en 3,02 | 99,1 % en 3,03 |
+| Contusion sévère | orthopedie | 3 | 3,0 % en 10,01 | 97,6 % en 3,22 | 100,0 % en 3,28 | 96,9 % en 3,16 | 99,4 % en 3,16 |
+| Entorse de la cheville | orthopedie | 2 | 2,5 % en 8,38 | 99,1 % en 3,29 | 98,3 % en 3,20 | 97,4 % en 3,34 | 99,1 % en 3,12 |
+| Syndrome du canal carpien | orthopedie | 2 | 17,0 % en 9,60 | 99,1 % en 3,05 | 98,9 % en 3,81 | 99,1 % en 3,05 | 100,0 % en 3,16 |
+| Lumbago | orthopedie | 3 | 14,8 % en 7,68 | 97,0 % en 3,10 | 96,4 % en 3,31 | 97,2 % en 2,97 | 96,9 % en 3,28 |
+| Fêlure du coccyx | orthopedie | 2 | 13,0 % en 6,90 | 95,2 % en 3,24 | 95,2 % en 3,38 | 98,9 % en 2,97 | 98,0 % en 3,09 |
+| Épaule gelée | orthopedie | 2 | 12,3 % en 8,33 | 99,2 % en 3,19 | 94,3 % en 3,47 | 100,0 % en 2,80 | 99,2 % en 3,41 |
+| Entorse du genou | orthopedie | 2 | 1,8 % en 8,84 | 99,0 % en 3,12 | 98,1 % en 3,60 | 98,3 % en 3,26 | 98,2 % en 3,40 |
+| Sciatique | orthopedie | 2 | 14,1 % en 7,06 | 93,8 % en 3,36 | 97,3 % en 3,19 | 96,2 % en 3,27 | 100,0 % en 3,19 |
+| Scoliose | orthopedie | 2 | 9,6 % en 8,34 | 95,3 % en 3,24 | 96,2 % en 3,34 | 99,1 % en 2,92 | 96,6 % en 3,53 |
+| Arthrose du genou | orthopedie | 1 | 15,8 % en 8,04 | 98,2 % en 3,71 | 94,2 % en 3,43 | 100,0 % en 3,82 | 96,4 % en 3,60 |
+| Ostéoporose | orthopedie | 2 | 15,3 % en 9,05 | 99,2 % en 3,26 | 97,3 % en 3,54 | 98,4 % en 3,19 | 100,0 % en 3,23 |
+| Fracture du poignet | orthopedie | 1 | 2,0 % en 8,86 | 95,8 % en 3,20 | 98,5 % en 3,52 | 100,0 % en 3,22 | 98,2 % en 3,68 |
+| Fracture fermée | orthopedie | 2 | 4,9 % en 8,43 | 93,8 % en 3,22 | 94,1 % en 3,39 | 99,0 % en 2,90 | 97,3 % en 3,25 |
+| Luxation de l'épaule | orthopedie | 1 | 1,9 % en 8,94 | 98,0 % en 3,33 | 95,3 % en 3,58 | 100,0 % en 3,46 | 96,3 % en 3,52 |
+| Hernie discale | orthopedie | 1 | 0,0 % en 6,53 | 92,9 % en 3,30 | 84,9 % en 3,89 | 95,1 % en 3,02 | 94,9 % en 3,34 |
+| Rupture du ligament croisé | orthopedie | 1 | 0,0 % en 5,82 | 87,5 % en 3,42 | 87,7 % en 3,72 | 80,3 % en 3,44 | 97,0 % en 3,15 |
+| Fracture ouverte | orthopedie | 1 | 0,0 % en 6,43 | 96,1 % en 3,12 | 91,9 % en 3,68 | 87,5 % en 3,55 | 93,9 % en 3,52 |
+| Fracture du fémur | orthopedie | 1 | 0,0 % en 5,84 | 96,9 % en 3,05 | 91,7 % en 3,57 | 82,1 % en 3,45 | 90,2 % en 3,77 |
+| Main froide éternelle | paranormal | 3 | 17,6 % en 7,55 | 97,7 % en 3,14 | 98,8 % en 3,24 | 96,7 % en 3,00 | 98,8 % en 3,26 |
+| Rire des cimetières | paranormal | 2 | 12,4 % en 6,29 | 96,8 % en 3,10 | 93,6 % en 3,45 | 93,6 % en 3,23 | 96,7 % en 3,31 |
+| Doigts qui grandissent | paranormal | 3 | 18,4 % en 8,67 | 98,1 % en 2,92 | 99,5 % en 3,22 | 98,9 % en 2,96 | 99,3 % en 3,26 |
+| Malédiction du lundi | paranormal | 2 | 1,8 % en 8,02 | 93,9 % en 3,15 | 98,4 % en 3,28 | 97,2 % en 3,31 | 96,7 % en 3,33 |
+| Nez qui saigne de l'encre | paranormal | 2 | 22,7 % en 8,94 | 98,0 % en 3,29 | 100,0 % en 3,38 | 98,0 % en 3,26 | 100,0 % en 3,32 |
+| Mauvais œil | paranormal | 3 | 2,3 % en 7,77 | 96,0 % en 3,23 | 98,2 % en 3,11 | 98,8 % en 2,93 | 98,8 % en 3,12 |
+| Malédiction des miroirs | paranormal | 2 | 0,9 % en 7,48 | 96,9 % en 3,02 | 93,6 % en 3,22 | 94,2 % en 3,09 | 97,0 % en 3,28 |
+| Malédiction du chat noir | paranormal | 2 | 2,3 % en 8,94 | 96,9 % en 2,85 | 96,3 % en 3,55 | 100,0 % en 3,24 | 97,2 % en 3,44 |
+| Malédiction du nombre 7 | paranormal | 2 | 1,8 % en 8,80 | 100,0 % en 3,17 | 99,0 % en 3,19 | 99,0 % en 3,05 | 99,2 % en 3,13 |
+| Ombre qui suit | paranormal | 2 | 18,6 % en 7,12 | 95,4 % en 3,45 | 94,6 % en 3,31 | 98,3 % en 2,93 | 93,5 % en 3,64 |
+| Brûlure lunaire | paranormal | 2 | 10,9 % en 7,73 | 97,1 % en 2,95 | 98,0 % en 3,27 | 99,0 % en 3,04 | 99,0 % en 3,24 |
+| Âme en double | paranormal | 1 | 3,2 % en 9,03 | 93,5 % en 3,65 | 89,4 % en 4,00 | 93,2 % en 3,25 | 96,2 % en 3,92 |
+| Voix du passé | paranormal | 2 | 1,9 % en 9,50 | 97,3 % en 3,51 | 98,9 % en 3,76 | 100,0 % en 3,05 | 98,1 % en 3,45 |
+| Murmures dans la tête | paranormal | 1 | 3,9 % en 8,61 | 93,0 % en 4,02 | 90,5 % en 3,86 | 100,0 % en 2,98 | 98,4 % en 3,53 |
+| Poltergeist domestique | paranormal | 2 | 21,0 % en 7,50 | 96,4 % en 3,38 | 98,3 % en 3,48 | 98,3 % en 3,35 | 99,1 % en 3,38 |
+| Vampirisme aigu | paranormal | 1 | 10,6 % en 8,68 | 90,0 % en 3,70 | 89,1 % en 4,04 | 100,0 % en 3,71 | 94,4 % en 3,74 |
+| Pétrification partielle | paranormal | 1 | 18,9 % en 8,51 | 92,3 % en 3,58 | 98,4 % en 3,18 | 100,0 % en 3,51 | 96,8 % en 3,45 |
+| Possession légère | paranormal | 1 | 1,6 % en 8,72 | 96,4 % en 3,14 | 91,8 % en 3,67 | 98,3 % en 3,36 | 100,0 % en 3,19 |
+| Lycanthropie | paranormal | 1 | 12,7 % en 7,75 | 96,7 % en 3,37 | 98,0 % en 3,37 | 100,0 % en 3,46 | 93,5 % en 3,76 |
+| Glissement temporel | paranormal | 1 | 12,7 % en 7,71 | 88,6 % en 3,32 | 92,0 % en 4,22 | 94,4 % en 4,02 | 95,6 % en 3,98 |

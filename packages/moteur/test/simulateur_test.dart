@@ -78,21 +78,59 @@ void main() {
     expect(taux['couleur:60'], greaterThan(hasard + 0.3));
   });
 
-  test('plus de patients en jeu, horloge plus rapide : moins de guérisons', () {
-    double taux(int enJeu) =>
-        Simulateur(
-              jeu,
-              parametres: ParametresSimulation(
-                graine: 3,
-                parties: 100,
-                patientsEnJeu: enJeu,
-              ),
-            )
-            .simuler([Strategie.depuis('seuil:60')], difficultes: ['interne'])
-            .resultats
-            .single
-            .tauxGuerison;
-    expect(taux(2), lessThan(taux(1)));
+  test('plus de patients en jeu, horloge plus rapide : plus de morts', () {
+    double morts(int enJeu) {
+      final r = Simulateur(
+        jeu,
+        parametres: ParametresSimulation(
+          graine: 3,
+          parties: 200,
+          patientsEnJeu: enJeu,
+        ),
+      ).simuler([Strategie.depuis('hasard')], difficultes: ['reanimation']);
+      return r.resultats.single.tauxMort;
+    }
+
+    expect(morts(2), greaterThan(morts(1)));
+  });
+
+  group('plusieurs joueurs', () {
+    final rapport = Simulateur(
+      jeu,
+      parametres: const ParametresSimulation(
+        graine: 5,
+        parties: 60,
+        joueurs: 3,
+        partages: [true, false],
+      ),
+    ).simuler([Strategie.depuis('seuil:60')], difficultes: ['interne']);
+
+    test('un résultat par mode, comptes cohérents', () {
+      expect(rapport.resultats.map((r) => r.strategie), [
+        'seuil:60 · partage',
+        'seuil:60 · privé',
+      ]);
+      for (final r in rapport.resultats) {
+        expect(r.gueris + r.morts + r.abandons, r.patients);
+        expect(r.ecartsPieces, hasLength(60));
+        expect(r.toJson()['partage'], r.partage);
+      }
+    });
+
+    test('partager permet à un autre joueur de soigner ; en privé, seul '
+        'celui qui a diagnostiqué soigne', () {
+      final partage = rapport.resultats.first;
+      final prive = rapport.resultats.last;
+      expect(partage.guerisonsParAutrui, greaterThan(0));
+      expect(prive.guerisonsParAutrui, 0);
+    });
+
+    test('rapport Markdown : section « Joueurs »', () {
+      final md = rapport.enMarkdown();
+      expect(md, contains('## Joueurs'));
+      expect(md, contains('3 joueurs à tour de rôle'));
+      expect(md, contains('| privées |'));
+    });
   });
 
   test('stratégies : une instance neuve par patient', () {
@@ -174,7 +212,7 @@ void main() {
 
     test('combinaisons hors patient, hors laboratoire, et traitements '
         'adaptés', () {
-      expect(catalogue.length, 200);
+      expect(catalogue.length, 720);
       for (final cartes in catalogue.cartes) {
         expect(cartes.any((id) => id.startsWith('PAT')), isFalse);
         expect(cartes, isNot(contains('SAL-011')));
@@ -182,10 +220,9 @@ void main() {
       final fracture = catalogue.adaptees('fracture_ouverte');
       expect(fracture, isNotEmpty);
       for (final i in fracture) {
-        expect(
-          catalogue.cartes[i],
-          containsAll(['MED-007', 'MED-008', 'SAL-006']),
-        );
+        final c = Combinaison(jeu, catalogue.cartes[i]);
+        expect(c.ids, contains('SAL-006'));
+        expect(c.medecins, hasLength(2), reason: 'deux vrais médecins');
       }
       expect(catalogue.adaptees('inconnue'), isEmpty);
     });

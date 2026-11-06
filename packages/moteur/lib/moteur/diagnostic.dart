@@ -127,6 +127,9 @@ class Diagnostiqueur {
       parSpecialite[m.specialite] = (parSpecialite[m.specialite] ?? 0) + 1;
     }
     final moyenne = jeu.maladies.length / parSpecialite.length;
+    final poidsMoyen =
+        jeu.maladies.fold<int>(0, (s, m) => s + (m.poids ?? 1)) /
+        jeu.maladies.length;
     final p = jeu.parametres.diagnostic;
     return Diagnostiqueur._(
       jeu,
@@ -136,6 +139,12 @@ class Diagnostiqueur {
           m.id: SpecialiteAffichee.depuis(specialites[m.specialite]!),
       },
       {for (final e in parSpecialite.entries) e.key: e.value / moyenne},
+      {
+        for (final m in jeu.maladies)
+          m.id: math
+              .pow((m.poids ?? 1) / poidsMoyen, p.ponderationPoids)
+              .toDouble(),
+      },
       maximumAttenduBruit(moyenne),
       -math.log(1 - p.scoreBruit / 100),
     );
@@ -146,6 +155,7 @@ class Diagnostiqueur {
     this.alea,
     this._specialites,
     this._exposants,
+    this._ponderations,
     this._reference,
     this._pente,
   );
@@ -156,6 +166,9 @@ class Diagnostiqueur {
 
   /// `n_s / n̄` par spécialité : exposant de la correction du bruit.
   final Map<String, double> _exposants;
+
+  /// `(poids / poids moyen)^ponderation_poids` par maladie.
+  final Map<String, double> _ponderations;
 
   /// Maximum attendu du bruit seul, `H(n̄)`.
   final double _reference;
@@ -181,6 +194,9 @@ class Diagnostiqueur {
       var w = -math.log(
         1 - math.pow(alea.flottant(), _exposants[m.specialite]!).toDouble(),
       );
+      //    Pondération légère par le poids : les maladies fréquentes
+      //    apparaissent un peu plus souvent dans les listes.
+      w *= _ponderations[m.id]!;
       final vraieSpecialite = m.specialite == vraie.specialite;
       // 2. Affinité de la vraie spécialité.
       if (vraieSpecialite) w *= 1 + _p.affiniteSpecialite;

@@ -145,16 +145,19 @@ class Combinaison {
   }
 
   /// Remplit une phrase d'action (MOTEUR_EFFETS.md §6.2) : variables
-  /// remplacées par le `nom_phrase` des cartes, segments `[…]` affichés
+  /// remplacées par le `nom_phrase` des cartes (`{lieu}` : le `lieu_phrase`
+  /// de la salle, préposition comprise), segments `[…]` affichés
   /// seulement si toutes leurs variables sont présentes, première lettre en
   /// majuscule.
   String phrase(String modele) {
     final medecins = this.medecins;
+    final salle = this.salle;
     final valeurs = <String, String?>{
       'patient': _nomPhrase(patient),
       'medecin': _nomPhrase(medecins.elementAtOrNull(0)),
       'medecin2': _nomPhrase(medecins.elementAtOrNull(1)),
       'salle': _nomPhrase(salle),
+      'lieu': salle == null ? null : cartes[salle]!.lieuAffiche,
       'accessoire': _nomPhrase(accessoire),
     };
     String remplir(String texte) =>

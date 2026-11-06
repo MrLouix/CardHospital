@@ -34,6 +34,19 @@ Future<void> main(List<String> args) async {
     )
     ..addOption('patients', help: 'Patients par partie.', defaultsTo: '10')
     ..addOption(
+      'joueurs',
+      help: 'Joueurs, à tour de rôle (2 ou 3 pour simuler le partage).',
+      defaultsTo: '1',
+    )
+    ..addOption(
+      'partage',
+      help:
+          'Avec plusieurs joueurs : résultats des diagnostics mis en commun '
+          '(oui), gardés pour soi (non), ou les deux modes (les-deux).',
+      allowed: ['oui', 'non', 'les-deux'],
+      defaultsTo: 'les-deux',
+    )
+    ..addOption(
       'en-jeu',
       help: 'Patients en jeu à la fois (N des règles de table).',
       defaultsTo: '3',
@@ -131,6 +144,12 @@ Future<void> main(List<String> args) async {
       parties: entier('parties'),
       patientsParPartie: entier('patients'),
       patientsEnJeu: entier('en-jeu'),
+      joueurs: entier('joueurs'),
+      partages: switch (o.option('partage')) {
+        'oui' => const [true],
+        'non' => const [false],
+        _ => const [true, false],
+      },
       actionsMax: entier('actions-max'),
     ),
   );

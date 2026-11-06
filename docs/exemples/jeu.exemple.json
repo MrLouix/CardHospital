@@ -4,8 +4,8 @@
   "schema_version": 1,
   "id": "base_exemple",
   "nom": "CardHospital — exemple réduit",
-  "version": "0.3.0",
-  "description": "Sous-ensemble du paquet de base (contenu/paquet_base.json) : mêmes cartes, mêmes maladies et mêmes règles, réduits à 3 spécialités, 18 cartes et 6 maladies. Sert d'exemple dans la documentation et de jeu d'essai aux tests du moteur.",
+  "version": "0.4.0",
+  "description": "Sous-ensemble du paquet de base (contenu/paquet_base.json) : mêmes cartes, mêmes maladies et mêmes règles, réduits à 3 spécialités, 21 cartes et 6 maladies. Sert d'exemple dans la documentation et de jeu d'essai aux tests du moteur.",
   "parametres": {
     "attente_max_defaut": 15,
     "paliers_aggravation": [
@@ -22,7 +22,8 @@
       "bonus_specialite": 0.3,
       "exclusion": 0.75,
       "taille_liste": 5,
-      "score_bruit": 50
+      "score_bruit": 50,
+      "ponderation_poids": 0.25
     },
     "recompenses": {
       "pieces_diagnostic": 1,
@@ -41,27 +42,27 @@
       "id": "interne",
       "nom": "Interne",
       "modificateurs": {
-        "pv_perdus": 1.0,
-        "pieces": 1.0,
-        "reputation": 1.0
+        "pv_perdus": 0,
+        "pieces": 0,
+        "reputation": 0
       }
     },
     {
       "id": "chirurgien",
       "nom": "Chirurgien",
       "modificateurs": {
-        "pv_perdus": 1.5,
-        "pieces": 1.2,
-        "reputation": 1.5
+        "pv_perdus": 1,
+        "pieces": 1,
+        "reputation": 1
       }
     },
     {
       "id": "reanimation",
       "nom": "Réanimation",
       "modificateurs": {
-        "pv_perdus": 2.0,
-        "pieces": 1.5,
-        "reputation": 2.0
+        "pv_perdus": 2,
+        "pieces": 2,
+        "reputation": 2
       }
     }
   ],
@@ -69,19 +70,19 @@
     {
       "id": "generale",
       "nom": "Médecine générale",
-      "couleur": "#1565C0",
+      "couleur": "#4150D9",
       "icone": "🩺"
     },
     {
       "id": "psychiatrie",
       "nom": "Psychiatrie",
-      "couleur": "#7B4FBF",
+      "couleur": "#A659B2",
       "icone": "🧠"
     },
     {
       "id": "orthopedie",
       "nom": "Orthopédie",
-      "couleur": "#EF6C00",
+      "couleur": "#E66E17",
       "icone": "🦴"
     }
   ],
@@ -156,6 +157,7 @@
       "type": "salle",
       "nom": "Radiologie",
       "nom_phrase": "la salle de radiologie",
+      "lieu_phrase": "en radiologie",
       "specialite": "polyvalent",
       "capacites": {
         "precision": 3
@@ -165,21 +167,31 @@
       "type": "salle",
       "nom": "Bloc opératoire",
       "nom_phrase": "le bloc opératoire",
-      "specialite": "orthopedie",
+      "lieu_phrase": "au bloc opératoire",
+      "specialite": "polyvalent",
       "capacites": {
         "precision": 1
       }
+    },
+    "SAL-007": {
+      "type": "salle",
+      "nom": "Pharmacie",
+      "nom_phrase": "la pharmacie",
+      "lieu_phrase": "à la pharmacie",
+      "specialite": "polyvalent"
     },
     "SAL-008": {
       "type": "salle",
       "nom": "Plâtrerie",
       "nom_phrase": "la plâtrerie",
+      "lieu_phrase": "à la plâtrerie",
       "specialite": "orthopedie"
     },
     "SAL-011": {
       "type": "salle",
       "nom": "Laboratoire de recherche",
       "nom_phrase": "le laboratoire de recherche",
+      "lieu_phrase": "au laboratoire de recherche",
       "specialite": "recherche"
     },
     "PAT-001": {
@@ -208,6 +220,12 @@
         "precision": 2
       }
     },
+    "OBJ-005": {
+      "type": "objet",
+      "nom": "Plâtre",
+      "nom_phrase": "le plâtre",
+      "specialite": "orthopedie"
+    },
     "OBJ-010": {
       "type": "objet",
       "nom": "Antibiotique",
@@ -228,6 +246,15 @@
       "capacites": {
         "precision": 1
       }
+    },
+    "DIP-004": {
+      "type": "diplome",
+      "nom": "Diplôme d'orthopédie",
+      "nom_phrase": "le diplôme d'orthopédie",
+      "specialite": "orthopedie",
+      "capacites": {
+        "precision": 1
+      }
     }
   },
   "maladies": [
@@ -235,17 +262,24 @@
       "id": "fracture_ouverte",
       "nom": "Fracture ouverte",
       "specialite": "orthopedie",
-      "pv_initial": 10,
+      "pv_initial": 15,
       "aggravation": [
-        1,
         2,
         2,
+        3,
         3
       ],
-      "poids": 2,
+      "attente_max": 9,
+      "poids": 1,
       "traitement": {
         "adapte": {
           "tous": [
+            {
+              "compte": {
+                "type": "medecin"
+              },
+              "min": 2
+            },
             {
               "compte": {
                 "type": "medecin",
@@ -273,39 +307,37 @@
           ]
         }
       },
-      "attente_max": 12,
       "recompenses": {
-        "pieces_traitement": 4
+        "pieces_traitement": 5,
+        "reputation_echec": -2
       }
     },
     {
       "id": "fracture_fermee",
       "nom": "Fracture fermée",
       "specialite": "orthopedie",
-      "pv_initial": 9,
+      "pv_initial": 12,
       "aggravation": [
         1,
-        1,
-        2
+        2,
+        2,
+        3
       ],
+      "attente_max": 12,
       "poids": 2,
       "traitement": {
         "adapte": {
           "tous": [
             {
-              "compte": {
-                "type": "medecin",
-                "specialite": "orthopedie"
-              },
-              "min": 1
+              "carte": "OBJ-005"
             },
             {
-              "carte": "SAL-006"
+              "carte": "SAL-008"
             }
           ]
         },
         "partiel": {
-          "tous": [
+          "un_de": [
             {
               "compte": {
                 "type": "medecin",
@@ -319,21 +351,40 @@
           ]
         }
       },
-      "attente_max": 15
+      "recompenses": {
+        "pieces_traitement": 4
+      }
     },
     {
       "id": "angine_bacterienne",
       "nom": "Angine bactérienne",
       "specialite": "generale",
-      "pv_initial": 8,
+      "pv_initial": 12,
       "aggravation": [
         1,
-        1
+        2,
+        2,
+        3
       ],
-      "poids": 3,
+      "attente_max": 15,
+      "poids": 1,
       "traitement": {
         "adapte": {
-          "carte": "OBJ-010"
+          "tous": [
+            {
+              "carte": "OBJ-010"
+            },
+            {
+              "un_de": [
+                {
+                  "carte": "SAL-001"
+                },
+                {
+                  "carte": "SAL-007"
+                }
+              ]
+            }
+          ]
         },
         "partiel": {
           "un_de": [
@@ -350,20 +401,38 @@
           ]
         }
       },
-      "attente_max": 18
+      "recompenses": {
+        "pieces_traitement": 4
+      }
     },
     {
       "id": "maux_de_tete",
       "nom": "Maux de tête",
       "specialite": "generale",
-      "pv_initial": 6,
+      "pv_initial": 7,
       "aggravation": [
+        0,
         1
       ],
-      "poids": 3,
+      "attente_max": 24,
+      "poids": 2,
       "traitement": {
         "adapte": {
-          "carte": "OBJ-011"
+          "tous": [
+            {
+              "carte": "OBJ-011"
+            },
+            {
+              "un_de": [
+                {
+                  "carte": "SAL-001"
+                },
+                {
+                  "carte": "SAL-007"
+                }
+              ]
+            }
+          ]
         },
         "partiel": {
           "un_de": [
@@ -379,8 +448,7 @@
             }
           ]
         }
-      },
-      "attente_max": 18
+      }
     },
     {
       "id": "phobie_des_blouses_blanches",
@@ -392,7 +460,8 @@
         1,
         2
       ],
-      "poids": 2,
+      "attente_max": 21,
+      "poids": 3,
       "traitement": {
         "adapte": {
           "tous": [
@@ -421,10 +490,13 @@
       "id": "hypocondrie_aigue",
       "nom": "Hypocondrie aiguë",
       "specialite": "psychiatrie",
-      "pv_initial": 7,
+      "pv_initial": 10,
       "aggravation": [
-        1
+        1,
+        1,
+        2
       ],
+      "attente_max": 18,
       "poids": 2,
       "traitement": {
         "adapte": {
@@ -437,7 +509,7 @@
               "min": 1
             },
             {
-              "carte": "SAL-002"
+              "carte": "SAL-001"
             },
             {
               "non": {
@@ -456,10 +528,6 @@
           },
           "min": 1
         }
-      },
-      "attente_max": 9,
-      "recompenses": {
-        "reputation_echec": -2
       }
     }
   ],
@@ -493,7 +561,7 @@
       ],
       "total": [
         3,
-        4
+        5
       ]
     }
   },
@@ -530,7 +598,7 @@
           }
         ]
       },
-      "phrase": "Examen de {patient} par {medecin}[ et {medecin2}] dans {salle}[ avec {accessoire}].",
+      "phrase": "Examen de {patient} par {medecin}[ et {medecin2}] {lieu}[ avec {accessoire}].",
       "effets": [
         {
           "effet": "avancer_temps"
@@ -577,7 +645,7 @@
           }
         ]
       },
-      "phrase": "Tentative de soin de {patient} par {medecin}[ et {medecin2}] dans {salle}[ avec {accessoire}].",
+      "phrase": "Tentative de soin de {patient} par {medecin}[ et {medecin2}] {lieu}[ avec {accessoire}].",
       "effets": [
         {
           "effet": "avancer_temps"
