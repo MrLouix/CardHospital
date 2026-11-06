@@ -47,6 +47,7 @@ class Jeu {
 class Parametres {
   Parametres({
     required this.attenteMaxDefaut,
+    required this.paliersAggravation,
     required this.diagnostic,
     required this.recompenses,
   });
@@ -56,8 +57,15 @@ class Parametres {
 
   Map<String, dynamic> toJson() => _$ParametresToJson(this);
 
+  /// Attente maximale par défaut, en ticks de présence.
   @JsonKey(name: 'attente_max_defaut')
   final int attenteMaxDefaut;
+
+  /// Durées de présence, en ticks, à partir desquelles commence chaque
+  /// palier d'aggravation (strictement croissantes). Avant la première, le
+  /// patient est stable (MODELE_DE_JEU.md §5).
+  @JsonKey(name: 'paliers_aggravation')
+  final List<int> paliersAggravation;
   final Diagnostic diagnostic;
   final Recompenses recompenses;
 }
@@ -69,11 +77,12 @@ class Diagnostic {
     required this.precisionMax,
     required this.verite,
     required this.parNiveau,
-    required this.affiniteType,
+    required this.affiniteSpecialite,
     required this.bonusSpecialite,
     required this.exclusion,
     required this.tailleListe,
     required this.scoreBruit,
+    required this.ponderationPoids,
   });
 
   factory Diagnostic.fromJson(Map<String, dynamic> json) =>
@@ -89,12 +98,13 @@ class Diagnostic {
   @JsonKey(name: 'par_niveau')
   final double parNiveau;
 
-  /// Bonus de toutes les maladies du vrai type : `× (1 + affinite_type)`.
-  @JsonKey(name: 'affinite_type')
-  final double affiniteType;
+  /// Bonus de toutes les maladies de la vraie spécialité :
+  /// `× (1 + affinite_specialite)`.
+  @JsonKey(name: 'affinite_specialite')
+  final double affiniteSpecialite;
 
   /// Maladies d'une spécialité de la combinaison : `× (1 + bonus_specialite)`
-  /// si c'est le vrai type, `× exclusion` sinon.
+  /// si c'est la vraie spécialité, `× exclusion` sinon.
   @JsonKey(name: 'bonus_specialite')
   final double bonusSpecialite;
   final double exclusion;
@@ -103,10 +113,15 @@ class Diagnostic {
   @JsonKey(name: 'taille_liste')
   final int tailleListe;
 
-  /// Pourcentage affiché pour une maladie dont le poids égale le maximum
-  /// attendu du bruit seul.
+  /// Indice de suspicion affiché pour une maladie dont le poids égale le
+  /// maximum attendu du bruit seul.
   @JsonKey(name: 'score_bruit')
   final int scoreBruit;
+
+  /// Exposant de la pondération du bruit par le poids de la maladie :
+  /// `× (poids / poids moyen)^ponderation_poids` (0 : sans pondération).
+  @JsonKey(name: 'ponderation_poids')
+  final double ponderationPoids;
 }
 
 @JsonSerializable()
@@ -115,11 +130,11 @@ class Recompenses {
     this.piecesDiagnostic,
     this.piecesTraitement,
     this.piecesPartiel,
-    this.reputationSoin,
+    this.reputationGuerison,
     this.reputationEchec,
     this.reputationAttente,
     this.reputationMort,
-    this.soinPartiel,
+    this.pvPartiel,
     this.pvEchec,
   });
 
@@ -134,16 +149,18 @@ class Recompenses {
   final int? piecesTraitement;
   @JsonKey(name: 'pieces_partiel')
   final int? piecesPartiel;
-  @JsonKey(name: 'reputation_soin')
-  final int? reputationSoin;
+  @JsonKey(name: 'reputation_guerison')
+  final int? reputationGuerison;
   @JsonKey(name: 'reputation_echec')
   final int? reputationEchec;
   @JsonKey(name: 'reputation_attente')
   final int? reputationAttente;
   @JsonKey(name: 'reputation_mort')
   final int? reputationMort;
-  @JsonKey(name: 'soin_partiel')
-  final int? soinPartiel;
+
+  /// PV rendus par un traitement partiel, avant la capacité `stabilisation`.
+  @JsonKey(name: 'pv_partiel')
+  final int? pvPartiel;
   @JsonKey(name: 'pv_echec')
   final int? pvEchec;
 }
@@ -179,10 +196,16 @@ class Modificateurs {
 
   Map<String, dynamic> toJson() => _$ModificateursToJson(this);
 
+  /// Bonus ajouté à chaque perte de PV non nulle.
   @JsonKey(name: 'pv_perdus')
-  final double pvPerdus;
-  final double pieces;
-  final double reputation;
+  final int pvPerdus;
+
+  /// Bonus ajouté à chaque gain de pièces non nul.
+  final int pieces;
+
+  /// Bonus ajouté à chaque perte de réputation non nulle (les gains ne sont
+  /// pas modifiés).
+  final int reputation;
 }
 
 @JsonSerializable()
@@ -232,6 +255,7 @@ class Carte {
     required this.type,
     required this.nom,
     this.nomPhrase,
+    this.lieuPhrase,
     this.specialite,
     this.capacites,
   });
@@ -244,10 +268,19 @@ class Carte {
   final String nom;
   @JsonKey(name: 'nom_phrase')
   final String? nomPhrase;
+
+  /// Pour une salle : le lieu avec sa préposition, tel qu'il s'insère dans
+  /// une phrase (« en réanimation », « au bloc opératoire »). Par défaut,
+  /// « dans » suivi de `nom_phrase`.
+  @JsonKey(name: 'lieu_phrase')
+  final String? lieuPhrase;
   final String? specialite;
   final Map<String, int>? capacites;
 
   String get nomAffiche => nomPhrase ?? nom;
+
+  /// Lieu d'une salle dans une phrase.
+  String get lieuAffiche => lieuPhrase ?? 'dans $nomAffiche';
 }
 
 @JsonSerializable()
@@ -268,13 +301,14 @@ class Maladie {
   Maladie({
     required this.id,
     required this.nom,
-    required this.type,
+    required this.specialite,
     required this.pvInitial,
     required this.aggravation,
     required this.traitement,
     this.attenteMax,
     this.poids,
     this.recompenses,
+    this.recherche,
   });
 
   factory Maladie.fromJson(Map<String, dynamic> json) =>
@@ -284,7 +318,9 @@ class Maladie {
 
   final String id;
   final String nom;
-  final String type;
+
+  /// Spécialité de la maladie (jamais `polyvalent` ni `recherche`).
+  final String specialite;
   @JsonKey(name: 'pv_initial')
   final int pvInitial;
   final List<int> aggravation;
@@ -293,6 +329,27 @@ class Maladie {
   final int? poids;
   final Traitement traitement;
   final Recompenses? recompenses;
+
+  /// Analyse en laboratoire (MODELE_DE_JEU.md §12) ; sans ce champ, un seul
+  /// passage révèle la recette.
+  final Recherche? recherche;
+
+  /// Nombre de passages en laboratoire nécessaires pour révéler la recette.
+  int get passages => recherche?.passages ?? 1;
+}
+
+/// Champ `recherche` d'une maladie.
+@JsonSerializable()
+class Recherche {
+  Recherche({this.passages = 1});
+
+  factory Recherche.fromJson(Map<String, dynamic> json) =>
+      _$RechercheFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RechercheToJson(this);
+
+  /// Passages en laboratoire nécessaires (≥ 1).
+  final int passages;
 }
 
 class Motif {

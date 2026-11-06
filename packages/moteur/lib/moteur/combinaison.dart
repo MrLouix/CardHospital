@@ -1,7 +1,25 @@
 import '../modeles/jeu.dart';
 
-/// Spécialité implicite, jamais type d'une maladie.
-const specialiteGeneraliste = 'generaliste';
+/// Valeur neutre « sans spécialité » (MOTEUR_EFFETS.md §2.1), réservée et
+/// implicite : elle n'est jamais la spécialité d'une maladie. Une carte sans
+/// champ `specialite` est polyvalente.
+const specialitePolyvalent = 'polyvalent';
+
+/// Ancien nom de [specialitePolyvalent], encore accepté à la lecture (avec
+/// un avertissement du validateur).
+const ancienNomPolyvalent = 'generaliste';
+
+/// Spécialité réservée au laboratoire de recherche : portée uniquement par
+/// une salle, jamais spécialité d'une maladie (MODELE_DE_JEU.md §12).
+const specialiteRecherche = 'recherche';
+
+/// Valeurs de spécialité réservées : jamais déclarées dans `specialites`,
+/// jamais spécialité d'une maladie, jamais comptées dans `S(C)`.
+const specialitesReservees = {
+  specialitePolyvalent,
+  ancienNomPolyvalent,
+  specialiteRecherche,
+};
 
 /// Une combinaison de cartes, dans l'ordre de sélection, sans doublon.
 ///
@@ -50,13 +68,13 @@ class Combinaison {
   Iterable<String> _idsDeType(TypeCarte type) =>
       cartes.entries.where((e) => e.value.type == type).map((e) => e.key);
 
-  /// Spécialités `S(C)` portées par les cartes hors patient, hors
-  /// `generaliste` (MODELE_DE_JEU.md §3.3).
+  /// Spécialités `S(C)` portées par les cartes hors patient, hors valeurs
+  /// réservées (`polyvalent`, `recherche`) (MODELE_DE_JEU.md §3.3).
   Set<String> get specialites => {
     for (final carte in cartes.values)
       if (carte.type != TypeCarte.patient &&
           carte.specialite != null &&
-          carte.specialite != specialiteGeneraliste)
+          !specialitesReservees.contains(carte.specialite))
         carte.specialite!,
   };
 
@@ -78,7 +96,10 @@ class Combinaison {
       for (final e in cartes.entries) {
         if (_correspond(e.key, e.value, p.compte!)) compte++;
       }
-      if (p.min != null && compte < p.min!) return false;
+      // Sans `min` ni `max`, le prédicat demande au moins une carte
+      // (MOTEUR_EFFETS.md §5) : il n'est jamais vrai d'office.
+      final min = p.min ?? (p.max == null ? 1 : 0);
+      if (compte < min) return false;
       if (p.max != null && compte > p.max!) return false;
       return true;
     }
@@ -86,6 +107,21 @@ class Combinaison {
     if (p.unDe != null) return p.unDe!.any(satisfait);
     if (p.non != null) return !satisfait(p.non!);
     return false;
+  }
+
+  /// Les cartes permettent-elles la condition [c] ? Seules les conditions
+  /// `combinaison` sont évaluées ; celles qui dépendent de l'état (patient
+  /// en jeu, attente…) sont tenues pour favorables, y compris sous un `non`.
+  ///
+  /// Sert à savoir si une action peut être proposée avec ces cartes, quel
+  /// que soit l'état du patient (validateur, simulateur).
+  bool permet(Condition c, {bool favorable = true}) {
+    if (c.constante != null) return favorable;
+    bool sous(Condition x) => permet(x, favorable: favorable);
+    if (c.et != null) return c.et!.every(sous);
+    if (c.ou != null) return c.ou!.any(sous);
+    if (c.non != null) return !permet(c.non!, favorable: !favorable);
+    return satisfait(c.combinaison!);
   }
 
   static bool _correspond(String id, Carte carte, Filtre f) {
@@ -109,16 +145,19 @@ class Combinaison {
   }
 
   /// Remplit une phrase d'action (MOTEUR_EFFETS.md §6.2) : variables
-  /// remplacées par le `nom_phrase` des cartes, segments `[…]` affichés
+  /// remplacées par le `nom_phrase` des cartes (`{lieu}` : le `lieu_phrase`
+  /// de la salle, préposition comprise), segments `[…]` affichés
   /// seulement si toutes leurs variables sont présentes, première lettre en
   /// majuscule.
   String phrase(String modele) {
     final medecins = this.medecins;
+    final salle = this.salle;
     final valeurs = <String, String?>{
       'patient': _nomPhrase(patient),
       'medecin': _nomPhrase(medecins.elementAtOrNull(0)),
       'medecin2': _nomPhrase(medecins.elementAtOrNull(1)),
       'salle': _nomPhrase(salle),
+      'lieu': salle == null ? null : cartes[salle]!.lieuAffiche,
       'accessoire': _nomPhrase(accessoire),
     };
     String remplir(String texte) =>
