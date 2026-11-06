@@ -68,7 +68,7 @@ Principe : **traiter les risques en premier**. Le démarrage concret (organisati
 
 **Critères de sortie**
 
-- partie de 2 h avec 3 téléphones (2 à 3 joueurs) sans perte d'action, et un essai à 5 téléphones pour la marge ;
+- partie de 2 h avec 3 téléphones sans perte d'action, et un essai à 6 téléphones (un par joueur, au maximum de 6 joueurs) ;
 - coupure Wi-Fi de 30 s et appel entrant sur l'hôte récupérés sans intervention ;
 - latences conformes à [SPECIFICATION.md §9](SPECIFICATION.md#9-exigences-non-fonctionnelles) ;
 - consommation de batterie de l'hôte mesurée.
@@ -86,7 +86,7 @@ Principe : **traiter les risques en premier**. Le démarrage concret (organisati
 - Import de `.zip` (système de fichiers, partage Android), rapport de validation, sélection du paquet actif.
 - Contenu complet du paquet de base : 10 médecins, 12 patients, 21 objets et diplômes plus les objets d'aide à la recherche, 11 salles dont le laboratoire, **103 maladies** réparties entre 5 spécialités.
 - Équilibrage au simulateur, puis en parties réelles.
-- Contenu des [règles de table](REGLES_DE_TABLE.md) : prix de construction au verso des salles, tuiles de stock des consommables, salle et objets de formation, piste de diplôme, objets d'aide à la recherche.
+- Contenu des [règles de table](REGLES_DE_TABLE.md) : prix de construction au verso des salles, tuiles de stock des consommables, piste de diplôme, objets d'aide à la recherche.
 - Création des illustrations et impression des cartes selon les recommandations de la phase 0.
 
 **Critères de sortie** : paquet de base complet et validé ; une extension d'exemple (nouvelles maladies) importée et jouée ; au moins 5 parties réelles jouées.
