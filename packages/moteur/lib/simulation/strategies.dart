@@ -418,7 +418,9 @@ class StrategieCouleur extends StrategieSeuil {
 /// puis la combinaison la plus « assortie » à la couleur de la maladie (le
 /// plus de cartes de sa spécialité ; au hasard parmi les ex æquo). Après
 /// [essais] échecs sur une maladie, il l'écarte et passe à la suivante, ou
-/// diagnostique de nouveau.
+/// diagnostique de nouveau. Il ne retente pas une combinaison dont il voit
+/// l'échec sur ce patient, la sienne ou, s'ils partagent, celle d'un autre
+/// joueur.
 ///
 /// Avec [labo], il analyse au laboratoire une maladie dont il ne connaît pas
 /// la recette avant d'essayer quoi que ce soit, jusqu'à ce que l'analyse la
@@ -471,14 +473,30 @@ class StrategieNovice extends Strategie {
       .where((l) => !_ecartees.contains(l.id))
       .firstOrNull;
 
+  /// Combinaisons dont l'échec sur ce patient est visible dans
+  /// l'[historique] : un traitement qui n'a pas guéri. Avec des
+  /// informations partagées, ce sont aussi les essais des autres joueurs.
+  static Set<int> _ratees(
+    List<ResultatAction> historique,
+    CatalogueCombinaisons catalogue,
+  ) => {
+    for (final r in historique)
+      if (r.action == actionTraiter && r.issue != IssuePatient.gueri)
+        ?catalogue.indice([
+          for (final id in r.cartes)
+            if (id != r.patient) id,
+        ]),
+  };
+
   /// Prochaine combinaison à essayer pour [c], ou `null` s'il n'y en a plus.
   /// Sans [alea], renvoie seulement s'il en reste une.
   int? _essai(
     LigneDiagnostic c,
     CatalogueCombinaisons catalogue,
-    SourceAleatoire? alea,
-  ) {
-    final tentees = _tentees[c.id] ?? const <int>{};
+    SourceAleatoire? alea, {
+    Set<int> ratees = const {},
+  }) {
+    final tentees = {...?_tentees[c.id], ...ratees};
     final connue = carnet?.recette(c.id);
     if (connue != null && !tentees.contains(connue)) return connue;
     for (final i in carnet?.recettesDe(c.specialite.id) ?? const <int>[]) {
@@ -505,7 +523,14 @@ class StrategieNovice extends Strategie {
     final c = _candidate(historique);
     return c != null &&
         c.indice >= seuil &&
-        (_analyser(c, catalogue) || _essai(c, catalogue, null) != null);
+        (_analyser(c, catalogue) ||
+            _essai(
+                  c,
+                  catalogue,
+                  null,
+                  ratees: _ratees(historique, catalogue),
+                ) !=
+                null);
   }
 
   @override
@@ -514,6 +539,7 @@ class StrategieNovice extends Strategie {
     CatalogueCombinaisons catalogue,
     SourceAleatoire alea,
   ) {
+    final ratees = _ratees(historique, catalogue);
     var c = _candidate(historique);
     while (c != null && c.indice >= seuil) {
       if (_analyser(c, catalogue)) {
@@ -524,7 +550,7 @@ class StrategieNovice extends Strategie {
           maladie: c.id,
         );
       }
-      final i = _essai(c, catalogue, alea);
+      final i = _essai(c, catalogue, alea, ratees: ratees);
       if (i != null) {
         final tentees = _tentees.putIfAbsent(c.id, () => {})..add(i);
         if (tentees.length >= essais) _ecartees.add(c.id);

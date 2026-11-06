@@ -238,6 +238,37 @@ void main() {
       );
     });
 
+    test('il ne retente pas une combinaison dont il voit l\'échec, même '
+        'essayée par un autre joueur', () {
+      final s = StrategieNovice(80, carnet: Carnet(catalogue))..debutPatient();
+      final premier = s.choisir([net], catalogue, Alea(1)).cartes;
+      final autre = StrategieNovice(80, carnet: Carnet(catalogue))
+        ..debutPatient();
+      final echec = ResultatAction(
+        numero: 3,
+        action: actionTraiter,
+        libelle: 'Traiter',
+        phrase: '',
+        cartes: ['PAT-001', ...premier],
+        patient: 'PAT-001',
+        patientNom: 'Mme Garnier',
+        pvAvant: 15,
+        pvApres: 13,
+        presence: 2,
+        attenteDepassee: false,
+        issue: IssuePatient.enJeu,
+        pieces: 0,
+        reputation: -1,
+      );
+      for (var k = 0; k < 20; k++) {
+        final choix = autre.nouvelle(carnet: Carnet(catalogue))..debutPatient();
+        expect(
+          choix.choisir([net, echec], catalogue, Alea(k)).cartes,
+          isNot(premier),
+        );
+      }
+    });
+
     test('il essaie d\'abord la recette notée dans son carnet', () {
       final carnet = Carnet(
         catalogue,
