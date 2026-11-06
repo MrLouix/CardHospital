@@ -151,9 +151,9 @@ Les stratégies voient ce que voit un joueur (résultats des actions, spécialit
 - suivre la couleur est récompensé sans être infaillible : `couleur:80` guérit 97 % des patients en Interne, contre 96 % pour `seuil:80`, et 85 % contre 81 % en Réanimation ;
 - les stratégies connaissent les traitements : ces taux sont des plafonds.
 
-**Joueur novice** (`novice:70`, même rapport) : il ne guérit que 28 % des patients en Interne et 23 % en Réanimation, contre 96 % et 84 % pour un vétéran (`seuil:70`), avec une réputation par patient fortement négative (−6 à −8). Sans connaître les traitements, l'hôpital ferme.
+**Joueur novice** (`novice:70`, même rapport) : il ne guérit que 30 % des patients en Interne et 23 % en Réanimation, contre 96 % et 81 % pour un vétéran (`seuil:80`), avec une réputation par patient fortement négative (−5,5 à −7,8). Sans connaître les traitements, l'hôpital ferme.
 
-**Novice au laboratoire** (`novice+labo:70`, même rapport) : il analyse la maladie en tête dès qu'elle atteint l'indice 70, puis la traite avec la recette révélée. Il guérit 89 % des patients en Interne, 79 % en Chirurgien et 67 % en Réanimation, avec environ une analyse par patient, et une réputation par patient de +0,5, −0,5 et −1,5. Le laboratoire comble donc l'essentiel de l'écart entre novice et vétéran. Variantes mesurées sur 300 parties :
+**Novice au laboratoire** (`novice+labo:70`, même rapport) : il analyse la maladie en tête dès qu'elle atteint l'indice 70, puis la traite avec la recette révélée. Il guérit 89 % des patients en Interne, 78 % en Chirurgien et 67 % en Réanimation, avec environ une analyse par patient, et une réputation par patient de +0,6, −0,5 et −1,5. Le laboratoire comble donc l'essentiel de l'écart entre novice et vétéran. Variantes mesurées sur 300 parties :
 
 | Variante | Interne | Chirurgien | Réanimation |
 |---|---:|---:|---:|
@@ -168,7 +168,8 @@ Le nombre de passages et les objets pèsent peu : une seule analyse, juste aprè
 
 - quand les joueurs partagent, 74 à 80 % des guérisons sont faites par un joueur qui n'avait pas diagnostiqué le patient : celui qui diagnostique travaille souvent pour un autre, c'est le dilemme voulu ;
 - pour des vétérans (`seuil`, `couleur`), le partage **ne change pas le taux de guérison** (97 à 98 % en Interne, 84 à 86 % en Réanimation, partage ou non) : l'objectif « défaite quasi inévitable sans partage » (modèle de jeu §8.6) n'est pas atteint pour eux ;
-- pour des **novices**, le partage aide l'équipe à soigner : 34 % de guérisons au lieu de 28 % en Interne, 31 % au lieu de 23 % en Réanimation. Mais il coûte plus de réputation par patient (−7,7 au lieu de −6,1 en Interne), parce que plus de joueurs essaient de soigner et ratent leur traitement ;
+- pour des **novices** sans laboratoire, le partage aide nettement l'équipe à soigner : 45 % de guérisons au lieu de 31 % en Interne, 39 % au lieu de 25 % en Réanimation, car chacun voit les diagnostics des autres et ne retente pas les traitements qu'il a vus échouer. Mais la réputation par patient reste très négative (−6,0 au lieu de −5,8 en Interne, −10,5 au lieu de −7,8 en Réanimation) : plus de joueurs essaient de soigner, et ratent plus souvent. L'hôpital ferme dans les deux cas ;
+- pour des **novices qui analysent au laboratoire**, le partage n'aide plus : 84 % de guérisons au lieu de 87 % en Interne, 67 % au lieu de 71 % en Réanimation, avec une réputation par patient un peu moins bonne. La cause n'est pas encore identifiée. Le joueur le plus riche gagne en revanche deux fois plus de pièces que le plus pauvre (écart moyen de 11 pièces au lieu de 6 en Interne) ;
 - pistes pour que le partage sauve vraiment l'hôpital : un diagnostic moins net, des maladies qui demandent plusieurs avis, ou des recettes plus faciles à deviner une fois la spécialité connue.
 
 **À faire** : `precision_max` (4) et `par_niveau` (0,8) sont réglés ; restent `verite`, `affinite_specialite`, `bonus_specialite` et `exclusion` sur ce paquet. Le comportement du diagnostic y est mesuré dans [MODELE_DE_JEU.md §8.4](MODELE_DE_JEU.md#84-comportement-attendu). La valeur de départ et le seuil de fermeture de la réputation ne sont à fixer qu'après ce réglage.
