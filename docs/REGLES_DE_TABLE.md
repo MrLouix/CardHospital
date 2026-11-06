@@ -86,10 +86,12 @@ Un joueur peut **former son médecin** pour obtenir un diplôme :
 
 - l'action **Formation** demande une combinaison **médecin + salle de formation + objet de formation** ;
 - chaque formation fait avancer le pion du joueur sur la **piste de diplôme**, une tuile indépendante ;
-- après plusieurs formations, le joueur obtient un **diplôme** ;
+- après plusieurs formations, le joueur obtient un **diplôme**. L'obtention doit être **chronophage** : un premier diplôme est envisageable dans une partie, un second demande trop de temps pour valoir la peine (par exemple 4 formations pour le premier, 8 de plus pour le second ; à régler en partie) ;
 - le joueur qui se forme ne fait **rien d'autre** pendant son tour : ni diagnostic, ni traitement, ni recherche.
 
-À créer : la salle de formation, les objets de formation, la piste de diplôme et le nombre de formations par diplôme (§11).
+Un médecin polyvalent muni d'un diplôme remplace un spécialiste de cette spécialité : c'est voulu, pour qu'un joueur seul à détenir une spécialité ne fasse pas la loi. Les recettes qui exigent deux médecins d'une spécialité demandent toutefois deux vrais médecins : deux spécialistes, ou un spécialiste et un médecin muni du diplôme ([modèle de jeu §2.2](MODELE_DE_JEU.md#22-cartes)).
+
+À créer : la salle de formation, les objets de formation, la piste de diplôme et le nombre exact de formations par diplôme (§11).
 
 ## 8. Partager l'information
 

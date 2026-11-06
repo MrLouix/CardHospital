@@ -24,7 +24,7 @@ Chaque constat indique **où** se trouve le problème, **pourquoi** c'en est un,
 
 ## Suivi des corrections
 
-Corrections appliquées à la demande (même branche, après la revue) : **B1 à B5, T1 à T14 et D1 à D12**. Décisions prises ensuite pour **R1 à R7 et E2**, rédigées dans les [règles de table](REGLES_DE_TABLE.md). Les constats E1 et E3 à E15 attendent une décision.
+Corrections appliquées à la demande (même branche, après la revue) : **B1 à B5, T1 à T14 et D1 à D12**. Décisions prises ensuite pour **R1 à R7 et E2**, rédigées dans les [règles de table](REGLES_DE_TABLE.md). Les constats E1 et E3 à E15 ont ensuite été traités (voir ci-dessous).
 
 Choix retenus :
 
@@ -46,6 +46,18 @@ Décisions sur les règles manquantes (R1 à R7) et les traitements (E2) :
 - **R6** : réanalyse possible, recette privée comme un diagnostic, compteur de passages commun à toute la partie ([modèle de jeu §12.3](MODELE_DE_JEU.md#123-déroulement-dun-passage)).
 - **E2** : les traitements sont secrets. Les stratégies du simulateur, qui les connaissent, jouent comme des vétérans : leurs taux de guérison sont des plafonds.
 - Les points encore ouverts sont listés dans les [règles de table §11](REGLES_DE_TABLE.md#11-points-à-préciser).
+
+Équilibrage et pertinence (E1, E3 à E15) :
+
+- **E1, E3, E8, E9, E10** : paquet de base refondu (version 2.0.0). Chaque spécialité a 5 à 7 **familles de traitements** ; une recette est un spécialiste dans une salle, un objet dans une salle, ou deux médecins, jamais un spécialiste **et** un objet (la place d'accessoire est unique, et un médecin muni d'un diplôme doit pouvoir remplacer le spécialiste). Aucune combinaison ne soigne plus de 35 % des maladies d'une spécialité (75 à 95 % auparavant). Les PV initiaux vont de 6 à 16 et suivent, comme l'aggravation, l'attente, les poids et les récompenses, un **gabarit de gravité identique** pour toutes les spécialités : aucune valeur de PV n'appartient à plus de 25 % à une même spécialité. Le plâtre, le tensiomètre et l'anti-inflammatoire ont leurs recettes ; tous les diplômes donnent +1 de précision ; le bloc opératoire et la pharmacie sont polyvalents ; chaque médicament soigne sa famille (antibiotique, antalgique, anti-inflammatoire, sirop, glucose) en consultation ou à la pharmacie. Noms rendus distincts : décalage horaire, rage de dents, laryngite, fêlure du coccyx, somnambulisme, agoraphobie, hyperactivité de l'adulte, tics nerveux, extrasystoles, rejet de greffe cardiaque, brûlure lunaire, poltergeist domestique.
+- **E4, E5** : la difficulté ajoute un **bonus entier** (+0, +1, +2) aux pertes de PV, aux gains de pièces et aux pertes de réputation ; chaque niveau est un cran plus dur que le précédent sur chaque ligne de la table effective (modèle de jeu §10). Les gains de réputation ne changent pas.
+- **E6** : aucune pièce pour une action pendant laquelle le patient meurt. Enchaîner les diagnostics fait avancer l'horloge, donc vieillir tous les patients.
+- **E7** : « 2 médecins d'une spécialité » exige deux vrais médecins (un spécialiste et un médecin muni du diplôme, ou deux spécialistes) ; la combinaison standard accepte donc 2 médecins **et** 1 accessoire. Un polyvalent muni d'un diplôme remplace un spécialiste : c'est voulu. Le diplôme s'obtient lentement (règles de table §7).
+- **E11** : le simulateur joue 2 ou 3 joueurs à tour de rôle, avec informations partagées ou privées ([rapport à 3 joueurs](simulations/rapport_paquet_base_3_joueurs.md)). En partageant, 74 à 80 % des guérisons sont faites par un joueur qui n'avait pas diagnostiqué le patient : le dilemme existe. Mais **le partage ne change pas le taux de guérison** de l'équipe (97 à 98 % en Interne, 84 à 86 % en Réanimation, partage ou non) : l'objectif « défaite quasi inévitable sans partage » n'est pas atteint, parce que les stratégies connaissent les traitements et qu'un diagnostic à précision maximale suffit souvent.
+- **E12** : le bruit du diagnostic est pondéré par `(poids / poids moyen)^0,25`.
+- **E13** : sont imprimés l'image, le QR, le type, le nom, la spécialité et les capacités ; une extension ne peut pas les modifier ; le validateur compare les cartes au catalogue embarqué quand on le lui fournit.
+- **E14** : champ `lieu_phrase` des salles et variable `{lieu}` (« en radiologie », « à la pharmacie »).
+- **E15** : exigence de conformité ajoutée (spécification §9) ; nouvelle palette : contraste d'au moins 3:1 sur fond clair et sombre, écart d'au moins 25 entre deux spécialités en protanopie, deutéranopie et tritanopie (l'ancienne tombait à 5) ; le validateur avertit sinon.
 
 ## Tableau des constats
 
@@ -89,21 +101,21 @@ Décisions sur les règles manquantes (R1 à R7) et les traitements (E2) :
 | [R5](#r5) | Partage des diagnostics : a-t-on le droit de mentir ? | Mineur | Corrigé : règles de table §8 |
 | [R6](#r6) | Laboratoire : réanalyse, diffusion des recettes, effet de la capacité `recherche` | Mineur | Décidé : modèle de jeu §12.3 |
 | [R7](#r7) | L'annulation permet de voir un diagnostic gratuitement ou de relancer un tirage | Important | Corrigé : règles de table §10, sans code |
-| [E1](#e1) | Traitements génériques : connaître la spécialité suffit presque toujours | Important | En attente |
+| [E1](#e1) | Traitements génériques : connaître la spécialité suffit presque toujours | Important | Corrigé : familles de traitements (≤ 35 % par combinaison) |
 | [E2](#e2) | Traitements « connus via le livret de règles », mais laboratoire chargé de les révéler | Important | Décidé : règles de table §9 ; stratégie « novice » à écrire |
-| [E3](#e3) | Les PV et l'attente trahissent la maladie | Important | En attente |
-| [E4](#e4) | Arrondis : Chirurgien et Réanimation donnent le même résultat sur les petites valeurs | Important | En attente |
-| [E5](#e5) | Le modificateur de réputation s'applique aussi aux gains : Réanimation est plus facile | Important | En attente |
-| [E6](#e6) | Pièces gagnées même si le patient meurt, et diagnostics répétables pour gagner des pièces | Important | En attente |
-| [E7](#e7) | Le diplôme rend la spécialité du médecin presque inutile | Important | En attente |
-| [E8](#e8) | Cartes sans usage ou incohérentes (Plâtre, Tensiomètre, Pharmacie…) | Mineur | En attente |
-| [E9](#e9) | Recettes peu crédibles (sirop antitussif contre la conjonctivite…) | Mineur | En attente |
-| [E10](#e10) | Noms de maladies trop proches d'une spécialité à l'autre | Mineur | En attente |
-| [E11](#e11) | Objectif « défaite quasi inévitable sans partage » ni mesurable ni mesuré | Important | En attente |
-| [E12](#e12) | Le diagnostic ignore la fréquence des maladies (`poids`) | Mineur | En attente |
-| [E13](#e13) | Une extension peut changer des attributs imprimés sur les cartes | Mineur | En attente |
-| [E14](#e14) | Prépositions des salles dans les phrases (« dans la réanimation ») | Mineur | En attente |
-| [E15](#e15) | Couleurs de spécialités proches ou peu contrastées | Mineur | En attente |
+| [E3](#e3) | Les PV et l'attente trahissent la maladie | Important | Corrigé : gabarit de gravité commun (≤ 25 % par valeur de PV) |
+| [E4](#e4) | Arrondis : Chirurgien et Réanimation donnent le même résultat sur les petites valeurs | Important | Corrigé : bonus +0/+1/+2, table effective (modèle §10) |
+| [E5](#e5) | Le modificateur de réputation s'applique aussi aux gains : Réanimation est plus facile | Important | Corrigé : pertes seulement |
+| [E6](#e6) | Pièces gagnées même si le patient meurt, et diagnostics répétables pour gagner des pièces | Important | Corrigé : aucune pièce si mort ; l'horloge freine les diagnostics à répétition |
+| [E7](#e7) | Le diplôme rend la spécialité du médecin presque inutile | Important | Corrigé : 2 vrais médecins ; polyvalent + diplôme voulu ; diplôme chronophage |
+| [E8](#e8) | Cartes sans usage ou incohérentes (Plâtre, Tensiomètre, Pharmacie…) | Mineur | Corrigé |
+| [E9](#e9) | Recettes peu crédibles (sirop antitussif contre la conjonctivite…) | Mineur | Corrigé : médicaments par famille, lieu de soins |
+| [E10](#e10) | Noms de maladies trop proches d'une spécialité à l'autre | Mineur | Corrigé |
+| [E11](#e11) | Objectif « défaite quasi inévitable sans partage » ni mesurable ni mesuré | Important | Simulé à 3 joueurs : dilemme mesuré, partage sans effet sur la guérison |
+| [E12](#e12) | Le diagnostic ignore la fréquence des maladies (`poids`) | Mineur | Corrigé : pondération 0,25 |
+| [E13](#e13) | Une extension peut changer des attributs imprimés sur les cartes | Mineur | Corrigé : attributs imprimés non modifiables, contrôle du catalogue |
+| [E14](#e14) | Prépositions des salles dans les phrases (« dans la réanimation ») | Mineur | Corrigé : `lieu_phrase` et `{lieu}` |
+| [E15](#e15) | Couleurs de spécialités proches ou peu contrastées | Mineur | Corrigé : exigence ajoutée, palette conforme, contrôle au validateur |
 
 ---
 
