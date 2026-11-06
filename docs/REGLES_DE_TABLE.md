@@ -23,6 +23,8 @@ Les joueurs jouent **à tour de rôle**, même si plusieurs smartphones sont dis
    - **acheter un objet permanent** (§6.1) ;
    - ou **réaliser une action** : diagnostic, traitement, recherche (au laboratoire) ou formation (§7). La formation occupe tout le tour.
 
+Une action qui réunit les médecins de deux joueurs compte comme **le tour des deux joueurs** (§3.1).
+
 Les **salles sont communes** : tous les joueurs les utilisent. Une salle n'est jamais bloquée par un joueur : il y joue son action, puis la laisse libre pour les suivants.
 
 ## 3. Pièces, réputation et points de victoire
@@ -37,7 +39,7 @@ Après chaque action, l'appli affiche les pièces gagnées et l'impact sur la r�
 - **+1 réputation** : le garder pour son médecin (**réputation personnelle**) ou le laisser à l'hôpital (piste de réputation de l'hôpital) ;
 - **−1 réputation** : le reporter sur la piste de l'hôpital, ou **le prendre pour lui**, sur sa réputation personnelle. Il perd alors un point de victoire, mais la réputation de l'hôpital ne baisse pas : c'est ainsi qu'un joueur peut éviter la fermeture quand l'hôpital approche du seuil.
 
-**Action à deux joueurs** : quand une combinaison réunit les médecins de deux joueurs (par exemple les deux orthopédistes exigés au bloc opératoire), les deux joueurs sont responsables de l'action et se répartissent ses jetons.
+**Action à deux joueurs** : quand une combinaison réunit les médecins de deux joueurs (par exemple les deux orthopédistes exigés au bloc opératoire), les deux joueurs sont responsables de l'action et se répartissent ses jetons. L'action compte comme **le tour des deux** : le joueur dont c'est le tour l'utilise, et son partenaire passe son prochain tour.
 
 ### 3.2 Points de victoire et victoire
 
@@ -113,11 +115,10 @@ L'annulation de la dernière action, dans la page admin de l'hôte, est réserv�
 |---|---|---|
 | 1 | Nombre de joueurs autorisé (la mise en place parle de « 2 ou 3 joueurs, sinon médecin seul ») | — |
 | 2 | Points de victoire des pièces : pièces gagnées au total, ou pièces encore en réserve ? Les pièces données à l'hôpital ou dépensées comptent-elles ? | — |
-| 3 | Action à deux joueurs : compte-t-elle comme le tour des deux ? Qui garde la main ? | — |
-| 4 | Niveau cible de victoire, valeur de départ et seuil de fermeture, N patients en jeu | À fixer au simulateur, par difficulté |
-| 5 | Fin de partie si la pioche est vide (les morts en sortent) avant que quelqu'un gagne | — |
-| 6 | Qui choisit la salle à construire, et quand | — |
-| 7 | Quels objets sont permanents, lesquels sont consommables, et quand un consommable est-il utilisé (au traitement seulement ?) | Permanents : stéthoscope, traité de médecine, défibrillateur, électrocardiographe, thermomètre, tensiomètre, livre de psychanalyse, grimoire, amulette. Consommables : antibiotique, antalgique, anti-inflammatoire, ampoules de glucose, sirop antitussif, plâtre, attelle |
-| 8 | Marché d'objets permanents : remplacé après chaque achat ? Prix ? | — |
-| 9 | Formation : rôle de l'appli (scan de la combinaison et validation, ou geste purement physique), nombre de formations par diplôme, choix de la spécialité du diplôme | — |
-| 10 | Budget de l'hôpital au départ | — |
+| 3 | Niveau cible de victoire, valeur de départ et seuil de fermeture, N patients en jeu | À fixer au simulateur, par difficulté |
+| 4 | Fin de partie si la pioche est vide (les morts en sortent) avant que quelqu'un gagne | — |
+| 5 | Qui choisit la salle à construire, et quand | — |
+| 6 | Quels objets sont permanents, lesquels sont consommables, et quand un consommable est-il utilisé (au traitement seulement ?) | Permanents : stéthoscope, traité de médecine, défibrillateur, électrocardiographe, thermomètre, tensiomètre, livre de psychanalyse, grimoire, amulette. Consommables : antibiotique, antalgique, anti-inflammatoire, ampoules de glucose, sirop antitussif, plâtre, attelle |
+| 7 | Marché d'objets permanents : remplacé après chaque achat ? Prix ? | — |
+| 8 | Formation : rôle de l'appli (scan de la combinaison et validation, ou geste purement physique), nombre de formations par diplôme, choix de la spécialité du diplôme | — |
+| 9 | Budget de l'hôpital au départ | — |
