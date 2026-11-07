@@ -47,6 +47,14 @@ Future<void> main(List<String> args) async {
       defaultsTo: 'les-deux',
     )
     ..addOption(
+      'cartes',
+      help:
+          'Cartes des joueurs : toutes à chacun (communes), ou un médecin par '
+          'joueur, plus un diplôme à 2 ou 3 joueurs (personnelles).',
+      allowed: ['communes', 'personnelles'],
+      defaultsTo: 'communes',
+    )
+    ..addOption(
       'en-jeu',
       help: 'Patients en jeu à la fois (N des règles de table).',
       defaultsTo: '3',
@@ -152,6 +160,7 @@ Future<void> main(List<String> args) async {
         _ => const [true, false],
       },
       actionsMax: entier('actions-max'),
+      cartesPersonnelles: o.option('cartes') == 'personnelles',
     ),
   );
   final rapport = simulateur.simuler(strategies, difficultes: difficultes);

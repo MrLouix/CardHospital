@@ -18,6 +18,7 @@ class ParametresSimulation {
     this.joueurs = 1,
     this.partages = const [true],
     this.actionsMax = 60,
+    this.cartesPersonnelles = false,
   });
 
   /// Graine du hasard : même graine, même rapport.
@@ -44,6 +45,14 @@ class ParametresSimulation {
   /// Au-delà, le patient est abandonné (compté à part).
   final int actionsMax;
 
+  /// Cartes personnelles (règles de table §1) : chaque joueur tire un
+  /// médecin, plus un diplôme à 2 ou 3 joueurs, et ne joue que des
+  /// combinaisons avec son médecin. Une combinaison qui réunit son médecin
+  /// et celui d'un autre joueur est une action à deux : le partenaire voit
+  /// le résultat et passe son prochain tour. Salles et objets restent
+  /// communs. Sinon, chaque joueur dispose de toutes les cartes.
+  final bool cartesPersonnelles;
+
   Map<String, dynamic> toJson() => {
     'graine': graine,
     'parties': parties,
@@ -52,6 +61,7 @@ class ParametresSimulation {
     'joueurs': joueurs,
     'partages': partages,
     'actions_max': actionsMax,
+    'cartes_personnelles': cartesPersonnelles,
   };
 }
 
@@ -83,6 +93,10 @@ class StatsStrategie {
 
   /// Mode d'information, quand il y a plusieurs joueurs (sinon nul).
   final bool? partage;
+
+  /// Actions qui réunissent les médecins de deux joueurs (cartes
+  /// personnelles).
+  int actionsADeux = 0;
 
   /// Guérisons faites par un joueur qui n'avait pas diagnostiqué ce patient,
   /// alors qu'un autre l'avait fait : il profite du diagnostic d'autrui.
@@ -144,6 +158,7 @@ class StatsStrategie {
     'difficulte': difficulte,
     if (partage != null) 'partage': partage,
     if (partage != null) 'guerisons_par_autrui': guerisonsParAutrui,
+    if (partage != null) 'actions_a_deux': actionsADeux,
     if (partage != null) 'ecart_pieces_moyen': _arrondi(ecartPiecesMoyen, 2),
     'patients': patients,
     'gueris': gueris,
@@ -199,7 +214,8 @@ class RapportSimulation {
         'Graine ${parametres.graine} · ${parametres.parties} parties de '
         '${parametres.patientsParPartie} patients par stratégie et par '
         'difficulté, ${parametres.patientsEnJeu} patients en jeu à la fois, '
-        '${parametres.joueurs == 1 ? '1 joueur' : '${parametres.joueurs} joueurs à tour de rôle'} '
+        '${parametres.joueurs == 1 ? '1 joueur' : '${parametres.joueurs} joueurs à tour de rôle'}'
+        '${parametres.cartesPersonnelles ? ' avec chacun son médecin' : ''} '
         '· abandon au-delà de ${parametres.actionsMax} actions sur un '
         'patient.',
       )
@@ -288,15 +304,20 @@ class RapportSimulation {
         ..writeln()
         ..writeln(
           '| Stratégie | Difficulté | Informations | Guérison | '
-          'Réputation / patient | Par un autre | Écart de pièces |',
+          'Réputation / patient | Par un autre | Écart de pièces |'
+          '${parametres.cartesPersonnelles ? ' Actions à deux |' : ''}',
         )
-        ..writeln('|---|---|---|---:|---:|---:|---:|');
+        ..writeln(
+          '|---|---|---|---:|---:|---:|---:|'
+          '${parametres.cartesPersonnelles ? '---:|' : ''}',
+        );
       for (final r in resultats) {
         b.writeln(
           '| ${r.strategie} | ${_nomDifficulte(r.difficulte)} '
           '| ${r.partage! ? 'partagées' : 'privées'} '
           '| ${_pct(r.tauxGuerison)} | ${_dec(r.reputationParPatient)} '
-          '| ${_pct(r.partGuerisonsParAutrui)} | ${_dec(r.ecartPiecesMoyen, 1)} |',
+          '| ${_pct(r.partGuerisonsParAutrui)} | ${_dec(r.ecartPiecesMoyen, 1)} |'
+          '${parametres.cartesPersonnelles ? ' ${_pct(r.actions == 0 ? 0 : r.actionsADeux / r.actions)} |' : ''}',
         );
       }
     }
@@ -366,6 +387,28 @@ class Simulateur {
   final ParametresSimulation parametres;
   final CatalogueCombinaisons _catalogue;
   late final List<String> _cartesPatient;
+  late final List<String> _medecins = [
+    for (final e in jeu.cartes.entries)
+      if (e.value.type == TypeCarte.medecin) e.key,
+  ];
+  late final List<String> _diplomes = [
+    for (final e in jeu.cartes.entries)
+      if (e.value.type == TypeCarte.diplome) e.key,
+  ];
+
+  /// Vues du catalogue par joueur (cartes personnelles), par main.
+  final _vues = <String, CatalogueCombinaisons>{};
+
+  static List<String> _melanger(List<String> cartes, SourceAleatoire alea) {
+    final copie = [...cartes];
+    for (var i = copie.length - 1; i > 0; i--) {
+      final j = (alea.flottant() * (i + 1)).floor();
+      final t = copie[i];
+      copie[i] = copie[j];
+      copie[j] = t;
+    }
+    return copie;
+  }
 
   static const _paquet = IdentitePaquet(
     id: 'simulation',
@@ -432,6 +475,48 @@ class Simulateur {
         for (var j = 0; j < joueurs; j++)
           partage == false ? Carnet(_catalogue) : carnetCommun,
       ];
+      // Cartes personnelles : un médecin par joueur, plus un diplôme à 2 ou
+      // 3 joueurs ; chaque joueur a sa vue du catalogue.
+      final vues = List.filled(joueurs, _catalogue);
+      final proprietaire = <String, int>{};
+      if (parametres.cartesPersonnelles) {
+        final medecins = _melanger(_medecins, alea);
+        final diplomes = _melanger(_diplomes, alea);
+        final avecDiplome = joueurs == 2 || joueurs == 3;
+        for (var j = 0; j < joueurs; j++) {
+          proprietaire[medecins[j % medecins.length]] = j;
+        }
+        for (var j = 0; j < joueurs; j++) {
+          final medecin = medecins[j % medecins.length];
+          final diplome = avecDiplome && diplomes.isNotEmpty
+              ? diplomes[j % diplomes.length]
+              : null;
+          final autres = {
+            for (final e in proprietaire.entries)
+              if (e.value != j) e.key,
+          }.toList()..sort();
+          vues[j] = _vues.putIfAbsent(
+            '$medecin|$diplome|${autres.join(',')}',
+            () => _catalogue.restreint((cartes) {
+              var lesMiens = 0;
+              for (final id in cartes) {
+                final type = jeu.cartes[id]!.type;
+                if (type == TypeCarte.medecin) {
+                  if (id == medecin) {
+                    lesMiens++;
+                  } else if (!autres.contains(id)) {
+                    return false;
+                  }
+                } else if (type == TypeCarte.diplome && id != diplome) {
+                  return false;
+                }
+              }
+              return lesMiens > 0;
+            }, seul: (cartes) => !cartes.any(autres.contains)),
+          );
+        }
+      }
+      final passe = List.filled(joueurs, false);
       var tour = 0;
       var admissions = 0;
       var cumul = 0;
@@ -459,10 +544,16 @@ class Simulateur {
         // soigner ; sinon il prend en charge le suivant dans la file.
         final joueur = tour % joueurs;
         tour++;
+        if (passe[joueur]) {
+          // Il a participé à l'action à deux d'un autre joueur.
+          passe[joueur] = false;
+          continue;
+        }
         List<ResultatAction> visible(_PatientSimule s) =>
             partage == false ? s.parJoueur[joueur] : s.historique;
+        final vue = vues[joueur];
         final pret = enJeu.indexWhere(
-          (s) => s.strategies[joueur].pret(visible(s), _catalogue),
+          (s) => s.strategies[joueur].pret(visible(s), vue),
         );
         final suivi = enJeu.removeAt(pret < 0 ? 0 : pret);
         if (suivi.historique.length >= parametres.actionsMax) {
@@ -473,7 +564,7 @@ class Simulateur {
         }
         final choix = suivi.strategies[joueur].choisir(
           visible(suivi),
-          _catalogue,
+          vue,
           alea,
         );
         final r = _appliquer(
@@ -484,6 +575,19 @@ class Simulateur {
         );
         suivi.historique.add(r);
         if (partage == false) suivi.parJoueur[joueur].add(r);
+        // Action à deux : le partenaire voit le résultat et passe son tour.
+        final partenaire = choix.cartes
+            .map((id) => proprietaire[id])
+            .where((p) => p != null && p != joueur)
+            .firstOrNull;
+        if (partenaire != null) {
+          passe[partenaire] = true;
+          stats.actionsADeux++;
+          if (partage == false) suivi.parJoueur[partenaire].add(r);
+          if (!identical(carnets[partenaire], carnets[joueur])) {
+            carnets[partenaire].noter(r);
+          }
+        }
         if (r.diagnostic != null) suivi.diagnostiqueurs.add(joueur);
         carnets[joueur].noter(r);
         piecesJoueurs[joueur] += r.pieces;

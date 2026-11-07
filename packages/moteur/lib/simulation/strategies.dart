@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import '../modeles/jeu.dart';
 import '../moteur/alea.dart';
@@ -62,8 +63,62 @@ class CatalogueCombinaisons {
     this._specialites,
     this._precisions,
     this._adaptes,
-    this.recherches,
-  );
+    this.recherches, [
+    this._permises,
+  ]) : indicesPermis = _permises == null
+           ? List.generate(cartes.length, (i) => i)
+           : [
+               for (var i = 0; i < cartes.length; i++)
+                 if (_permises[i] > 0) i,
+             ],
+       indicesSeul = _permises == null
+           ? List.generate(cartes.length, (i) => i)
+           : [
+               for (var i = 0; i < cartes.length; i++)
+                 if (_permises[i] == 2) i,
+             ];
+
+  /// Vue du catalogue réduite aux combinaisons dont les cartes sont
+  /// [permise] : celles d'un joueur qui n'a que ses propres cartes (mode
+  /// « cartes personnelles » du simulateur). [seul] distingue celles qu'il
+  /// joue seul de celles qui demandent le médecin d'un autre joueur. Les
+  /// indices restent ceux du catalogue complet.
+  CatalogueCombinaisons restreint(
+    bool Function(List<String> cartes) permise, {
+    required bool Function(List<String> cartes) seul,
+  }) {
+    final permises = Uint8List(cartes.length);
+    for (var i = 0; i < cartes.length; i++) {
+      if (permise(cartes[i])) permises[i] = seul(cartes[i]) ? 2 : 1;
+    }
+    return CatalogueCombinaisons._(
+      jeu,
+      cartes,
+      _indices,
+      _specialites,
+      _precisions,
+      _adaptes,
+      [
+        for (final r in recherches)
+          if (permise(r)) r,
+      ],
+      permises,
+    );
+  }
+
+  /// Combinaisons jouées seul (2), à deux (1) ou impossibles (0), pour une
+  /// vue restreinte.
+  final Uint8List? _permises;
+
+  /// Indices des combinaisons permises, dans l'ordre du catalogue.
+  final List<int> indicesPermis;
+
+  /// Indices des combinaisons que le joueur joue seul.
+  final List<int> indicesSeul;
+  final _adaptesPermises = <String, List<int>>{};
+
+  /// La combinaison [i] est-elle permise dans cette vue ?
+  bool permise(int i) => _permises == null || _permises[i] > 0;
 
   /// Combinaisons (hors patient) avec lesquelles l'action `analyser` est
   /// proposée, de la plus grande capacité `recherche` à la plus petite.
@@ -147,7 +202,7 @@ class CatalogueCombinaisons {
   List<(int, int)> thematiques(String specialite) =>
       _thematiques.putIfAbsent(specialite, () {
         return [
-          for (var i = 0; i < length; i++)
+          for (final i in indicesPermis)
             if (_score(i, specialite) case final s when s > 0) (i, s),
         ];
       });
@@ -159,20 +214,45 @@ class CatalogueCombinaisons {
 
   int get length => cartes.length;
 
-  /// Combinaisons qui soignent la maladie [maladie].
-  List<int> adaptees(String maladie) => _adaptes[maladie] ?? const [];
+  /// Combinaisons (permises) qui soignent la maladie [maladie] : celles
+  /// que le joueur joue seul s'il y en a, sinon celles à deux.
+  List<int> adaptees(String maladie) {
+    final toutes = _adaptes[maladie] ?? const <int>[];
+    final p = _permises;
+    if (p == null) return toutes;
+    return _adaptesPermises.putIfAbsent(maladie, () {
+      final seul = [
+        for (final i in toutes)
+          if (p[i] == 2) i,
+      ];
+      if (seul.isNotEmpty) return seul;
+      return [
+        for (final i in toutes)
+          if (p[i] > 0) i,
+      ];
+    });
+  }
 
   /// Combinaisons de meilleure précision dont les spécialités sont
   /// exactement [specialites] (vide : aucune spécialité, donc aucune
-  /// exclusion). Toutes les combinaisons si aucune ne convient.
+  /// exclusion), parmi celles que le joueur joue seul. Si aucune ne
+  /// convient, celles qui ont le moins de spécialités.
   List<int> meilleursDiagnostics(Set<String> specialites) {
-    final candidates = [
-      for (var i = 0; i < length; i++)
+    var candidates = [
+      for (final i in indicesSeul)
         if (_specialites[i].length == specialites.length &&
             _specialites[i].containsAll(specialites))
           i,
     ];
-    if (candidates.isEmpty) return List.generate(length, (i) => i);
+    if (candidates.isEmpty) {
+      final base = indicesSeul.isEmpty ? indicesPermis : indicesSeul;
+      if (base.isEmpty) return const [];
+      final moins = base.map((i) => _specialites[i].length).reduce(math.min);
+      candidates = [
+        for (final i in base)
+          if (_specialites[i].length == moins) i,
+      ];
+    }
     final max = candidates
         .map((i) => _precisions[i])
         .reduce((a, b) => a > b ? a : b);
@@ -200,6 +280,11 @@ class Carnet {
   final Map<String, String> _specialiteDe;
   final _parMaladie = <String, int>{};
   final _parSpecialite = <String, List<int>>{};
+  final _revelees = <String>{};
+
+  /// La recette complète de [maladie] a-t-elle été révélée au laboratoire ?
+  /// Le joueur sait alors quelles combinaisons la soignent.
+  bool revelee(String maladie) => _revelees.contains(maladie);
 
   /// Nombre de maladies dont la recette est connue.
   int get recettes => _parMaladie.length;
@@ -222,6 +307,7 @@ class Carnet {
       final adaptees = catalogue.adaptees(id);
       final specialite = _specialiteDe[id];
       if (adaptees.isNotEmpty && specialite != null) {
+        _revelees.add(id);
         _retenir(id, specialite, _parMaladie[id] ?? adaptees.first);
       }
       return;
@@ -321,7 +407,8 @@ class StrategieHasard extends Strategie {
     SourceAleatoire alea,
   ) {
     final action = alea.flottant() < 0.5 ? actionDiagnostiquer : actionTraiter;
-    final i = (alea.flottant() * catalogue.length).floor();
+    final permis = catalogue.indicesPermis;
+    final i = permis[(alea.flottant() * permis.length).floor()];
     return (action: action, cartes: catalogue.cartes[i], maladie: null);
   }
 }
@@ -507,10 +594,22 @@ class StrategieNovice extends Strategie {
     Set<int> ratees = const {},
   }) {
     final tentees = {...?_tentees[c.id], ...ratees};
+    // Recette révélée au laboratoire : il sait quelles combinaisons la
+    // satisfont, et n'essaie que celles qu'il peut jouer.
+    if (carnet?.revelee(c.id) ?? false) {
+      return catalogue
+          .adaptees(c.id)
+          .where((i) => !tentees.contains(i))
+          .firstOrNull;
+    }
     final connue = carnet?.recette(c.id);
-    if (connue != null && !tentees.contains(connue)) return connue;
+    if (connue != null &&
+        catalogue.permise(connue) &&
+        !tentees.contains(connue)) {
+      return connue;
+    }
     for (final i in carnet?.recettesDe(c.specialite.id) ?? const <int>[]) {
-      if (!tentees.contains(i)) return i;
+      if (catalogue.permise(i) && !tentees.contains(i)) return i;
     }
     final pistes = [
       for (final (i, score) in catalogue.thematiques(c.specialite.id))
@@ -536,9 +635,14 @@ class StrategieNovice extends Strategie {
         .map((r) => r.diagnostic)
         .whereType<ResultatDiagnostic>()
         .firstOrNull;
+    final c = carnet;
+    if (c == null) return;
     for (final l in dernier?.maladies ?? const <LigneDiagnostic>[]) {
-      final connue = carnet?.recette(l.id);
-      if (connue != null && ratees.contains(connue)) _ecartees.add(l.id);
+      final connue = c.recette(l.id);
+      final dementie = c.revelee(l.id)
+          ? c.catalogue.adaptees(l.id).any(ratees.contains)
+          : connue != null && ratees.contains(connue);
+      if (dementie) _ecartees.add(l.id);
     }
   }
 

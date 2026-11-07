@@ -118,6 +118,7 @@ Depuis `packages/moteur` :
 dart test
 dart run bin/simuler.dart --parties 2000 --strategies hasard,seuil:70,couleur:70 --en-jeu 3
 dart run bin/simuler.dart --joueurs 3 --partage les-deux
+dart run bin/simuler.dart --joueurs 3 --cartes personnelles   # un médecin par joueur
 dart run bin/simuler.dart --aide   # ou --help, -h
 ```
 
@@ -174,6 +175,8 @@ Le simulateur suppose toutes les cartes disponibles : le spécialiste et le meil
 - pour des **novices** sans laboratoire, le partage aide nettement l'équipe à soigner : 45 % de guérisons au lieu de 30 % en Interne, 38 % au lieu de 25 % en Réanimation, car chacun voit les diagnostics des autres et ne retente pas les traitements qu'il a vus échouer. Mais la réputation par patient reste très négative (−6,1 au lieu de −5,8 en Interne, −10,4 au lieu de −7,7 en Réanimation) : plus de joueurs essaient de soigner, et ratent plus souvent. L'hôpital ferme dans les deux cas ;
 - pour des **novices qui analysent au laboratoire**, le partage n'aide plus : 91 % de guérisons dans les deux cas en Interne, 67 % au lieu de 71 % en Réanimation, avec une réputation par patient un peu moins bonne. La cause n'est pas encore identifiée. Le joueur le plus riche gagne en revanche deux fois plus de pièces que le plus pauvre (écart moyen de 12 pièces au lieu de 5 en Interne) ;
 - pistes pour que le partage sauve vraiment l'hôpital : un diagnostic moins net, des maladies qui demandent plusieurs avis, ou des recettes plus faciles à deviner une fois la spécialité connue.
+
+**Avec cartes personnelles** ([rapport](simulations/rapport_paquet_base_3_joueurs_cartes_personnelles.md)) : chaque joueur n'a que son médecin, comme à la table. Le partage aide alors vraiment : à 3 joueurs, les vétérans guérissent 84 % des patients en Interne en partageant, contre 75 % sans partager, et ferment l'hôpital deux fois moins souvent. Les mesures précédentes, où chaque joueur avait toutes les cartes, sous-estimaient l'intérêt du partage et la difficulté du jeu. Analyse complète et pistes : [analyse de l'équilibre](ANALYSE_EQUILIBRE.md).
 
 **À faire** : `precision_max` (4) et `par_niveau` (0,8) sont réglés ; restent `verite`, `affinite_specialite`, `bonus_specialite` et `exclusion` sur ce paquet. Le comportement du diagnostic y est mesuré dans [MODELE_DE_JEU.md §8.4](MODELE_DE_JEU.md#84-comportement-attendu). La valeur de départ et le seuil de fermeture de la réputation ne sont à fixer qu'après ce réglage.
 

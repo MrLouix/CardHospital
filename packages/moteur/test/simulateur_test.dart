@@ -518,6 +518,57 @@ void main() {
     });
   });
 
+  group('cartes personnelles', () {
+    final base = jeuBase();
+    ParametresSimulation params(int graine) => ParametresSimulation(
+      graine: graine,
+      parties: 30,
+      joueurs: 3,
+      partages: const [true, false],
+      cartesPersonnelles: true,
+    );
+
+    test('reproductible, avec des actions à deux, et le partage aide les '
+        'vétérans', () {
+      final a = Simulateur(
+        base,
+        parametres: params(5),
+      ).simuler([Strategie.depuis('couleur:70')], difficultes: ['interne']);
+      final b = Simulateur(
+        base,
+        parametres: params(5),
+      ).simuler([Strategie.depuis('couleur:70')], difficultes: ['interne']);
+      expect(b.enJson(), a.enJson());
+      final [partage, prive] = a.resultats;
+      expect(partage.actionsADeux, greaterThan(0));
+      expect(partage.actionsADeux, lessThan(partage.actions));
+      expect(a.toJson()['parametres']['cartes_personnelles'], isTrue);
+      expect(a.enMarkdown(), contains('avec chacun son médecin'));
+      expect(a.enMarkdown(), contains('Actions à deux'));
+      expect(partage.tauxGuerison, greaterThan(prive.tauxGuerison));
+    });
+
+    test('un joueur seul n\'a que son médecin : il ne soigne pas tout', () {
+      final r = Simulateur(
+        base,
+        parametres: const ParametresSimulation(
+          graine: 2,
+          parties: 30,
+          cartesPersonnelles: true,
+        ),
+      ).simuler([Strategie.depuis('seuil:70')], difficultes: ['interne']);
+      final toutes = Simulateur(
+        base,
+        parametres: const ParametresSimulation(graine: 2, parties: 30),
+      ).simuler([Strategie.depuis('seuil:70')], difficultes: ['interne']);
+      expect(
+        r.resultats.single.tauxGuerison,
+        lessThan(toutes.resultats.single.tauxGuerison - 0.2),
+      );
+      expect(r.resultats.single.actionsADeux, 0);
+    });
+  });
+
   test('stratégies : une instance neuve par patient', () {
     for (final s in [
       'hasard',
@@ -634,9 +685,49 @@ void main() {
       }
       expect(
         catalogue.meilleursDiagnostics({'astrologie'}),
-        hasLength(catalogue.length),
-        reason: 'aucune combinaison : toutes proposées',
+        catalogue.meilleursDiagnostics(const {}),
+        reason: 'aucune combinaison : celles qui ont le moins de spécialités',
       );
+    });
+
+    test('vue restreinte aux cartes d\'un joueur : seul d\'abord, à deux '
+        'si la recette l\'exige', () {
+      // Le Dr Cassagne (orthopédiste) ; le Dr Vasseur est à un autre joueur.
+      const autres = ['MED-001', 'MED-002', 'MED-005', 'MED-008'];
+      final vue = catalogue.restreint(
+        (cartes) =>
+            cartes.contains('MED-007') &&
+            !cartes.any((id) => id.startsWith('DIP')) &&
+            cartes
+                .where((id) => id.startsWith('MED'))
+                .every((id) => id == 'MED-007' || id == 'MED-008'),
+        seul: (cartes) => !cartes.any(autres.contains),
+      );
+      expect(vue.indicesSeul, isNotEmpty);
+      expect(vue.indicesPermis.length, greaterThan(vue.indicesSeul.length));
+      for (final i in vue.indicesPermis) {
+        expect(catalogue.cartes[i], contains('MED-007'));
+      }
+      // La fracture ouverte exige deux orthopédistes : à deux seulement.
+      for (final i in vue.adaptees('fracture_ouverte')) {
+        expect(catalogue.cartes[i], containsAll(['MED-007', 'MED-008']));
+      }
+      // Les maux de tête se soignent seul : la vue ne propose que ça.
+      final seul = vue.adaptees('maux_de_tete');
+      expect(seul, isNotEmpty);
+      for (final i in seul) {
+        expect(catalogue.cartes[i], isNot(contains('MED-008')));
+      }
+      // Diagnostic : seul, avec le moins de spécialités possible.
+      for (final i in vue.meilleursDiagnostics(const {})) {
+        expect(catalogue.cartes[i], isNot(contains('MED-008')));
+        expect(Combinaison(jeu, catalogue.cartes[i]).specialites, {
+          'orthopedie',
+        });
+      }
+      expect(vue.permise(vue.indicesPermis.first), isTrue);
+      expect(vue.permise(catalogue.indice(['MED-001', 'SAL-001'])!), isFalse);
+      expect(vue.recherches, everyElement(contains('MED-007')));
     });
   });
 

@@ -30,6 +30,7 @@ Le suivi global de la partie (tours, points de victoire, cumul des pièces et de
 - [Glossaire](docs/GLOSSAIRE.md)
 - [Paquet de base](contenu/paquet_base.json) et [rapports de simulation](docs/simulations/README.md)
 - [Revue de cohérence des règles](docs/REVUE_COHERENCE.md), avec le suivi des corrections
+- [Analyse de l'équilibre et du partage d'information](docs/ANALYSE_EQUILIBRE.md)
 
 ## Licence
 
