@@ -44,6 +44,28 @@ Cumul des impacts sur une partie (départ à 0), tous les jetons étant reporté
 | couleur:60 | Réanimation | 15,1 | 3 | 17 | 20 | -0,9 | -6 | 0 |
 | couleur:80 | Réanimation | 17,0 | 7 | 20 | 20 | -0,4 | -4 | 0 |
 
+## Fermeture de l'hôpital selon le seuil
+
+Part des parties où l'hôpital aurait fermé, selon l'écart entre la réputation de départ et le seuil de fermeture : la réputation passe strictement sous le seuil quand le minimum descend sous l'opposé de l'écart.
+
+| Stratégie | Difficulté | Écart 5 | Écart 10 | Écart 15 | Écart 20 | Écart 30 |
+|---|---|---:|---:|---:|---:|---:|
+| hasard | Interne | 100,0 % | 100,0 % | 100,0 % | 100,0 % | 99,6 % |
+| seuil:60 | Interne | 0,0 % | 0,0 % | 0,0 % | 0,0 % | 0,0 % |
+| seuil:80 | Interne | 0,0 % | 0,0 % | 0,0 % | 0,0 % | 0,0 % |
+| couleur:60 | Interne | 0,0 % | 0,0 % | 0,0 % | 0,0 % | 0,0 % |
+| couleur:80 | Interne | 0,0 % | 0,0 % | 0,0 % | 0,0 % | 0,0 % |
+| hasard | Chirurgien | 100,0 % | 100,0 % | 100,0 % | 100,0 % | 100,0 % |
+| seuil:60 | Chirurgien | 2,0 % | 0,2 % | 0,0 % | 0,0 % | 0,0 % |
+| seuil:80 | Chirurgien | 0,2 % | 0,1 % | 0,0 % | 0,0 % | 0,0 % |
+| couleur:60 | Chirurgien | 2,0 % | 0,1 % | 0,0 % | 0,0 % | 0,0 % |
+| couleur:80 | Chirurgien | 0,5 % | 0,0 % | 0,0 % | 0,0 % | 0,0 % |
+| hasard | Réanimation | 100,0 % | 100,0 % | 100,0 % | 100,0 % | 100,0 % |
+| seuil:60 | Réanimation | 6,7 % | 1,4 % | 0,4 % | 0,1 % | 0,0 % |
+| seuil:80 | Réanimation | 3,6 % | 0,4 % | 0,2 % | 0,0 % | 0,0 % |
+| couleur:60 | Réanimation | 5,6 % | 1,6 % | 0,2 % | 0,0 % | 0,0 % |
+| couleur:80 | Réanimation | 2,0 % | 0,4 % | 0,1 % | 0,0 % | 0,0 % |
+
 ## Par maladie
 
 Taux de guérison et actions par patient, par stratégie, au niveau Interne.

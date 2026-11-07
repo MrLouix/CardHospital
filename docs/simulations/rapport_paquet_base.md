@@ -62,6 +62,37 @@ Cumul des impacts sur une partie (départ à 0), tous les jetons étant reporté
 | novice+labo:70 | Réanimation | -12,7 | -36 | -11 | 6 | -15,0 | -36 | -13 |
 | novice+labo:80 | Réanimation | -12,5 | -33 | -11 | 6 | -14,3 | -34 | -13 |
 
+## Fermeture de l'hôpital selon le seuil
+
+Part des parties où l'hôpital aurait fermé, selon l'écart entre la réputation de départ et le seuil de fermeture : la réputation passe strictement sous le seuil quand le minimum descend sous l'opposé de l'écart.
+
+| Stratégie | Difficulté | Écart 5 | Écart 10 | Écart 15 | Écart 20 | Écart 30 |
+|---|---|---:|---:|---:|---:|---:|
+| hasard | Interne | 100,0 % | 100,0 % | 100,0 % | 100,0 % | 100,0 % |
+| seuil:60 | Interne | 4,6 % | 1,5 % | 0,3 % | 0,1 % | 0,0 % |
+| seuil:80 | Interne | 1,5 % | 0,2 % | 0,1 % | 0,0 % | 0,0 % |
+| couleur:60 | Interne | 2,5 % | 0,6 % | 0,1 % | 0,0 % | 0,0 % |
+| couleur:80 | Interne | 0,5 % | 0,0 % | 0,0 % | 0,0 % | 0,0 % |
+| novice:70 | Interne | 99,6 % | 99,4 % | 99,0 % | 97,6 % | 93,1 % |
+| novice+labo:70 | Interne | 8,7 % | 3,4 % | 1,2 % | 0,2 % | 0,0 % |
+| novice+labo:80 | Interne | 7,0 % | 1,2 % | 0,6 % | 0,1 % | 0,0 % |
+| hasard | Chirurgien | 100,0 % | 100,0 % | 100,0 % | 100,0 % | 100,0 % |
+| seuil:60 | Chirurgien | 30,0 % | 14,5 % | 8,4 % | 3,4 % | 0,5 % |
+| seuil:80 | Chirurgien | 13,6 % | 5,4 % | 2,5 % | 0,4 % | 0,0 % |
+| couleur:60 | Chirurgien | 25,6 % | 12,5 % | 5,7 % | 2,4 % | 0,5 % |
+| couleur:80 | Chirurgien | 10,4 % | 3,0 % | 0,9 % | 0,1 % | 0,0 % |
+| novice:70 | Chirurgien | 100,0 % | 100,0 % | 99,9 % | 99,5 % | 97,1 % |
+| novice+labo:70 | Chirurgien | 44,9 % | 24,2 % | 14,4 % | 6,3 % | 1,3 % |
+| novice+labo:80 | Chirurgien | 41,5 % | 23,1 % | 15,1 % | 4,5 % | 0,6 % |
+| hasard | Réanimation | 100,0 % | 100,0 % | 100,0 % | 100,0 % | 100,0 % |
+| seuil:60 | Réanimation | 53,8 % | 34,2 % | 22,4 % | 13,3 % | 4,2 % |
+| seuil:80 | Réanimation | 33,6 % | 16,4 % | 8,0 % | 3,2 % | 0,5 % |
+| couleur:60 | Réanimation | 54,3 % | 35,5 % | 22,8 % | 13,7 % | 4,2 % |
+| couleur:80 | Réanimation | 28,7 % | 15,2 % | 7,1 % | 3,1 % | 0,5 % |
+| novice:70 | Réanimation | 99,9 % | 99,9 % | 99,9 % | 99,8 % | 98,3 % |
+| novice+labo:70 | Réanimation | 78,0 % | 58,7 % | 43,3 % | 28,4 % | 9,3 % |
+| novice+labo:80 | Réanimation | 76,7 % | 58,9 % | 41,0 % | 27,3 % | 8,2 % |
+
 ## Par maladie
 
 Taux de guérison et actions par patient, par stratégie, au niveau Interne.

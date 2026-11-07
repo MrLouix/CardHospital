@@ -74,6 +74,43 @@ Cumul des impacts sur une partie (départ à 0), tous les jetons étant reporté
 | novice:70 · privé | Réanimation | -77,3 | -119 | -76 | -39 | -77,6 | -119 | -76 |
 | novice+labo:70 · privé | Réanimation | -6,9 | -29 | -7 | 13 | -10,8 | -30 | -9 |
 
+## Fermeture de l'hôpital selon le seuil
+
+Part des parties où l'hôpital aurait fermé, selon l'écart entre la réputation de départ et le seuil de fermeture : la réputation passe strictement sous le seuil quand le minimum descend sous l'opposé de l'écart.
+
+| Stratégie | Difficulté | Écart 5 | Écart 10 | Écart 15 | Écart 20 | Écart 30 |
+|---|---|---:|---:|---:|---:|---:|
+| hasard · partage | Interne | 100,0 % | 100,0 % | 100,0 % | 100,0 % | 100,0 % |
+| seuil:70 · partage | Interne | 1,0 % | 0,4 % | 0,1 % | 0,0 % | 0,0 % |
+| couleur:70 · partage | Interne | 0,7 % | 0,1 % | 0,0 % | 0,0 % | 0,0 % |
+| novice:70 · partage | Interne | 99,4 % | 98,6 % | 97,2 % | 95,2 % | 89,2 % |
+| novice+labo:70 · partage | Interne | 9,7 % | 3,5 % | 0,9 % | 0,3 % | 0,0 % |
+| hasard · privé | Interne | 100,0 % | 100,0 % | 100,0 % | 100,0 % | 100,0 % |
+| seuil:70 · privé | Interne | 1,7 % | 0,5 % | 0,0 % | 0,0 % | 0,0 % |
+| couleur:70 · privé | Interne | 0,7 % | 0,3 % | 0,0 % | 0,0 % | 0,0 % |
+| novice:70 · privé | Interne | 100,0 % | 99,9 % | 99,3 % | 98,1 % | 93,4 % |
+| novice+labo:70 · privé | Interne | 7,4 % | 2,3 % | 0,6 % | 0,0 % | 0,0 % |
+| hasard · partage | Chirurgien | 100,0 % | 100,0 % | 100,0 % | 100,0 % | 100,0 % |
+| seuil:70 · partage | Chirurgien | 14,0 % | 5,1 % | 2,2 % | 0,6 % | 0,0 % |
+| couleur:70 · partage | Chirurgien | 11,6 % | 3,5 % | 1,5 % | 0,2 % | 0,0 % |
+| novice:70 · partage | Chirurgien | 99,8 % | 99,6 % | 99,4 % | 98,9 % | 96,2 % |
+| novice+labo:70 · partage | Chirurgien | 44,4 % | 24,0 % | 15,4 % | 6,6 % | 1,8 % |
+| hasard · privé | Chirurgien | 100,0 % | 100,0 % | 100,0 % | 100,0 % | 100,0 % |
+| seuil:70 · privé | Chirurgien | 13,5 % | 5,2 % | 1,3 % | 0,4 % | 0,0 % |
+| couleur:70 · privé | Chirurgien | 10,2 % | 3,9 % | 1,4 % | 0,3 % | 0,0 % |
+| novice:70 · privé | Chirurgien | 99,9 % | 99,8 % | 99,7 % | 99,4 % | 97,2 % |
+| novice+labo:70 · privé | Chirurgien | 37,0 % | 19,4 % | 10,9 % | 5,0 % | 1,0 % |
+| hasard · partage | Réanimation | 100,0 % | 100,0 % | 100,0 % | 100,0 % | 100,0 % |
+| seuil:70 · partage | Réanimation | 38,4 % | 21,5 % | 12,0 % | 6,0 % | 1,4 % |
+| couleur:70 · partage | Réanimation | 33,5 % | 19,0 % | 9,0 % | 4,3 % | 0,8 % |
+| novice:70 · partage | Réanimation | 99,9 % | 99,8 % | 99,8 % | 99,4 % | 97,6 % |
+| novice+labo:70 · partage | Réanimation | 72,4 % | 55,3 % | 41,7 % | 27,0 % | 8,7 % |
+| hasard · privé | Réanimation | 100,0 % | 100,0 % | 100,0 % | 100,0 % | 100,0 % |
+| seuil:70 · privé | Réanimation | 30,6 % | 16,1 % | 8,5 % | 4,4 % | 0,4 % |
+| couleur:70 · privé | Réanimation | 30,1 % | 14,3 % | 7,3 % | 3,6 % | 1,0 % |
+| novice:70 · privé | Réanimation | 100,0 % | 99,9 % | 99,7 % | 99,5 % | 98,1 % |
+| novice+labo:70 · privé | Réanimation | 61,9 % | 45,2 % | 28,7 % | 16,8 % | 4,3 % |
+
 ## Joueurs
 
 « Par un autre » : part des guérisons faites par un joueur qui n'avait pas diagnostiqué le patient, alors qu'un autre l'avait fait. « Écart de pièces » : écart moyen, en fin de partie, entre le joueur le plus riche et le plus pauvre.
