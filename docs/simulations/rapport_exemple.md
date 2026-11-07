@@ -1,26 +1,26 @@
-# Rapport de simulation — CardHospital — exemple réduit 0.5.0
+# Rapport de simulation — CardHospital — exemple réduit 0.6.0
 
 Graine 1 · 1000 parties de 10 patients par stratégie et par difficulté, 3 patients en jeu à la fois, 1 joueur · abandon au-delà de 60 actions sur un patient.
 
 ## Synthèse
 
-| Stratégie | Difficulté | Guérison | Mort | Abandon | Actions / patient | Diagnostics / patient | Analyses / patient | Pièces / action | Réputation / action | Réputation / patient |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| hasard | Interne | 14,8 % | 85,2 % | 0 | 9,51 | 4,75 | 0,00 | 0,73 | -0,78 | -7,46 |
-| seuil:60 | Interne | 99,8 % | 0,2 % | 0 | 2,55 | 1,34 | 0,00 | 1,92 | 0,72 | 1,84 |
-| seuil:80 | Interne | 99,9 % | 0,1 % | 0 | 2,60 | 1,51 | 0,00 | 1,92 | 0,74 | 1,91 |
-| couleur:60 | Interne | 99,9 % | 0,1 % | 0 | 2,55 | 1,34 | 0,00 | 1,92 | 0,73 | 1,86 |
-| couleur:80 | Interne | 99,9 % | 0,1 % | 0 | 2,58 | 1,49 | 0,00 | 1,93 | 0,74 | 1,93 |
-| hasard | Chirurgien | 10,7 % | 89,3 % | 0 | 6,64 | 3,33 | 0,00 | 1,40 | -1,31 | -8,73 |
-| seuil:60 | Chirurgien | 98,6 % | 1,4 % | 0 | 2,52 | 1,33 | 0,00 | 2,87 | 0,66 | 1,66 |
-| seuil:80 | Chirurgien | 98,9 % | 1,1 % | 0 | 2,62 | 1,52 | 0,00 | 2,88 | 0,68 | 1,79 |
-| couleur:60 | Chirurgien | 99,0 % | 1,0 % | 0 | 2,51 | 1,32 | 0,00 | 2,88 | 0,68 | 1,71 |
-| couleur:80 | Chirurgien | 99,2 % | 0,8 % | 0 | 2,57 | 1,48 | 0,00 | 2,91 | 0,71 | 1,82 |
-| hasard | Réanimation | 8,3 % | 91,7 % | 0 | 5,35 | 2,68 | 0,00 | 2,03 | -1,88 | -10,04 |
-| seuil:60 | Réanimation | 97,2 % | 2,8 % | 0 | 2,49 | 1,31 | 0,00 | 3,82 | 0,59 | 1,47 |
-| seuil:80 | Réanimation | 97,4 % | 2,6 % | 0 | 2,56 | 1,49 | 0,00 | 3,86 | 0,64 | 1,64 |
-| couleur:60 | Réanimation | 98,0 % | 2,1 % | 0 | 2,49 | 1,31 | 0,00 | 3,84 | 0,61 | 1,51 |
-| couleur:80 | Réanimation | 98,1 % | 1,9 % | 0 | 2,55 | 1,47 | 0,00 | 3,88 | 0,67 | 1,70 |
+| Stratégie | Difficulté | Guérison | Mort | Abandon | Actions / patient | Diagnostics / patient | Analyses / patient | Analyses justes | Pièces / action | Réputation / action | Réputation / patient |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| hasard | Interne | 14,8 % | 85,2 % | 0 | 9,51 | 4,75 | 0,00 | — | 0,73 | -0,78 | -7,46 |
+| seuil:60 | Interne | 99,8 % | 0,2 % | 0 | 2,55 | 1,34 | 0,00 | — | 1,92 | 0,72 | 1,84 |
+| seuil:80 | Interne | 99,9 % | 0,1 % | 0 | 2,60 | 1,51 | 0,00 | — | 1,92 | 0,74 | 1,91 |
+| couleur:60 | Interne | 99,9 % | 0,1 % | 0 | 2,55 | 1,34 | 0,00 | — | 1,92 | 0,73 | 1,86 |
+| couleur:80 | Interne | 99,9 % | 0,1 % | 0 | 2,58 | 1,49 | 0,00 | — | 1,93 | 0,74 | 1,93 |
+| hasard | Chirurgien | 10,7 % | 89,3 % | 0 | 6,64 | 3,33 | 0,00 | — | 1,40 | -1,31 | -8,73 |
+| seuil:60 | Chirurgien | 98,6 % | 1,4 % | 0 | 2,52 | 1,33 | 0,00 | — | 2,87 | 0,66 | 1,66 |
+| seuil:80 | Chirurgien | 98,9 % | 1,1 % | 0 | 2,62 | 1,52 | 0,00 | — | 2,88 | 0,68 | 1,79 |
+| couleur:60 | Chirurgien | 99,0 % | 1,0 % | 0 | 2,51 | 1,32 | 0,00 | — | 2,88 | 0,68 | 1,71 |
+| couleur:80 | Chirurgien | 99,2 % | 0,8 % | 0 | 2,57 | 1,48 | 0,00 | — | 2,91 | 0,71 | 1,82 |
+| hasard | Réanimation | 8,3 % | 91,7 % | 0 | 5,35 | 2,68 | 0,00 | — | 2,03 | -1,88 | -10,04 |
+| seuil:60 | Réanimation | 97,2 % | 2,8 % | 0 | 2,49 | 1,31 | 0,00 | — | 3,82 | 0,59 | 1,47 |
+| seuil:80 | Réanimation | 97,4 % | 2,6 % | 0 | 2,56 | 1,49 | 0,00 | — | 3,86 | 0,64 | 1,64 |
+| couleur:60 | Réanimation | 98,0 % | 2,1 % | 0 | 2,49 | 1,31 | 0,00 | — | 3,84 | 0,61 | 1,51 |
+| couleur:80 | Réanimation | 98,1 % | 1,9 % | 0 | 2,55 | 1,47 | 0,00 | — | 3,88 | 0,67 | 1,70 |
 
 ## Réputation sur une partie
 
