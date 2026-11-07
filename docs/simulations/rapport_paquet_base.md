@@ -33,34 +33,34 @@ Graine 1 · 1000 parties de 10 patients par stratégie et par difficulté, 3 pat
 
 ## Réputation sur une partie
 
-Cumul des impacts sur une partie (départ à 0). « Minimum » est le point le plus bas atteint en cours de partie : pour qu'au plus 5 % des parties ferment, l'écart entre la valeur de départ et le seuil de fermeture doit dépasser l'opposé du 5ᵉ centile du minimum.
+Cumul des impacts sur une partie (départ à 0), tous les jetons étant reportés sur la piste de l'hôpital. « Minimum » est le point le plus bas atteint en cours de partie : pour qu'au plus 5 % des parties ferment, l'écart entre la valeur de départ et le seuil de fermeture doit dépasser l'opposé du 5ᵉ centile du minimum.
 
-| Stratégie | Difficulté | Finale C5 | Finale C50 | Finale C95 | Minimum C5 | Minimum C50 |
-|---|---|---:|---:|---:|---:|---:|
-| hasard | Interne | -90 | -71 | -54 | -90 | -71 |
-| seuil:60 | Interne | -1 | 13 | 20 | -5 | 0 |
-| seuil:80 | Interne | 2 | 15 | 20 | -1 | 0 |
-| couleur:60 | Interne | 1 | 14 | 19 | -4 | 0 |
-| couleur:80 | Interne | 5 | 17 | 20 | -1 | 0 |
-| novice:70 | Interne | -86 | -56 | -27 | -86 | -56 |
-| novice+labo:70 | Interne | -6 | 10 | 20 | -8 | 0 |
-| novice+labo:80 | Interne | -4 | 9 | 19 | -6 | 0 |
-| hasard | Chirurgien | -104 | -84 | -66 | -104 | -84 |
-| seuil:60 | Chirurgien | -16 | 4 | 18 | -18 | -2 |
-| seuil:80 | Chirurgien | -10 | 8 | 20 | -12 | 0 |
-| couleur:60 | Chirurgien | -14 | 6 | 20 | -16 | -2 |
-| couleur:80 | Chirurgien | -6 | 12 | 20 | -8 | 0 |
-| novice:70 | Chirurgien | -106 | -68 | -36 | -106 | -68 |
-| novice+labo:70 | Chirurgien | -22 | 0 | 14 | -23 | -4 |
-| novice+labo:80 | Chirurgien | -20 | 0 | 14 | -20 | -4 |
-| hasard | Réanimation | -117 | -95 | -76 | -117 | -95 |
-| seuil:60 | Réanimation | -27 | -2 | 17 | -30 | -6 |
-| seuil:80 | Réanimation | -17 | 3 | 17 | -18 | -1 |
-| couleur:60 | Réanimation | -27 | -2 | 20 | -29 | -6 |
-| couleur:80 | Réanimation | -16 | 4 | 20 | -18 | 0 |
-| novice:70 | Réanimation | -116 | -76 | -40 | -116 | -76 |
-| novice+labo:70 | Réanimation | -36 | -11 | 6 | -36 | -13 |
-| novice+labo:80 | Réanimation | -33 | -11 | 6 | -34 | -13 |
+| Stratégie | Difficulté | Finale moyenne | Finale C5 | Finale C50 | Finale C95 | Minimum moyen | Minimum C5 | Minimum C50 |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| hasard | Interne | -71,7 | -90 | -71 | -54 | -71,8 | -90 | -71 |
+| seuil:60 | Interne | 11,7 | -1 | 13 | 20 | -1,0 | -5 | 0 |
+| seuil:80 | Interne | 13,8 | 2 | 15 | 20 | -0,3 | -1 | 0 |
+| couleur:60 | Interne | 12,7 | 1 | 14 | 19 | -0,7 | -4 | 0 |
+| couleur:80 | Interne | 15,2 | 5 | 17 | 20 | -0,1 | -1 | 0 |
+| novice:70 | Interne | -56,6 | -86 | -56 | -27 | -56,8 | -86 | -56 |
+| novice+labo:70 | Interne | 8,9 | -6 | 10 | 20 | -1,4 | -8 | 0 |
+| novice+labo:80 | Interne | 8,5 | -4 | 9 | 19 | -1,0 | -6 | 0 |
+| hasard | Chirurgien | -83,5 | -104 | -84 | -66 | -83,5 | -104 | -84 |
+| seuil:60 | Chirurgien | 3,5 | -16 | 4 | 18 | -4,5 | -18 | -2 |
+| seuil:80 | Chirurgien | 7,5 | -10 | 8 | 20 | -1,8 | -12 | 0 |
+| couleur:60 | Chirurgien | 4,8 | -14 | 6 | 20 | -3,8 | -16 | -2 |
+| couleur:80 | Chirurgien | 9,7 | -6 | 12 | 20 | -1,3 | -8 | 0 |
+| novice:70 | Chirurgien | -68,6 | -106 | -68 | -36 | -68,8 | -106 | -68 |
+| novice+labo:70 | Chirurgien | -1,6 | -22 | 0 | 14 | -6,6 | -23 | -4 |
+| novice+labo:80 | Chirurgien | -1,9 | -20 | 0 | 14 | -6,1 | -20 | -4 |
+| hasard | Réanimation | -95,8 | -117 | -95 | -76 | -95,8 | -117 | -95 |
+| seuil:60 | Réanimation | -3,3 | -27 | -2 | 17 | -9,2 | -30 | -6 |
+| seuil:80 | Réanimation | 1,5 | -17 | 3 | 17 | -4,7 | -18 | -1 |
+| couleur:60 | Réanimation | -3,0 | -27 | -2 | 20 | -9,3 | -29 | -6 |
+| couleur:80 | Réanimation | 3,3 | -16 | 4 | 20 | -4,1 | -18 | 0 |
+| novice:70 | Réanimation | -76,7 | -116 | -76 | -40 | -76,9 | -116 | -76 |
+| novice+labo:70 | Réanimation | -12,7 | -36 | -11 | 6 | -15,0 | -36 | -13 |
+| novice+labo:80 | Réanimation | -12,5 | -33 | -11 | 6 | -14,3 | -34 | -13 |
 
 ## Par maladie
 

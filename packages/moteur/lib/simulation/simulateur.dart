@@ -70,6 +70,10 @@ class StatsMaladie {
   };
 }
 
+/// Écarts entre réputation de départ et seuil de fermeture mesurés par le
+/// rapport.
+const ecartsFermeture = [5, 10, 15, 20, 30];
+
 /// Mesures d'une stratégie à un niveau de difficulté.
 class StatsStrategie {
   StatsStrategie(this.strategie, this.difficulte, {this.partage});
@@ -119,6 +123,13 @@ class StatsStrategie {
   double get reputationFinaleMoyenne => _moyenne(reputationFinale);
   double get reputationMinMoyen => _moyenne(reputationMin);
 
+  /// Part des parties où l'hôpital aurait fermé si l'écart entre la
+  /// réputation de départ et le seuil de fermeture valait [ecart] : le
+  /// minimum atteint passe strictement sous `-ecart`.
+  double partFermees(int ecart) => reputationMin.isEmpty
+      ? 0
+      : reputationMin.where((m) => m < -ecart).length / reputationMin.length;
+
   final parMaladie = <String, StatsMaladie>{};
 
   double get tauxGuerison => patients == 0 ? 0 : gueris / patients;
@@ -155,6 +166,9 @@ class StatsStrategie {
     'reputation_min': {
       ..._centiles(reputationMin),
       'moyenne': _arrondi(reputationMinMoyen, 2),
+    },
+    'fermetures': {
+      for (final e in ecartsFermeture) '$e': _arrondi(partFermees(e), 4),
     },
     'par_maladie': parMaladie.map((id, s) => MapEntry(id, s.toJson())),
   };
@@ -236,6 +250,28 @@ class RapportSimulation {
         '| ${_dec(r.reputationFinaleMoyenne, 1)} '
         '| ${f['c5']} | ${f['c50']} | ${f['c95']} '
         '| ${_dec(r.reputationMinMoyen, 1)} | ${m['c5']} | ${m['c50']} |',
+      );
+    }
+    b
+      ..writeln()
+      ..writeln('## Fermeture de l\'hôpital selon le seuil')
+      ..writeln()
+      ..writeln(
+        'Part des parties où l\'hôpital aurait fermé, selon l\'écart entre '
+        'la réputation de départ et le seuil de fermeture : la réputation '
+        'passe strictement sous le seuil quand le minimum descend sous '
+        'l\'opposé de l\'écart.',
+      )
+      ..writeln()
+      ..writeln(
+        '| Stratégie | Difficulté | '
+        '${ecartsFermeture.map((e) => 'Écart $e').join(' | ')} |',
+      )
+      ..writeln('|---|---|${ecartsFermeture.map((_) => '---:').join('|')}|');
+    for (final r in resultats) {
+      b.writeln(
+        '| ${r.strategie} | ${_nomDifficulte(r.difficulte)} '
+        '| ${ecartsFermeture.map((e) => _pct(r.partFermees(e))).join(' | ')} |',
       );
     }
     if (resultats.any((r) => r.partage != null)) {

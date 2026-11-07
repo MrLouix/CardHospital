@@ -72,6 +72,14 @@ void main() {
         r.toJson()['reputation_min'],
         containsPair('moyenne', closeTo(r.reputationMinMoyen, 0.01)),
       );
+      for (final e in ecartsFermeture) {
+        final attendu =
+            r.reputationMin.where((m) => m < -e).length /
+            r.reputationMin.length;
+        expect(r.partFermees(e), closeTo(attendu, 1e-9));
+        expect(r.toJson()['fermetures']['$e'], closeTo(attendu, 1e-4));
+      }
+      expect(r.partFermees(5), greaterThanOrEqualTo(r.partFermees(30)));
       final parMaladie = r.parMaladie.values;
       expect(parMaladie.fold<int>(0, (s, m) => s + m.patients), r.patients);
       expect(parMaladie.fold<int>(0, (s, m) => s + m.actions), r.actions);

@@ -39,40 +39,40 @@ Graine 1 · 1000 parties de 10 patients par stratégie et par difficulté, 3 pat
 
 ## Réputation sur une partie
 
-Cumul des impacts sur une partie (départ à 0). « Minimum » est le point le plus bas atteint en cours de partie : pour qu'au plus 5 % des parties ferment, l'écart entre la valeur de départ et le seuil de fermeture doit dépasser l'opposé du 5ᵉ centile du minimum.
+Cumul des impacts sur une partie (départ à 0), tous les jetons étant reportés sur la piste de l'hôpital. « Minimum » est le point le plus bas atteint en cours de partie : pour qu'au plus 5 % des parties ferment, l'écart entre la valeur de départ et le seuil de fermeture doit dépasser l'opposé du 5ᵉ centile du minimum.
 
-| Stratégie | Difficulté | Finale C5 | Finale C50 | Finale C95 | Minimum C5 | Minimum C50 |
-|---|---|---:|---:|---:|---:|---:|
-| hasard · partage | Interne | -90 | -71 | -54 | -90 | -71 |
-| seuil:70 · partage | Interne | 4 | 16 | 20 | -2 | 0 |
-| couleur:70 · partage | Interne | 5 | 17 | 20 | -1 | 0 |
-| novice:70 · partage | Interne | -108 | -60 | -19 | -108 | -60 |
-| novice+labo:70 · partage | Interne | -6 | 10 | 19 | -9 | 0 |
-| hasard · privé | Interne | -91 | -71 | -54 | -91 | -71 |
-| seuil:70 · privé | Interne | 5 | 17 | 20 | -2 | 0 |
-| couleur:70 · privé | Interne | 6 | 17 | 20 | -1 | 0 |
-| novice:70 · privé | Interne | -92 | -57 | -27 | -92 | -57 |
-| novice+labo:70 · privé | Interne | -4 | 11 | 20 | -7 | 0 |
-| hasard · partage | Chirurgien | -104 | -84 | -66 | -104 | -84 |
-| seuil:70 · partage | Chirurgien | -8 | 10 | 20 | -11 | 0 |
-| couleur:70 · partage | Chirurgien | -7 | 12 | 20 | -10 | 0 |
-| novice:70 · partage | Chirurgien | -156 | -86 | -32 | -156 | -86 |
-| novice+labo:70 · partage | Chirurgien | -22 | 0 | 14 | -23 | -4 |
-| hasard · privé | Chirurgien | -103 | -83 | -64 | -103 | -83 |
-| seuil:70 · privé | Chirurgien | -6 | 10 | 20 | -11 | 0 |
-| couleur:70 · privé | Chirurgien | -6 | 12 | 20 | -10 | 0 |
-| novice:70 · privé | Chirurgien | -108 | -70 | -36 | -108 | -70 |
-| novice+labo:70 · privé | Chirurgien | -20 | 2 | 18 | -21 | -2 |
-| hasard · partage | Réanimation | -117 | -95 | -76 | -117 | -95 |
-| seuil:70 · partage | Réanimation | -20 | 3 | 20 | -22 | -3 |
-| couleur:70 · partage | Réanimation | -17 | 3 | 20 | -19 | -2 |
-| novice:70 · partage | Réanimation | -192 | -99 | -40 | -192 | -99 |
-| novice+labo:70 · partage | Réanimation | -34 | -11 | 10 | -36 | -13 |
-| hasard · privé | Réanimation | -116 | -95 | -76 | -116 | -95 |
-| seuil:70 · privé | Réanimation | -17 | 4 | 20 | -20 | -1 |
-| couleur:70 · privé | Réanimation | -16 | 6 | 20 | -18 | -1 |
-| novice:70 · privé | Réanimation | -119 | -76 | -39 | -119 | -76 |
-| novice+labo:70 · privé | Réanimation | -29 | -7 | 13 | -30 | -9 |
+| Stratégie | Difficulté | Finale moyenne | Finale C5 | Finale C50 | Finale C95 | Minimum moyen | Minimum C5 | Minimum C50 |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| hasard · partage | Interne | -71,7 | -90 | -71 | -54 | -71,8 | -90 | -71 |
+| seuil:70 · partage | Interne | 14,3 | 4 | 16 | 20 | -0,3 | -2 | 0 |
+| couleur:70 · partage | Interne | 15,1 | 5 | 17 | 20 | -0,3 | -1 | 0 |
+| novice:70 · partage | Interne | -61,0 | -108 | -60 | -19 | -61,5 | -108 | -60 |
+| novice+labo:70 · partage | Interne | 8,4 | -6 | 10 | 19 | -1,4 | -9 | 0 |
+| hasard · privé | Interne | -71,6 | -91 | -71 | -54 | -71,7 | -91 | -71 |
+| seuil:70 · privé | Interne | 14,8 | 5 | 17 | 20 | -0,4 | -2 | 0 |
+| couleur:70 · privé | Interne | 15,6 | 6 | 17 | 20 | -0,3 | -1 | 0 |
+| novice:70 · privé | Interne | -58,4 | -92 | -57 | -27 | -58,6 | -92 | -57 |
+| novice+labo:70 · privé | Interne | 10,0 | -4 | 11 | 20 | -1,2 | -7 | 0 |
+| hasard · partage | Chirurgien | -83,5 | -104 | -84 | -66 | -83,5 | -104 | -84 |
+| seuil:70 · partage | Chirurgien | 8,1 | -8 | 10 | 20 | -1,9 | -11 | 0 |
+| couleur:70 · partage | Chirurgien | 9,7 | -7 | 12 | 20 | -1,6 | -10 | 0 |
+| novice:70 · partage | Chirurgien | -89,3 | -156 | -86 | -32 | -89,6 | -156 | -86 |
+| novice+labo:70 · partage | Chirurgien | -1,6 | -22 | 0 | 14 | -6,6 | -23 | -4 |
+| hasard · privé | Chirurgien | -83,3 | -103 | -83 | -64 | -83,4 | -103 | -83 |
+| seuil:70 · privé | Chirurgien | 9,1 | -6 | 10 | 20 | -1,8 | -11 | 0 |
+| couleur:70 · privé | Chirurgien | 10,1 | -6 | 12 | 20 | -1,6 | -10 | 0 |
+| novice:70 · privé | Chirurgien | -70,2 | -108 | -70 | -36 | -70,4 | -108 | -70 |
+| novice+labo:70 · privé | Chirurgien | 1,0 | -20 | 2 | 18 | -5,5 | -21 | -2 |
+| hasard · partage | Réanimation | -95,8 | -117 | -95 | -76 | -95,8 | -117 | -95 |
+| seuil:70 · partage | Réanimation | 1,0 | -20 | 3 | 20 | -5,9 | -22 | -3 |
+| couleur:70 · partage | Réanimation | 2,6 | -17 | 3 | 20 | -5,0 | -19 | -2 |
+| novice:70 · partage | Réanimation | -104,3 | -192 | -99 | -40 | -104,6 | -192 | -99 |
+| novice+labo:70 · partage | Réanimation | -11,6 | -34 | -11 | 10 | -14,1 | -36 | -13 |
+| hasard · privé | Réanimation | -95,3 | -116 | -95 | -76 | -95,3 | -116 | -95 |
+| seuil:70 · privé | Réanimation | 3,5 | -17 | 4 | 20 | -4,6 | -20 | -1 |
+| couleur:70 · privé | Réanimation | 4,0 | -16 | 6 | 20 | -4,4 | -18 | -1 |
+| novice:70 · privé | Réanimation | -77,3 | -119 | -76 | -39 | -77,6 | -119 | -76 |
+| novice+labo:70 · privé | Réanimation | -6,9 | -29 | -7 | 13 | -10,8 | -30 | -9 |
 
 ## Joueurs
 
