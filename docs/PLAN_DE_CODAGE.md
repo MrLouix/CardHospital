@@ -153,16 +153,19 @@ Les stratégies voient ce que voit un joueur (résultats des actions, spécialit
 
 **Joueur novice** (`novice:70`, même rapport) : il ne guérit que 30 % des patients en Interne et 23 % en Réanimation, contre 96 % et 81 % pour un vétéran (`seuil:80`), avec une réputation par patient fortement négative (−5,5 à −7,8). Sans connaître les traitements, l'hôpital ferme.
 
-**Novice au laboratoire** (`novice+labo:70`, même rapport) : il analyse la maladie en tête dès qu'elle atteint l'indice 70, puis la traite avec la recette révélée. Il guérit 89 % des patients en Interne, 78 % en Chirurgien et 67 % en Réanimation, avec environ une analyse par patient, et une réputation par patient de +0,6, −0,5 et −1,5. Le laboratoire comble donc l'essentiel de l'écart entre novice et vétéran. Variantes mesurées sur 300 parties :
+**Novice au laboratoire** (`novice+labo:70` et `novice+labo:80`, même rapport) : il analyse la maladie en tête dès qu'elle atteint l'indice X, avec la combinaison qui compte le plus de passages pour sa spécialité, puis la traite avec la recette révélée. Au seuil 70, il guérit 91 % des patients en Interne, 79 % en Chirurgien et 66 % en Réanimation, avec environ une analyse par patient, dont 77 % sur la vraie maladie ; au seuil 80, ses analyses sont justes à 93 %, pour un taux de guérison équivalent. Le laboratoire comble donc l'essentiel de l'écart entre novice et vétéran.
 
-| Variante | Interne | Chirurgien | Réanimation |
-|---|---:|---:|---:|
-| Paquet de base (passages 1, 1, 2, 3 ; séquenceur d'ADN à 2) | 88 % | 78 % | 67 % |
-| Les 3 objets d'aide à 1 | 88 % | 78 % | 65 % |
-| Sans objet d'aide à la recherche | 87 % | 76 % | 61 % |
-| Sans objet, passages 1, 2, 3, 4 (paliers A à D) | 82 % | 65 % | 47 % |
+Le seuil de confiance compte (balayage sur 300 parties, [modèle de jeu §12.9](MODELE_DE_JEU.md#129-effet-mesuré-au-simulateur)) : à 50, moins d'une analyse sur deux porte sur la bonne maladie et le novice guérit 78 % en Interne ; à 90, elles sont justes à 99 %, mais les diagnostics de plus font tomber la guérison à 81 %. Le meilleur compromis est entre 70 et 80.
 
-Le nombre de passages et les objets pèsent peu : une seule analyse, juste après le diagnostic, révèle la recette de la plupart des maladies. Le simulateur suppose le laboratoire construit dès le départ ; à la table, son prix de construction et le temps qu'il faut pour le financer seront les vrais leviers.
+Avec au moins 2 passages par maladie, les aides au laboratoire comptent (seuil 70, 300 parties) :
+
+| Aides disponibles | Interne | Réanimation |
+|---|---:|---:|
+| Spécialiste et objets d'aide (paquet de base) | 91 % | 67 % |
+| Spécialiste, sans objet d'aide | 90 % | 64 % |
+| Ni spécialiste ni objet : 2 à 4 analyses par maladie | 81 % | 41 % |
+
+Le simulateur suppose toutes les cartes disponibles : le spécialiste et le meilleur objet sont toujours là. À la table, le laboratoire et les objets d'aide s'achètent, et chaque joueur n'a qu'un médecin.
 
 **À 3 joueurs** ([rapport](simulations/rapport_paquet_base_3_joueurs.md)), informations partagées ou privées :
 
