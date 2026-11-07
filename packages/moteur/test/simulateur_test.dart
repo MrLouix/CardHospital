@@ -59,6 +59,19 @@ void main() {
         expect(r.reputationMin[i], lessThanOrEqualTo(0));
         expect(r.reputationMin[i], lessThanOrEqualTo(r.reputationFinale[i]));
       }
+      expect(
+        r.reputationFinaleMoyenne,
+        closeTo(r.reputationFinale.reduce((a, b) => a + b) / 40, 1e-9),
+      );
+      expect(
+        r.reputationMinMoyen,
+        lessThanOrEqualTo(r.reputationFinaleMoyenne),
+      );
+      expect(r.reputationMinMoyen, lessThanOrEqualTo(0));
+      expect(
+        r.toJson()['reputation_min'],
+        containsPair('moyenne', closeTo(r.reputationMinMoyen, 0.01)),
+      );
       final parMaladie = r.parMaladie.values;
       expect(parMaladie.fold<int>(0, (s, m) => s + m.patients), r.patients);
       expect(parMaladie.fold<int>(0, (s, m) => s + m.actions), r.actions);

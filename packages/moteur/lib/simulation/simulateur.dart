@@ -114,6 +114,11 @@ class StatsStrategie {
   final reputationFinale = <int>[];
   final reputationMin = <int>[];
 
+  /// Moyennes, sur les parties simulées, de la réputation finale et du
+  /// minimum atteint en cours de partie.
+  double get reputationFinaleMoyenne => _moyenne(reputationFinale);
+  double get reputationMinMoyen => _moyenne(reputationMin);
+
   final parMaladie = <String, StatsMaladie>{};
 
   double get tauxGuerison => patients == 0 ? 0 : gueris / patients;
@@ -143,8 +148,14 @@ class StatsStrategie {
     'actions_par_patient': _arrondi(actionsParPatient, 3),
     'pieces_par_action': _arrondi(piecesParAction, 3),
     'reputation_par_action': _arrondi(reputationParAction, 3),
-    'reputation_finale': _centiles(reputationFinale),
-    'reputation_min': _centiles(reputationMin),
+    'reputation_finale': {
+      ..._centiles(reputationFinale),
+      'moyenne': _arrondi(reputationFinaleMoyenne, 2),
+    },
+    'reputation_min': {
+      ..._centiles(reputationMin),
+      'moyenne': _arrondi(reputationMinMoyen, 2),
+    },
     'par_maladie': parMaladie.map((id, s) => MapEntry(id, s.toJson())),
   };
 }
@@ -205,23 +216,26 @@ class RapportSimulation {
       ..writeln('## Réputation sur une partie')
       ..writeln()
       ..writeln(
-        'Cumul des impacts sur une partie (départ à 0). « Minimum » est le '
-        'point le plus bas atteint en cours de partie : pour qu\'au plus 5 % '
-        'des parties ferment, l\'écart entre la valeur de départ et le seuil '
-        'de fermeture doit dépasser l\'opposé du 5ᵉ centile du minimum.',
+        'Cumul des impacts sur une partie (départ à 0), tous les jetons '
+        'étant reportés sur la piste de l\'hôpital. « Minimum » est le point '
+        'le plus bas atteint en cours de partie : pour qu\'au plus 5 % des '
+        'parties ferment, l\'écart entre la valeur de départ et le seuil de '
+        'fermeture doit dépasser l\'opposé du 5ᵉ centile du minimum.',
       )
       ..writeln()
       ..writeln(
-        '| Stratégie | Difficulté | Finale C5 | Finale C50 | Finale C95 | '
-        'Minimum C5 | Minimum C50 |',
+        '| Stratégie | Difficulté | Finale moyenne | Finale C5 | Finale C50 | '
+        'Finale C95 | Minimum moyen | Minimum C5 | Minimum C50 |',
       )
-      ..writeln('|---|---|---:|---:|---:|---:|---:|');
+      ..writeln('|---|---|---:|---:|---:|---:|---:|---:|---:|');
     for (final r in resultats) {
       final f = _centiles(r.reputationFinale);
       final m = _centiles(r.reputationMin);
       b.writeln(
         '| ${r.strategie} | ${_nomDifficulte(r.difficulte)} '
-        '| ${f['c5']} | ${f['c50']} | ${f['c95']} | ${m['c5']} | ${m['c50']} |',
+        '| ${_dec(r.reputationFinaleMoyenne, 1)} '
+        '| ${f['c5']} | ${f['c50']} | ${f['c95']} '
+        '| ${_dec(r.reputationMinMoyen, 1)} | ${m['c5']} | ${m['c50']} |',
       );
     }
     if (resultats.any((r) => r.partage != null)) {
@@ -502,6 +516,9 @@ Map<String, int?> _centiles(List<int> valeurs) {
       tri[((q * tri.length).ceil() - 1).clamp(0, tri.length - 1)];
   return {'c5': rang(0.05), 'c50': rang(0.5), 'c95': rang(0.95)};
 }
+
+double _moyenne(List<int> valeurs) =>
+    valeurs.isEmpty ? 0 : valeurs.fold(0, (a, b) => a + b) / valeurs.length;
 
 double _arrondi(double x, int decimales) =>
     double.parse(x.toStringAsFixed(decimales));
