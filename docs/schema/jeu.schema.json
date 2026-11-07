@@ -93,6 +93,13 @@
             { "$ref": "#/$defs/recompenses" },
             { "required": ["pieces_diagnostic", "pieces_traitement", "pieces_partiel", "reputation_guerison", "reputation_echec", "reputation_attente", "reputation_mort", "pv_partiel", "pv_echec"] }
           ]
+        },
+        "recherche": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "bonus_specialite": { "$ref": "#/$defs/entier_positif_ou_nul", "description": "Passages de plus quand un médecin de la spécialité de la maladie analysée (ou muni du diplôme de cette spécialité) participe à l'analyse (défaut 0)." }
+          }
         }
       }
     },

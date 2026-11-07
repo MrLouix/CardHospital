@@ -133,6 +133,17 @@ class Validateur {
         }
       }
     }
+    final recherche = (brut['parametres'] as Map?)?['recherche'];
+    if (recherche != null) {
+      final bonus = recherche is Map ? recherche['bonus_specialite'] : null;
+      if (recherche is! Map ||
+          (bonus != null && (bonus is! int || bonus < 0))) {
+        erreurs.add(
+          'parametres.recherche.bonus_specialite : entier positif ou nul '
+          'attendu (passages de plus avec un médecin de la spécialité)',
+        );
+      }
+    }
     final specialites = brut['specialites'] as List? ?? const [];
     for (var i = 0; i < specialites.length; i++) {
       final sp = specialites[i] as Map;

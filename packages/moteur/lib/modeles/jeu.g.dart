@@ -63,6 +63,9 @@ Parametres _$ParametresFromJson(Map<String, dynamic> json) => Parametres(
   recompenses: Recompenses.fromJson(
     json['recompenses'] as Map<String, dynamic>,
   ),
+  recherche: json['recherche'] == null
+      ? null
+      : ParametresRecherche.fromJson(json['recherche'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$ParametresToJson(Parametres instance) =>
@@ -71,7 +74,17 @@ Map<String, dynamic> _$ParametresToJson(Parametres instance) =>
       'paliers_aggravation': instance.paliersAggravation,
       'diagnostic': instance.diagnostic,
       'recompenses': instance.recompenses,
+      'recherche': instance.recherche,
     };
+
+ParametresRecherche _$ParametresRechercheFromJson(Map<String, dynamic> json) =>
+    ParametresRecherche(
+      bonusSpecialite: (json['bonus_specialite'] as num?)?.toInt() ?? 0,
+    );
+
+Map<String, dynamic> _$ParametresRechercheToJson(
+  ParametresRecherche instance,
+) => <String, dynamic>{'bonus_specialite': instance.bonusSpecialite};
 
 Diagnostic _$DiagnosticFromJson(Map<String, dynamic> json) => Diagnostic(
   precisionMax: (json['precision_max'] as num).toInt(),

@@ -103,6 +103,9 @@ class StatsStrategie {
   int actions = 0;
   int diagnostics = 0;
   int analyses = 0;
+
+  /// Analyses faites sur la vraie maladie du patient.
+  int analysesJustes = 0;
   int pieces = 0;
   int reputation = 0;
 
@@ -133,6 +136,7 @@ class StatsStrategie {
     'actions': actions,
     'diagnostics': diagnostics,
     'analyses': analyses,
+    'analyses_justes': analysesJustes,
     'pieces': pieces,
     'reputation': reputation,
     'taux_guerison': _arrondi(tauxGuerison, 4),
@@ -180,9 +184,10 @@ class RapportSimulation {
       ..writeln(
         '| Stratégie | Difficulté | Guérison | Mort | Abandon | '
         'Actions / patient | Diagnostics / patient | Analyses / patient | '
-        'Pièces / action | Réputation / action | Réputation / patient |',
+        'Analyses justes | Pièces / action | Réputation / action | '
+        'Réputation / patient |',
       )
-      ..writeln('|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|');
+      ..writeln('|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|');
     for (final r in resultats) {
       b.writeln(
         '| ${r.strategie} | ${_nomDifficulte(r.difficulte)} '
@@ -190,6 +195,7 @@ class RapportSimulation {
         '| ${r.abandons} | ${_dec(r.actionsParPatient)} '
         '| ${_dec(r.patients == 0 ? 0 : r.diagnostics / r.patients)} '
         '| ${_dec(r.patients == 0 ? 0 : r.analyses / r.patients)} '
+        '| ${r.analyses == 0 ? '—' : _pct(r.analysesJustes / r.analyses)} '
         '| ${_dec(r.piecesParAction)} | ${_dec(r.reputationParAction)} '
         '| ${_dec(r.reputationParPatient)} |',
       );
@@ -434,7 +440,12 @@ class Simulateur {
         stats.actions++;
         suivi.stats.actions++;
         if (r.diagnostic != null) stats.diagnostics++;
-        if (r.analyse != null) stats.analyses++;
+        if (r.analyse case final a?) {
+          stats.analyses++;
+          if (a.maladie.id == partie.etat.patients[suivi.carte]!.maladie) {
+            stats.analysesJustes++;
+          }
+        }
         stats.pieces += r.pieces;
         stats.reputation += r.reputation;
         cumul += r.reputation;

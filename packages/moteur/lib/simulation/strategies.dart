@@ -69,6 +69,7 @@ class CatalogueCombinaisons {
   /// proposée, de la plus grande capacité `recherche` à la plus petite.
   /// Vide si le paquet n'a pas cette action.
   final List<List<String>> recherches;
+  final _meilleuresRecherches = <String, List<List<String>>>{};
 
   static List<List<String>> _recherches(Jeu jeu) {
     final analyser = jeu.actions
@@ -107,16 +108,22 @@ class CatalogueCombinaisons {
     return [for (final (cartes, _) in trouvees) cartes];
   }
 
-  /// Combinaisons d'analyse de meilleure capacité `recherche`.
-  List<List<String>> meilleuresRecherches() {
-    if (recherches.isEmpty) return const [];
-    final c = Combinaison(jeu, recherches.first);
-    final max = c.capacite(capaciteRecherche);
-    return [
-      for (final r in recherches)
-        if (Combinaison(jeu, r).capacite(capaciteRecherche) == max) r,
-    ];
-  }
+  /// Combinaisons d'analyse qui comptent le plus de passages pour une
+  /// maladie de spécialité [specialite] (capacité `recherche` et médecin de
+  /// la spécialité).
+  List<List<String>> meilleuresRecherches(String specialite) =>
+      _meilleuresRecherches.putIfAbsent(specialite, () {
+        if (recherches.isEmpty) return const [];
+        final avances = [
+          for (final r in recherches)
+            avanceeRecherche(jeu, Combinaison(jeu, r), specialite),
+        ];
+        final max = avances.reduce(math.max);
+        return [
+          for (var i = 0; i < recherches.length; i++)
+            if (avances[i] == max) recherches[i],
+        ];
+      });
 
   final Jeu jeu;
 
@@ -420,11 +427,14 @@ class StrategieCouleur extends StrategieSeuil {
 /// [essais] échecs sur une maladie, il l'écarte et passe à la suivante, ou
 /// diagnostique de nouveau. Il ne retente pas une combinaison dont il voit
 /// l'échec sur ce patient, la sienne ou, s'ils partagent, celle d'un autre
-/// joueur.
+/// joueur ; et si une recette qu'il connaît a échoué, il en déduit que ce
+/// n'est pas la bonne maladie.
 ///
 /// Avec [labo], il analyse au laboratoire une maladie dont il ne connaît pas
 /// la recette avant d'essayer quoi que ce soit, jusqu'à ce que l'analyse la
-/// révèle, avec la combinaison de meilleure capacité `recherche`.
+/// révèle, avec la combinaison qui compte le plus de passages pour la
+/// spécialité de la maladie (objet d'aide à la recherche, médecin de la
+/// spécialité).
 class StrategieNovice extends Strategie {
   StrategieNovice(
     this.seuil, {
@@ -518,19 +528,29 @@ class StrategieNovice extends Strategie {
     return ex[(alea.flottant() * ex.length).floor()];
   }
 
+  /// Une recette connue est sûre (vue guérir, ou révélée au laboratoire) :
+  /// si elle a échoué sur ce patient, ce n'est pas sa maladie, qu'il écarte
+  /// aussitôt.
+  void _deduire(List<ResultatAction> historique, Set<int> ratees) {
+    final dernier = historique.reversed
+        .map((r) => r.diagnostic)
+        .whereType<ResultatDiagnostic>()
+        .firstOrNull;
+    for (final l in dernier?.maladies ?? const <LigneDiagnostic>[]) {
+      final connue = carnet?.recette(l.id);
+      if (connue != null && ratees.contains(connue)) _ecartees.add(l.id);
+    }
+  }
+
   @override
   bool pret(List<ResultatAction> historique, CatalogueCombinaisons catalogue) {
+    final ratees = _ratees(historique, catalogue);
+    _deduire(historique, ratees);
     final c = _candidate(historique);
     return c != null &&
         c.indice >= seuil &&
         (_analyser(c, catalogue) ||
-            _essai(
-                  c,
-                  catalogue,
-                  null,
-                  ratees: _ratees(historique, catalogue),
-                ) !=
-                null);
+            _essai(c, catalogue, null, ratees: ratees) != null);
   }
 
   @override
@@ -540,10 +560,11 @@ class StrategieNovice extends Strategie {
     SourceAleatoire alea,
   ) {
     final ratees = _ratees(historique, catalogue);
+    _deduire(historique, ratees);
     var c = _candidate(historique);
     while (c != null && c.indice >= seuil) {
       if (_analyser(c, catalogue)) {
-        final recherches = catalogue.meilleuresRecherches();
+        final recherches = catalogue.meilleuresRecherches(c.specialite.id);
         return (
           action: actionAnalyser,
           cartes: recherches[(alea.flottant() * recherches.length).floor()],

@@ -437,7 +437,7 @@ L'hôte mémorise, pour chaque patient en jeu, l'ensemble des maladies qui ont f
 
 1. Le joueur scanne 1 médecin + 1 patient + le laboratoire, avec éventuellement un accessoire (objet ou diplôme, §12.6), puis confirme « Analyser ».
 2. L'appli propose la liste des maladies suspectées du patient ; le joueur en choisit une — même une fausse, l'information reste utile pour toute la partie. On peut choisir une maladie déjà analysée : le résultat s'affiche de nouveau, au coût normal d'un passage.
-3. L'hôte retire 1, plus la capacité `recherche` de la combinaison (§12.6), au compteur de **passages restants** de cette maladie, sans descendre sous 0. Ce compteur est **commun à toute la partie** et mémorisé par maladie : les passages de tous les joueurs s'additionnent, et une recette découverte l'est pour tous les patients.
+3. L'hôte retire au compteur de **passages restants** de cette maladie, sans descendre sous 0 : 1, plus la capacité `recherche` des cartes, plus 1 si un médecin de la spécialité de cette maladie (ou muni du diplôme de cette spécialité) fait l'analyse (§12.6). Ce compteur est **commun à toute la partie** et mémorisé par maladie : les passages de tous les joueurs s'additionnent, et une recette découverte l'est pour tous les patients.
 4. Tant que des passages restent : « Analyse en cours — X passage(s) restant(s) ».
 5. Quand le compteur atteint 0, l'hôte révèle la **recette complète** du traitement adapté : la description des cartes requises, rédigée depuis le prédicat `traitement.adapte` (code : `packages/moteur/lib/moteur/recette.dart`). Exemples tirés du paquet de base :
    - « L'antibiotique, dans la salle de consultation ou à la pharmacie. »
@@ -451,13 +451,13 @@ La recette n'est **pas publique** : comme un diagnostic, elle ne s'affiche que s
 
 Chaque maladie peut définir `recherche.passages` dans le JSON (entier ≥ 1, défaut 1) : nombre de passages en laboratoire nécessaires pour révéler sa recette. Sans le champ, la recette se révèle en un seul passage.
 
-Dans le paquet de base, le nombre de passages suit le palier de gravité de la maladie (§2.3) :
+Dans le paquet de base, chaque maladie demande **au moins 2 passages**, pour qu'un objet d'aide à la recherche ou un médecin de la bonne spécialité soit utile ; le nombre suit le palier de gravité (§2.3) :
 
-| Palier de gravité | PV initiaux | Passages |
-|---|---|---|
-| A, B | 6 à 11 | 1 (champ absent) |
-| C | 12 à 14 | 2 |
-| D | 15 et 16 | 3 |
+| Palier de gravité | PV initiaux | Passages | Analyses nécessaires, médecin polyvalent sans objet | … avec un spécialiste | … avec un spécialiste et le séquenceur d'ADN |
+|---|---|---|---|---|---|
+| A, B | 6 à 11 | 2 | 2 | 1 | 1 |
+| C | 12 à 14 | 3 | 3 | 2 | 1 |
+| D | 15 et 16 | 4 | 4 | 2 | 1 |
 
 ### 12.5 Coût d'un passage
 
@@ -465,7 +465,12 @@ Un passage en laboratoire est une action sur le patient comme les autres : il fa
 
 ### 12.6 Capacité `recherche`
 
-Une carte (médecin, objet ou diplôme) peut porter la capacité `recherche` : chaque point retire un passage de plus au compteur commun de la maladie analysée (§12.3). Un passage reste toujours nécessaire pour révéler une recette. La combinaison de recherche accepte un accessoire pour cela. Le paquet de base contient trois **objets d'aide à la recherche**, sans spécialité :
+Une analyse compte toujours pour au moins un passage. Deux choses la font compter davantage :
+
+- **la capacité `recherche`** d'une carte (médecin, objet ou diplôme) : chaque point compte pour un passage de plus ;
+- **la spécialité** : si le médecin qui analyse est de la spécialité de la maladie analysée, ou si un diplôme de cette spécialité accompagne l'analyse, elle compte pour `parametres.recherche.bonus_specialite` passages de plus (1 dans le paquet de base ; 0 si le paramètre est absent). Le diplôme compte comme pour les traitements : comme un médecin de sa spécialité.
+
+La combinaison de recherche n'accepte qu'un accessoire : un objet d'aide à la recherche **ou** un diplôme. Le paquet de base contient trois **objets d'aide à la recherche**, sans spécialité :
 
 | Carte | Objet | `recherche` |
 |---|---|---|
@@ -479,6 +484,32 @@ Ce sont des objets permanents ([règles de table §6.1](REGLES_DE_TABLE.md#61-ob
 
 Le laboratoire ne sert **qu'à analyser** : on ne peut ni y diagnostiquer ni y traiter. Inversement, on ne peut analyser **que** dans le laboratoire (carte `SAL-011` dans le paquet de base).
 
-### 12.8 Effet mesuré au simulateur
+### 12.8 Quand analyser
 
-La stratégie `novice+labo:X` du simulateur joue comme le novice (`novice:X`), mais analyse au laboratoire la maladie en tête de liste dès qu'elle atteint l'indice X et que sa recette lui est inconnue, puis la traite avec la recette révélée ([plan de codage §5.4](PLAN_DE_CODAGE.md#54-premiers-constats-du-simulateur)). Le laboratoire change tout pour lui : en Interne, il soigne 89 % de ses patients, contre 30 % sans laboratoire et 95 à 97 % pour un vétéran ; en Réanimation, 67 %, contre 23 % et 81 à 84 %. Le nombre de passages et les objets d'aide à la recherche pèsent peu : même sans objet, il soigne 87 % en Interne, car une seule analyse, juste après le diagnostic, révèle la recette de la plupart des maladies (paliers A et B). Le simulateur suppose toutefois toutes les salles et toutes les cartes disponibles dès le départ, alors qu'à la table le laboratoire s'achète en cours de partie ([règles de table §1 et §5](REGLES_DE_TABLE.md#5-construire-une-salle)) : son prix de construction est donc un levier d'équilibrage.
+Une analyse n'est utile que si elle porte sur la **vraie** maladie du patient : sinon elle révèle la recette d'une autre maladie, et le traitement qui suit échoue. Il vaut donc mieux analyser quand le diagnostic est assez sûr, c'est-à-dire quand la maladie en tête de liste a un indice de suspicion élevé. Attendre a un coût : chaque diagnostic de plus fait vieillir le patient et l'aggrave.
+
+### 12.9 Effet mesuré au simulateur
+
+La stratégie `novice+labo:X` du simulateur joue comme le novice (`novice:X`), mais analyse au laboratoire la maladie en tête de liste dès qu'elle atteint l'indice X et que sa recette lui est inconnue, avec la combinaison qui compte le plus de passages pour sa spécialité ; puis il la traite avec la recette révélée. Si cette recette échoue, il en déduit que ce n'était pas la bonne maladie ([plan de codage §5.4](PLAN_DE_CODAGE.md#54-premiers-constats-du-simulateur)).
+
+Selon le seuil X (paquet de base, 300 parties, un joueur) :
+
+| Seuil X | Analyses sur la vraie maladie | Guérison, Interne | Guérison, Réanimation |
+|---:|---:|---:|---:|
+| 50 | 39 à 45 % | 78 % | 63 % |
+| 60 | 54 à 56 % | 86 % | 62 % |
+| 70 | 76 % | 91 % | 67 % |
+| 80 | 93 à 95 % | 91 % | 65 % |
+| 90 | 99 % | 81 % | 52 % |
+
+Sous 70, une analyse sur deux environ porte sur une mauvaise maladie ; au-delà de 80, les diagnostics de plus coûtent plus qu'ils ne rapportent. Pour comparaison, sans laboratoire, le novice guérit 29 % des patients en Interne et 23 % en Réanimation, et un vétéran 95 à 97 % et 81 à 84 %.
+
+Les aides au laboratoire comptent, surtout en Réanimation (seuil 70) :
+
+| Aides disponibles | Guérison, Interne | Guérison, Réanimation |
+|---|---:|---:|
+| Spécialiste et objets d'aide (paquet de base) | 91 % | 67 % |
+| Spécialiste, sans objet d'aide | 90 % | 64 % |
+| Ni spécialiste ni objet : 2 à 4 analyses par maladie | 81 % | 41 % |
+
+Le simulateur suppose toutefois toutes les salles et toutes les cartes disponibles dès le départ : le spécialiste de la maladie et le meilleur objet sont toujours là. À la table, le laboratoire s'achète en cours de partie ([règles de table §1 et §5](REGLES_DE_TABLE.md#5-construire-une-salle)), les objets d'aide sont des objets permanents à acheter, et chaque joueur n'a qu'un médecin : la spécialité et les objets y compteront davantage.

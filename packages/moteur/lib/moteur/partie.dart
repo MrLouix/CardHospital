@@ -553,16 +553,15 @@ class _Execution {
   }
 
   /// Un passage en laboratoire sur la maladie choisie (MODELE_DE_JEU.md
-  /// §12.3) : le compteur commun avance de 1, plus la capacité `recherche`
-  /// de la combinaison ; la recette se révèle quand il atteint le nombre de
-  /// passages de la maladie.
+  /// §12.3) : le compteur commun avance de [avanceeRecherche] ; la recette
+  /// se révèle quand il atteint le nombre de passages de la maladie.
   void _rechercher() {
     final id = maladieChoisie;
     final m = id == null ? null : partie._maladie(id);
     if (patient == null || m == null) return;
     final etat = partie._etat;
-    final bonus = math.max(0, combinaison.capacite(capaciteRecherche));
-    final fait = math.min(m.passages, (etat.recherche[m.id] ?? 0) + 1 + bonus);
+    final avance = avanceeRecherche(jeu, combinaison, m.specialite);
+    final fait = math.min(m.passages, (etat.recherche[m.id] ?? 0) + avance);
     etat.recherche[m.id] = fait;
     final restants = m.passages - fait;
     analyse = ResultatAnalyse(
@@ -654,6 +653,25 @@ class _Execution {
         jeu.parametres.recompenses.toJson()[cle] as int? ??
         (throw StateError('récompense inconnue « $cle »'));
   }
+}
+
+/// Passages que compte une analyse au laboratoire faite avec [combinaison]
+/// sur une maladie de spécialité [specialite] (MODELE_DE_JEU.md §12.6) : 1,
+/// plus la capacité `recherche` des cartes, plus `bonus_specialite` si un
+/// médecin de cette spécialité (ou muni du diplôme de cette spécialité)
+/// participe.
+int avanceeRecherche(Jeu jeu, Combinaison combinaison, String specialite) {
+  final capacite = math.max(0, combinaison.capacite(capaciteRecherche));
+  final specialiste = combinaison.satisfait(
+    Predicat(
+      compte: Filtre(type: [TypeCarte.medecin], specialite: [specialite]),
+      min: 1,
+    ),
+  );
+  final bonus = specialiste
+      ? jeu.parametres.recherche?.bonusSpecialite ?? 0
+      : 0;
+  return 1 + capacite + bonus;
 }
 
 /// Palier d'aggravation atteint après [presence] ticks de présence : nombre

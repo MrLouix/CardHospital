@@ -365,15 +365,30 @@ void main() {
         expect(cartes, contains('SAL-011'));
         expect(cartes.where((id) => id.startsWith('MED')), hasLength(1));
       }
-      expect(catalogue.meilleuresRecherches(), isNotEmpty);
-      for (final cartes in catalogue.meilleuresRecherches()) {
-        expect(cartes, contains('OBJ-017'), reason: 'le microscope aide');
-      }
+      // Orthopédie : un orthopédiste (+1) avec le microscope (+1).
+      final ortho = catalogue.meilleuresRecherches('orthopedie');
+      expect(
+        ortho.map((c) => c.toSet()),
+        unorderedEquals([
+          {'MED-007', 'SAL-011', 'OBJ-017'},
+          {'MED-008', 'SAL-011', 'OBJ-017'},
+        ]),
+      );
+      // Psychiatrie : le Dr Sauvage avec le microscope.
+      expect(
+        catalogue
+            .meilleuresRecherches('psychiatrie')
+            .map((c) => c.toSet())
+            .toList(),
+        [
+          {'MED-005', 'SAL-011', 'OBJ-017'},
+        ],
+      );
       final sansLabo = CatalogueCombinaisons(
         jeuExemple((brut) => (brut['actions'] as List).removeLast()),
       );
       expect(sansLabo.recherches, isEmpty);
-      expect(sansLabo.meilleuresRecherches(), isEmpty);
+      expect(sansLabo.meilleuresRecherches('orthopedie'), isEmpty);
     });
 
     test('carnet : une analyse terminée révèle la recette ; une analyse en '
@@ -414,6 +429,36 @@ void main() {
       expect(
         catalogue.adaptees('fracture_ouverte'),
         contains(catalogue.indice(c3.cartes)),
+      );
+    });
+
+    test('si la recette révélée échoue, il écarte la maladie au lieu de '
+        'la retenter', () {
+      final carnet = Carnet(catalogue)..noter(analyse('fracture_ouverte', 0));
+      final s = StrategieNovice(80, labo: true).nouvelle(carnet: carnet)
+        ..debutPatient();
+      final recette = catalogue.cartes[carnet.recette('fracture_ouverte')!];
+      final echec = ResultatAction(
+        numero: 4,
+        action: actionTraiter,
+        libelle: 'Traiter',
+        phrase: '',
+        cartes: ['PAT-001', ...recette],
+        patient: 'PAT-001',
+        patientNom: 'Mme Garnier',
+        pvAvant: 15,
+        pvApres: 13,
+        presence: 3,
+        attenteDepassee: false,
+        issue: IssuePatient.enJeu,
+        pieces: 0,
+        reputation: -1,
+      );
+      expect(s.pret([net, echec], catalogue), isFalse);
+      expect(
+        s.choisir([net, echec], catalogue, Alea(1)).action,
+        actionDiagnostiquer,
+        reason: 'fracture écartée : il faut un nouveau diagnostic',
       );
     });
 

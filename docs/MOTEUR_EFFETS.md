@@ -126,6 +126,10 @@ Extrait du paquet de base :
 
 `parametres.diagnostic` contient `precision_max`, `verite`, `par_niveau`, `affinite_specialite`, `bonus_specialite`, `exclusion`, `taille_liste`, `score_bruit` et `ponderation_poids`. Leur rôle et leurs valeurs par défaut sont décrits dans le [modèle de jeu §8.3](MODELE_DE_JEU.md#83-calcul-de-la-liste).
 
+### 2.6 Paramètres du laboratoire
+
+`parametres.recherche` (facultatif) contient `bonus_specialite` (entier ≥ 0, défaut 0) : les passages de plus que compte une analyse quand un médecin de la spécialité de la maladie analysée, ou un diplôme de cette spécialité, y participe (§9.4). Le paquet de base le met à 1.
+
 ## 3. Motifs
 
 Un motif décrit une forme de sélection par des **intervalles `[min, max]`** de nombre de cartes, par type de carte ou groupe de types de carte (séparés par `|`), plus un intervalle sur le total.
@@ -292,7 +296,7 @@ Un paquet est **refusé** s'il comporte au moins une erreur ; les avertissements
 8. identifiants en double ;
 9. `poids` d'une maladie inférieur à 1 (déjà refusé par le JSON Schema, et revérifié par le validateur sémantique, qui donne un message explicite : `maladies[12].poids : une maladie doit avoir un poids d'au moins 1 ; pour l'écarter, retirez-la du paquet`) ;
 10. valeur réservée mal employée : `polyvalent`, `generaliste` ou `recherche` déclarés dans `specialites`, spécialité de maladie réservée, `recherche` portée par une carte qui n'est pas une salle ;
-11. `recherche.passages` d'une maladie qui n'est pas un entier d'au moins 1 ;
+11. `recherche.passages` d'une maladie qui n'est pas un entier d'au moins 1, ou `parametres.recherche.bonus_specialite` qui n'est pas un entier positif ou nul ;
 12. action avec l'effet `rechercher` dont la précondition n'exige pas `patient_diagnostique` (hors de toute alternative et de toute négation) : le joueur doit pouvoir choisir la maladie parmi les maladies suspectées.
 
 **Avertissements** : dossier `images/` non vide, maladie sans traitement partiel, spécialité portée par aucune carte, deux spécialités de même couleur ou de même icône, couleur de spécialité trop peu contrastée sur fond clair ou sombre, deux couleurs trop proches pour un daltonien (protanopie, deutéranopie, tritanopie), carte qui utilise encore `generaliste` (ancien nom de `polyvalent`), laboratoire (salle de spécialité `recherche`) alors qu'aucune action n'a l'effet `rechercher`, traitement adapté satisfait par toutes les combinaisons (prédicat sans doute toujours vrai), maladie qu'aucune combinaison ne traite en échec (traitement partiel sans doute toujours vrai).
@@ -334,7 +338,7 @@ Le laboratoire ne permet donc **ni de diagnostiquer ni de traiter**, et aucune a
 
 `{ "effet": "rechercher" }`, sans paramètre dans le JSON : la maladie est celle choisie à la confirmation.
 
-1. Le compteur de la maladie choisie avance de 1 + la capacité `recherche` de la combinaison, sans dépasser `recherche.passages`. Ce compteur est **commun à toute la partie**, mémorisé par maladie (`recherche` dans l'état sauvegardé) : les passages de tous les joueurs et sur tous les patients s'additionnent.
+1. Le compteur de la maladie choisie avance de 1, plus la capacité `recherche` de la combinaison, plus `parametres.recherche.bonus_specialite` si la combinaison satisfait `{ "compte": { "type": "medecin", "specialite": <spécialité de la maladie> }, "min": 1 }` (un diplôme de cette spécialité compte, §5), sans dépasser `recherche.passages`. Code : `avanceeRecherche` dans `partie.dart`. Ce compteur est **commun à toute la partie**, mémorisé par maladie (`recherche` dans l'état sauvegardé) : les passages de tous les joueurs et sur tous les patients s'additionnent.
 2. Le résultat porte `analyse` : la maladie choisie, `passages_restants` et, quand il n'en reste plus, la **recette** de `traitement.adapte` ([modèle de jeu §11.1](MODELE_DE_JEU.md#111-format-du-résultat)). Une maladie déjà révélée peut être analysée de nouveau : la recette s'affiche une nouvelle fois, au coût normal d'un passage.
 
 **Rédaction de la recette** (`RedacteurRecette`) :
@@ -352,11 +356,11 @@ Le laboratoire ne permet donc **ni de diagnostiquer ni de traiter**, et aucune a
 { "id": "maladie_xx", "nom": "…", "recherche": { "passages": 3 } }
 ```
 
-`passages` : entier ≥ 1, défaut 1. Le validateur le contrôle (§7, règle 11).
+`passages` : entier ≥ 1, défaut 1. Le validateur le contrôle (§7, règle 11). Le paquet de base demande 2 passages aux paliers de gravité A et B, 3 au palier C et 4 au palier D, pour qu'un objet d'aide ou un spécialiste soit toujours utile ([modèle de jeu §12.4](MODELE_DE_JEU.md#124-nombre-de-passages)).
 
 ### 9.6 Capacité `recherche`
 
-Déclarée comme toute capacité dans `capacites`, portée par des médecins ou des accessoires : chaque point fait avancer d'un passage de plus le compteur commun de la maladie analysée (§9.4). Un passage reste toujours nécessaire. Le paquet de base la donne à trois objets d'aide à la recherche, joués comme accessoire du motif `recherche` : le microscope (`OBJ-017`) et la centrifugeuse (`OBJ-018`), 1 point chacun, et le séquenceur d'ADN (`OBJ-019`), 2 points.
+Déclarée comme toute capacité dans `capacites`, portée par des médecins ou des accessoires : chaque point fait avancer d'un passage de plus le compteur commun de la maladie analysée (§9.4). Une analyse compte toujours pour au moins un passage. Le paquet de base la donne à trois objets d'aide à la recherche, joués comme accessoire du motif `recherche` : le microscope (`OBJ-017`) et la centrifugeuse (`OBJ-018`), 1 point chacun, et le séquenceur d'ADN (`OBJ-019`), 2 points.
 
 ### 9.7 État et sauvegarde
 

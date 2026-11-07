@@ -4,7 +4,7 @@
   "schema_version": 1,
   "id": "base_exemple",
   "nom": "CardHospital — exemple réduit",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Sous-ensemble du paquet de base (contenu/paquet_base.json) : mêmes cartes, mêmes maladies et mêmes règles, réduits à 3 spécialités, 22 cartes et 6 maladies. Sert d'exemple dans la documentation et de jeu d'essai aux tests du moteur.",
   "parametres": {
     "attente_max_defaut": 15,
@@ -35,6 +35,9 @@
       "reputation_mort": -3,
       "pv_partiel": 2,
       "pv_echec": 2
+    },
+    "recherche": {
+      "bonus_specialite": 1
     }
   },
   "difficultes": [
@@ -325,7 +328,7 @@
         "reputation_echec": -2
       },
       "recherche": {
-        "passages": 3
+        "passages": 4
       }
     },
     {
@@ -371,7 +374,7 @@
         "pieces_traitement": 4
       },
       "recherche": {
-        "passages": 2
+        "passages": 3
       }
     },
     {
@@ -424,7 +427,7 @@
         "pieces_traitement": 4
       },
       "recherche": {
-        "passages": 2
+        "passages": 3
       }
     },
     {
@@ -470,6 +473,9 @@
             }
           ]
         }
+      },
+      "recherche": {
+        "passages": 2
       }
     },
     {
@@ -506,6 +512,9 @@
           },
           "min": 1
         }
+      },
+      "recherche": {
+        "passages": 2
       }
     },
     {
@@ -550,6 +559,9 @@
           },
           "min": 1
         }
+      },
+      "recherche": {
+        "passages": 2
       }
     }
   ],

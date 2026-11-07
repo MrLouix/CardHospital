@@ -50,6 +50,7 @@ class Parametres {
     required this.paliersAggravation,
     required this.diagnostic,
     required this.recompenses,
+    this.recherche,
   });
 
   factory Parametres.fromJson(Map<String, dynamic> json) =>
@@ -68,6 +69,26 @@ class Parametres {
   final List<int> paliersAggravation;
   final Diagnostic diagnostic;
   final Recompenses recompenses;
+
+  /// Paramètres du laboratoire (MODELE_DE_JEU.md §12) ; facultatifs.
+  final ParametresRecherche? recherche;
+}
+
+/// Paramètres du laboratoire de recherche.
+@JsonSerializable()
+class ParametresRecherche {
+  ParametresRecherche({this.bonusSpecialite = 0});
+
+  factory ParametresRecherche.fromJson(Map<String, dynamic> json) =>
+      _$ParametresRechercheFromJson(json);
+
+  Map<String, dynamic> toJson() => _$ParametresRechercheToJson(this);
+
+  /// Passages de plus quand un médecin de la spécialité de la maladie
+  /// analysée (ou muni du diplôme de cette spécialité) participe à
+  /// l'analyse.
+  @JsonKey(name: 'bonus_specialite')
+  final int bonusSpecialite;
 }
 
 /// Paramètres du diagnostic (MODELE_DE_JEU.md §8).

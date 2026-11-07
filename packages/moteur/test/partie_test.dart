@@ -833,7 +833,11 @@ void main() {
       expect(r1.analyse!.maladie.id, 'fracture_ouverte');
       expect(r1.analyse!.maladie.nom, 'Fracture ouverte');
       expect(r1.analyse!.maladie.specialite.id, 'orthopedie');
-      expect(r1.analyse!.passagesRestants, 2);
+      expect(
+        r1.analyse!.passagesRestants,
+        3,
+        reason: '4 passages ; le Dr Moreau, polyvalent, compte pour 1',
+      );
       expect(r1.analyse!.recetteRevelee, isFalse);
       expect(r1.analyse!.recette, isNull);
       expect(r1.pieces, 0, reason: 'une analyse ne rapporte rien');
@@ -844,35 +848,105 @@ void main() {
 
       // Le microscope (recherche 1) compte pour un passage de plus.
       final r2 = analyser(partie, [..._labo, 'OBJ-017'], 'fracture_ouverte');
-      expect(r2.analyse!.passagesRestants, 0);
-      expect(r2.analyse!.recetteRevelee, isTrue);
+      expect(r2.analyse!.passagesRestants, 1);
+      expect(r2.analyse!.recette, isNull);
+      expect(partie.etat.recherche, {'fracture_ouverte': 3});
+
+      // Un psychiatre n'a pas la spécialité de la fracture : 1 passage.
+      final r3 = analyser(partie, [
+        'MED-005',
+        'PAT-001',
+        'SAL-011',
+      ], 'fracture_ouverte');
+      expect(r3.analyse!.passagesRestants, 0);
+      expect(r3.analyse!.recetteRevelee, isTrue);
       expect(
-        r2.analyse!.recette,
+        r3.analyse!.recette,
         '2 médecins de spécialité Orthopédie (l\'un d\'eux peut être '
         'remplacé par un médecin muni du diplôme de cette spécialité), au '
         'bloc opératoire.',
       );
-      expect(partie.etat.recherche, {'fracture_ouverte': 3});
+      expect(partie.etat.recherche, {'fracture_ouverte': 4});
 
       // Le compteur est commun : un autre patient en profite.
       _appliquer(partie, ['PAT-002'], 'admettre');
       partie.etat.patients['PAT-002']!.suspecter(['fracture_ouverte']);
-      final r3 = analyser(partie, [
+      final r4 = analyser(partie, [
         'MED-002',
         'PAT-002',
         'SAL-011',
       ], 'fracture_ouverte');
-      expect(r3.analyse!.passagesRestants, 0);
-      expect(r3.analyse!.recette, r2.analyse!.recette);
-      expect(partie.etat.recherche, {'fracture_ouverte': 3});
+      expect(r4.analyse!.passagesRestants, 0);
+      expect(r4.analyse!.recette, r3.analyse!.recette);
+      expect(partie.etat.recherche, {'fracture_ouverte': 4});
     });
 
-    test('une maladie sans champ « recherche » se révèle en un passage', () {
-      final partie = diagnostiquee();
+    test('un médecin de la spécialité de la maladie, ou muni du diplôme, '
+        'compte pour un passage de plus', () {
+      int restants(List<String> cartes) {
+        final partie = diagnostiquee();
+        partie.etat.patients['PAT-001']!.suspecter(['fracture_ouverte']);
+        return analyser(
+          partie,
+          cartes,
+          'fracture_ouverte',
+        ).analyse!.passagesRestants;
+      }
+
+      expect(restants(_labo), 3, reason: 'polyvalent : 1');
+      expect(restants(['MED-007', 'PAT-001', 'SAL-011']), 2, reason: '1 + 1');
+      expect(
+        restants(['MED-001', 'PAT-001', 'SAL-011', 'DIP-004']),
+        2,
+        reason: 'diplôme d\'orthopédie : 1 + 1',
+      );
+      expect(
+        restants(['MED-007', 'PAT-001', 'SAL-011', 'OBJ-017']),
+        1,
+        reason: 'orthopédiste et microscope : 1 + 1 + 1',
+      );
+      expect(
+        restants(['MED-002', 'PAT-001', 'SAL-011', 'DIP-001']),
+        3,
+        reason: 'médecine générale : pas la spécialité de la fracture',
+      );
+    });
+
+    test('sans champ « recherche », une maladie se révèle en un passage ; '
+        'sans paramètre, pas de bonus de spécialité', () {
+      final jeu = jeuExemple((brut) {
+        for (final m in brut['maladies'] as List) {
+          (m as Map).remove('recherche');
+        }
+        (brut['parametres'] as Map).remove('recherche');
+      });
+      expect(jeu.parametres.recherche, isNull);
+      final partie = Partie.nouvelle(
+        jeu: jeu,
+        paquet: _paquet,
+        difficulte: 'interne',
+        alea: SequenceFixe([tirageFractureOuverte, 0.5]),
+      );
+      _appliquer(partie, ['PAT-001'], 'admettre');
+      _appliquer(partie, _diag, 'diagnostiquer');
       partie.etat.patients['PAT-001']!.suspecter(['maux_de_tete']);
-      final r = analyser(partie, _labo, 'maux_de_tete');
-      expect(r.analyse!.passagesRestants, 0);
-      expect(r.analyse!.recette, isNotEmpty);
+      final r = partie.confirmer(
+        ['MED-007', 'PAT-001', 'SAL-011'],
+        'analyser',
+        maladie: 'maux_de_tete',
+      );
+      final analyse = (r as ActionAppliquee).resultat.analyse!;
+      expect(analyse.passagesRestants, 0);
+      expect(analyse.recette, isNotEmpty);
+      expect(partie.etat.recherche, {'maux_de_tete': 1});
+      expect(
+        avanceeRecherche(
+          jeu,
+          Combinaison(jeu, ['MED-007', 'PAT-001', 'SAL-011']),
+          'orthopedie',
+        ),
+        1,
+      );
     });
 
     test('une analyse aggrave le patient et coûte la pénalité d\'attente', () {
@@ -904,7 +978,7 @@ void main() {
             'icone': '🦴',
           },
         },
-        'passages_restants': 1,
+        'passages_restants': 2,
         'recette': null,
       });
       expect(ResultatAction.fromJson(json).toJson(), json);

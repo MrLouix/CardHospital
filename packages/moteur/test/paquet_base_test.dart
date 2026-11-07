@@ -170,16 +170,18 @@ void main() {
     expect(parPv.keys.length, greaterThanOrEqualTo(8), reason: 'PV variés');
   });
 
-  test('laboratoire : 1 passage aux paliers A et B, 2 au palier C, 3 au '
-      'palier D', () {
+  test('laboratoire : 2 passages aux paliers A et B, 3 au palier C, 4 au '
+      'palier D ; un spécialiste compte pour un passage de plus', () {
     for (final m in jeu.maladies) {
       final attendu = m.pvInitial >= 15
-          ? 3
+          ? 4
           : m.pvInitial >= 12
-          ? 2
-          : 1;
+          ? 3
+          : 2;
       expect(m.passages, attendu, reason: m.nom);
+      expect(m.passages, greaterThanOrEqualTo(2), reason: m.nom);
     }
+    expect(jeu.parametres.recherche!.bonusSpecialite, 1);
   });
 
   test('chaque maladie a une recette rédigée, sans identifiant de carte', () {

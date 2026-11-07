@@ -78,6 +78,16 @@ void main() {
       );
     }
 
+    for (final bonus in [-1, 1.5, 'un']) {
+      final copie = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
+      (copie['parametres'] as Map)['recherche'] = {'bonus_specialite': bonus};
+      expect(
+        Validateur().validerJson(copie).erreurs,
+        contains(startsWith('parametres.recherche.bonus_specialite')),
+        reason: '$bonus',
+      );
+    }
+
     final sansPiste = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
     final analyser = (sansPiste['actions'] as List).last as Map;
     expect(analyser['id'], 'analyser');
