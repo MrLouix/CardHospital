@@ -24,25 +24,25 @@ Graine 1 · 1000 parties de 10 patients par stratégie et par difficulté, 3 pat
 
 ## Réputation sur une partie
 
-Cumul des impacts sur une partie (départ à 0). « Minimum » est le point le plus bas atteint en cours de partie : pour qu'au plus 5 % des parties ferment, l'écart entre la valeur de départ et le seuil de fermeture doit dépasser l'opposé du 5ᵉ centile du minimum.
+Cumul des impacts sur une partie (départ à 0), tous les jetons étant reportés sur la piste de l'hôpital. « Minimum » est le point le plus bas atteint en cours de partie : pour qu'au plus 5 % des parties ferment, l'écart entre la valeur de départ et le seuil de fermeture doit dépasser l'opposé du 5ᵉ centile du minimum.
 
-| Stratégie | Difficulté | Finale C5 | Finale C50 | Finale C95 | Minimum C5 | Minimum C50 |
-|---|---|---:|---:|---:|---:|---:|
-| hasard | Interne | -104 | -74 | -48 | -104 | -74 |
-| seuil:60 | Interne | 14 | 19 | 20 | -1 | 0 |
-| seuil:80 | Interne | 16 | 20 | 20 | 0 | 0 |
-| couleur:60 | Interne | 15 | 19 | 20 | -1 | 0 |
-| couleur:80 | Interne | 17 | 20 | 20 | -1 | 0 |
-| hasard | Chirurgien | -117 | -86 | -62 | -117 | -86 |
-| seuil:60 | Chirurgien | 6 | 18 | 20 | -3 | 0 |
-| seuil:80 | Chirurgien | 10 | 20 | 20 | -2 | 0 |
-| couleur:60 | Chirurgien | 8 | 18 | 20 | -3 | 0 |
-| couleur:80 | Chirurgien | 10 | 20 | 20 | -2 | 0 |
-| hasard | Réanimation | -128 | -99 | -75 | -128 | -99 |
-| seuil:60 | Réanimation | 3 | 17 | 20 | -6 | 0 |
-| seuil:80 | Réanimation | 4 | 20 | 20 | -4 | 0 |
-| couleur:60 | Réanimation | 3 | 17 | 20 | -6 | 0 |
-| couleur:80 | Réanimation | 7 | 20 | 20 | -4 | 0 |
+| Stratégie | Difficulté | Finale moyenne | Finale C5 | Finale C50 | Finale C95 | Minimum moyen | Minimum C5 | Minimum C50 |
+|---|---|---:|---:|---:|---:|---:|---:|---:|
+| hasard | Interne | -74,6 | -104 | -74 | -48 | -74,8 | -104 | -74 |
+| seuil:60 | Interne | 18,4 | 14 | 19 | 20 | -0,1 | -1 | 0 |
+| seuil:80 | Interne | 19,1 | 16 | 20 | 20 | -0,1 | 0 | 0 |
+| couleur:60 | Interne | 18,6 | 15 | 19 | 20 | -0,1 | -1 | 0 |
+| couleur:80 | Interne | 19,3 | 17 | 20 | 20 | -0,1 | -1 | 0 |
+| hasard | Chirurgien | -87,3 | -117 | -86 | -62 | -87,4 | -117 | -86 |
+| seuil:60 | Chirurgien | 16,6 | 6 | 18 | 20 | -0,4 | -3 | 0 |
+| seuil:80 | Chirurgien | 17,9 | 10 | 20 | 20 | -0,2 | -2 | 0 |
+| couleur:60 | Chirurgien | 17,1 | 8 | 18 | 20 | -0,5 | -3 | 0 |
+| couleur:80 | Chirurgien | 18,2 | 10 | 20 | 20 | -0,2 | -2 | 0 |
+| hasard | Réanimation | -100,4 | -128 | -99 | -75 | -100,5 | -128 | -99 |
+| seuil:60 | Réanimation | 14,7 | 3 | 17 | 20 | -1,0 | -6 | 0 |
+| seuil:80 | Réanimation | 16,4 | 4 | 20 | 20 | -0,6 | -4 | 0 |
+| couleur:60 | Réanimation | 15,1 | 3 | 17 | 20 | -0,9 | -6 | 0 |
+| couleur:80 | Réanimation | 17,0 | 7 | 20 | 20 | -0,4 | -4 | 0 |
 
 ## Par maladie
 
