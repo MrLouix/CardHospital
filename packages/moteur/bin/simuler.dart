@@ -35,7 +35,7 @@ Future<void> main(List<String> args) async {
     ..addOption('patients', help: 'Patients par partie.', defaultsTo: '10')
     ..addOption(
       'joueurs',
-      help: 'Joueurs, à tour de rôle (2 ou 3 pour simuler le partage).',
+      help: 'Joueurs, à tour de rôle (1 à 6 ; à partir de 2, le partage est simulé).',
       defaultsTo: '1',
     )
     ..addOption(
@@ -110,13 +110,31 @@ Future<void> main(List<String> args) async {
     return;
   }
 
-  int entier(String nom) =>
-      int.tryParse(o.option(nom)!) ??
-      _quitter('--$nom : entier attendu (« ${o.option(nom)} »)');
+  int entier(String nom, {int? min, int? max}) {
+    final valeur =
+        int.tryParse(o.option(nom)!) ??
+        _quitter('--$nom : entier attendu (« ${o.option(nom)} »)');
+    if ((min != null && valeur < min) || (max != null && valeur > max)) {
+      _quitter(
+        '--$nom : ${max == null ? 'au moins $min' : 'de $min à $max'} '
+        'attendu ($valeur)',
+      );
+    }
+    return valeur;
+  }
 
   final fichier = File(o.option('paquet')!);
   if (!fichier.existsSync()) _quitter('Paquet introuvable : ${fichier.path}');
-  final brut = jsonDecode(fichier.readAsStringSync()) as Map<String, dynamic>;
+  final Object? contenu;
+  try {
+    contenu = jsonDecode(fichier.readAsStringSync());
+  } on FormatException catch (e) {
+    _quitter('Paquet illisible (JSON mal formé) : ${e.message}');
+  }
+  if (contenu is! Map<String, dynamic>) {
+    _quitter('Paquet invalide : un objet JSON est attendu à la racine.');
+  }
+  final brut = contenu;
   final rapportValidation = Validateur(cheminSchema: o.option('schema'))
       .validerJson(brut);
   if (!rapportValidation.valide) {
@@ -150,16 +168,16 @@ Future<void> main(List<String> args) async {
     jeu,
     parametres: ParametresSimulation(
       graine: entier('graine'),
-      parties: entier('parties'),
-      patientsParPartie: entier('patients'),
-      patientsEnJeu: entier('en-jeu'),
-      joueurs: entier('joueurs'),
+      parties: entier('parties', min: 1),
+      patientsParPartie: entier('patients', min: 1),
+      patientsEnJeu: entier('en-jeu', min: 1),
+      joueurs: entier('joueurs', min: 1, max: 6),
       partages: switch (o.option('partage')) {
         'oui' => const [true],
         'non' => const [false],
         _ => const [true, false],
       },
-      actionsMax: entier('actions-max'),
+      actionsMax: entier('actions-max', min: 1),
       cartesPersonnelles: o.option('cartes') == 'personnelles',
     ),
   );

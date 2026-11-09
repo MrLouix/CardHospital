@@ -21,9 +21,7 @@ jobs:
         run: dart run coverage:test_with_coverage -o coverage
       - name: Couverture ≥ 90 % (hors code généré)
         run: dart run tool/couverture.dart 90
-      - name: Valide l'exemple contre le schéma (test du validateur)
-        run: dart test test/exemple_test.dart
-      - name: Valide le paquet de base (contenu/paquet_base.json)
-        run: dart test test/paquet_base_test.dart
-      - name: Valide le paquet de base contre le schéma complet (outil en ligne de commande)
-        run: dart run tool/valider_paquet.dart ../../contenu/paquet_base.json
+      - name: Valide l'exemple et le paquet de base (schéma complet et contrôles sémantiques)
+        run: |
+          dart run tool/valider_paquet.dart ../../docs/exemples/jeu.exemple.json
+          dart run tool/valider_paquet.dart ../../contenu/paquet_base.json
