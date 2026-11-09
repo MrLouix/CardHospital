@@ -5,8 +5,13 @@ import 'alea.dart';
 import 'combinaison.dart';
 import 'diagnostic.dart';
 import 'etat.dart';
+import 'recette.dart';
 import 'reconnaissance.dart';
 import 'resultat.dart';
+
+/// Capacité qui compte pour des passages de laboratoire supplémentaires
+/// (MODELE_DE_JEU.md §12.6).
+const capaciteRecherche = 'recherche';
 
 /// Action proposée dans un aperçu, avec sa phrase.
 class ActionProposee {
@@ -14,16 +19,23 @@ class ActionProposee {
     required this.id,
     required this.libelle,
     required this.phrase,
+    this.maladies,
   });
 
   final String id;
   final String libelle;
   final String phrase;
 
+  /// Pour une action qui demande de choisir une maladie (analyse au
+  /// laboratoire) : les maladies suspectées du patient, parmi lesquelles le
+  /// joueur choisit avant de confirmer.
+  final List<MaladieAnalysee>? maladies;
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'libelle': libelle,
     'phrase': phrase,
+    if (maladies != null) 'maladies': maladies!.map((m) => m.toJson()).toList(),
   };
 }
 
@@ -36,13 +48,15 @@ sealed class ReponseSelection {
 final class SelectionAcceptee extends ReponseSelection {
   const SelectionAcceptee({
     required this.cartes,
-    required this.motif,
+    required this.motifs,
     required this.actions,
   });
 
   /// Cartes reconnues, dans l'ordre de sélection, sans doublon.
   final List<String> cartes;
-  final String motif;
+
+  /// Motifs reconnus, dans l'ordre de déclaration.
+  final List<String> motifs;
   final List<ActionProposee> actions;
 }
 
@@ -106,7 +120,8 @@ class Partie {
   }) : _etat = etat,
        _historique = [...?historique],
        _reconnaissance = ReconnaissanceCombinaisons(jeu),
-       _diagnostiqueur = Diagnostiqueur(jeu, alea) {
+       _diagnostiqueur = Diagnostiqueur(jeu, alea),
+       _redacteur = RedacteurRecette(jeu) {
     _modificateurs = _difficulte(etat.difficulte).modificateurs;
   }
 
@@ -154,7 +169,9 @@ class Partie {
   final SourceAleatoire alea;
   final ReconnaissanceCombinaisons _reconnaissance;
   final Diagnostiqueur _diagnostiqueur;
+  final RedacteurRecette _redacteur;
   late final Modificateurs _modificateurs;
+  final _choixMaladie = <String, bool>{};
   EtatPartie _etat;
   final List<EntreeHistorique> _historique;
 
@@ -169,6 +186,37 @@ class Partie {
     orElse: () => throw ArgumentError.value(id, 'difficulte', 'inconnue'),
   );
 
+  /// Maladies suspectées du patient [patient] (MODELE_DE_JEU.md §12.2),
+  /// dans l'ordre de première apparition ; vide s'il n'est pas en jeu ou
+  /// n'a pas encore été diagnostiqué.
+  List<MaladieAnalysee> maladiesSuspectees(String patient) {
+    final p = _etat.patients[patient];
+    if (p == null || !p.enJeu) return const [];
+    return [
+      for (final id in p.suspectees)
+        if (_maladie(id) case final m?) _maladieAnalysee(m),
+    ];
+  }
+
+  Maladie? _maladie(String id) =>
+      jeu.maladies.where((m) => m.id == id).firstOrNull;
+
+  MaladieAnalysee _maladieAnalysee(Maladie m) => MaladieAnalysee(
+    id: m.id,
+    nom: m.nom,
+    specialite: SpecialiteAffichee.depuis(
+      jeu.specialites.firstWhere((s) => s.id == m.specialite),
+    ),
+  );
+
+  /// L'action [a] demande-t-elle de choisir une maladie (effet
+  /// `rechercher`) ?
+  bool demandeMaladie(ActionJeu a) =>
+      _choixMaladie.putIfAbsent(a.id, () => a.effets.any(_recherche));
+
+  static bool _recherche(Effet e) =>
+      e.effet == 'rechercher' || [...?e.alors, ...?e.sinon].any(_recherche);
+
   /// Reconnaît la sélection [qrs] et propose les actions dont la
   /// précondition est vérifiée sur l'état courant.
   ReponseSelection valider(List<String> qrs) {
@@ -176,7 +224,7 @@ class Partie {
     switch (reconnaissance) {
       case Refus(:final message):
         return SelectionRefusee(message);
-      case Apercu(:final motif, :final actions):
+      case Apercu(:final motifs, :final actions):
         final combinaison = Combinaison(jeu, qrs);
         final possibles = [
           for (final a in actions)
@@ -185,21 +233,35 @@ class Partie {
                 id: a.id,
                 libelle: a.libelle,
                 phrase: combinaison.phrase(a.phrase),
+                maladies: demandeMaladie(a)
+                    ? maladiesSuspectees(combinaison.patient!)
+                    : null,
               ),
         ];
         if (possibles.isEmpty) {
-          final causeCartes = actions.any(
-            (a) => _preconditionEtat(a, combinaison),
-          );
+          // Une action que les cartes permettent a échoué sur l'état du
+          // patient : l'état est en cause. Sinon, si l'état permettait une
+          // action, ce sont les cartes ; si rien ne va, l'état d'abord.
+          final parEtat = [
+            for (final a in actions)
+              if (_cartesPermettent(a, combinaison)) a,
+          ];
+          final causeCartes =
+              parEtat.isEmpty &&
+              actions.any((a) => _preconditionEtat(a, combinaison));
           return SelectionRefusee(
             causeCartes
                 ? 'Aucune action possible avec ces cartes.'
-                : _messageEtat(combinaison, confirmation: false),
+                : _messageEtat(
+                    combinaison,
+                    parEtat.isEmpty ? actions : parEtat,
+                    confirmation: false,
+                  ),
           );
         }
         return SelectionAcceptee(
           cartes: combinaison.ids.toList(),
-          motif: motif,
+          motifs: motifs,
           actions: possibles,
         );
     }
@@ -207,7 +269,14 @@ class Partie {
 
   /// Confirme l'action [actionId] sur la sélection [qrs] : revalide le motif
   /// et la précondition, prend un instantané, applique les effets.
-  ReponseConfirmation confirmer(List<String> qrs, String actionId) {
+  ///
+  /// [maladie] : pour une action qui le demande (analyse au laboratoire),
+  /// la maladie choisie parmi les maladies suspectées du patient.
+  ReponseConfirmation confirmer(
+    List<String> qrs,
+    String actionId, {
+    String? maladie,
+  }) {
     final reconnaissance = _reconnaissance.reconnaitre(qrs);
     if (reconnaissance is Refus) return ActionRefusee(reconnaissance.message);
     final apercu = reconnaissance as Apercu;
@@ -218,15 +287,29 @@ class Partie {
     final combinaison = Combinaison(jeu, qrs);
     if (!_precondition(action, combinaison)) {
       return ActionRefusee(
-        _preconditionEtat(action, combinaison)
+        !_cartesPermettent(action, combinaison) &&
+                _preconditionEtat(action, combinaison)
             ? 'Cette action n\'est pas possible avec ces cartes — action non '
                   'appliquée.'
-            : _messageEtat(combinaison, confirmation: true),
+            : _messageEtat(combinaison, [action], confirmation: true),
+      );
+    }
+    final choisie = demandeMaladie(action) ? maladie : null;
+    if (demandeMaladie(action) &&
+        !maladiesSuspectees(combinaison.patient!).any((m) => m.id == maladie)) {
+      return const ActionRefusee(
+        'Choisissez la maladie à analyser parmi les maladies suspectées — '
+        'action non appliquée.',
       );
     }
 
     final avant = _etat.copie();
-    final resultat = _Execution(this, action, combinaison).executer();
+    final resultat = _Execution(
+      this,
+      action,
+      combinaison,
+      maladieChoisie: choisie,
+    ).executer();
     _historique.add(EntreeHistorique(avant: avant, resultat: resultat));
     if (_historique.length > tailleHistorique) _historique.removeAt(0);
     return ActionAppliquee(resultat);
@@ -255,10 +338,14 @@ class Partie {
     return _Execution(this, action, combinaison).evaluer(condition);
   }
 
+  /// Les cartes permettent-elles l'action, l'état du patient étant tenu pour
+  /// favorable ? Si oui alors que la précondition est fausse, c'est l'état du
+  /// patient qui est en cause, pas les cartes.
+  bool _cartesPermettent(ActionJeu action, Combinaison combinaison) =>
+      action.precondition == null || combinaison.permet(action.precondition!);
+
   /// Précondition évaluée sur l'état seul, les conditions `combinaison`
-  /// étant tenues pour favorables : si elle est vraie alors que la
-  /// précondition complète est fausse, ce sont les cartes qui sont en cause,
-  /// pas l'état du patient.
+  /// étant tenues pour favorables.
   bool _preconditionEtat(ActionJeu action, Combinaison combinaison) {
     final condition = action.precondition;
     if (condition == null) return true;
@@ -269,21 +356,43 @@ class Partie {
     ).evaluer(condition, combinaisonNeutre: true);
   }
 
-  String _messageEtat(Combinaison combinaison, {required bool confirmation}) {
+  /// Message d'une précondition non vérifiée à cause de l'état du patient,
+  /// pour les [actions] que les cartes permettaient.
+  String _messageEtat(
+    Combinaison combinaison,
+    List<ActionJeu> actions, {
+    required bool confirmation,
+  }) {
     final id = combinaison.patient;
     if (id == null) return 'Aucune action possible avec cette sélection.';
     final nom = jeu.cartes[id]!.nom;
     final suite = confirmation ? ' — action non appliquée.' : '.';
-    if (_etat.enJeu(id)) return '$nom est déjà en jeu$suite';
+    if (_etat.enJeu(id)) {
+      final sansPiste =
+          _etat.patients[id]!.suspectees.isEmpty &&
+          actions.any(
+            (a) =>
+                a.precondition != null &&
+                _mentionne(a.precondition!, 'patient_diagnostique'),
+          );
+      if (sansPiste) {
+        return 'Aucune piste pour $nom : faire d\'abord un diagnostic$suite';
+      }
+      return '$nom est déjà en jeu$suite';
+    }
     return confirmation
         ? '$nom n\'est plus en jeu$suite'
         : '$nom n\'est pas en jeu$suite';
   }
+
+  static bool _mentionne(Condition c, String constante) =>
+      c.constante == constante ||
+      [...?c.et, ...?c.ou, ?c.non].any((x) => _mentionne(x, constante));
 }
 
 /// Exécution d'une action : contexte mutable des effets.
 class _Execution {
-  _Execution(this.partie, this.action, this.combinaison)
+  _Execution(this.partie, this.action, this.combinaison, {this.maladieChoisie})
     : patientId = combinaison.patient {
     final p = patientId == null ? null : partie._etat.patients[patientId];
     pvAvant = (p?.enJeu ?? false) ? p!.pv : null;
@@ -293,12 +402,16 @@ class _Execution {
   final ActionJeu action;
   final Combinaison combinaison;
   final String? patientId;
+
+  /// Maladie choisie par le joueur (analyse au laboratoire).
+  final String? maladieChoisie;
   late final int? pvAvant;
 
   int pieces = 0;
   int reputation = 0;
-  bool soigne = false;
+  bool gueri = false;
   ResultatDiagnostic? diagnostic;
+  ResultatAnalyse? analyse;
 
   Jeu get jeu => partie.jeu;
   Modificateurs get mod => partie._modificateurs;
@@ -329,13 +442,15 @@ class _Execution {
     if (p != null && m != null) {
       attenteDepassee = _attenteDepassee(p, m);
       issue = IssuePatient.enJeu;
-      if (soigne) {
-        issue = IssuePatient.soigne;
+      if (gueri) {
+        issue = IssuePatient.gueri;
       } else if (p.pv <= 0) {
         p.pv = 0;
         issue = IssuePatient.mort;
-        reputation += moduler(_recompense('reputation_mort'), mod.reputation);
+        reputation += _reputation(_recompense('reputation_mort'));
       }
+      // Pas de pièce quand le patient meurt pendant l'action.
+      if (issue == IssuePatient.mort) pieces = 0;
       if (issue != IssuePatient.enJeu) {
         p.statut = StatutPatient.sorti;
         p.issue = issue;
@@ -354,10 +469,11 @@ class _Execution {
       patientNom: patientId == null ? null : jeu.cartes[patientId]!.nom,
       pvAvant: pvAvant,
       pvApres: etatPatient?.pv,
-      temps: etatPatient?.temps,
+      presence: etatPatient?.presence(etat.ticks),
       attenteDepassee: attenteDepassee,
       issue: issue,
       diagnostic: diagnostic,
+      analyse: analyse,
       maladieRevelee: revelee,
       pieces: pieces,
       reputation: reputation,
@@ -378,21 +494,24 @@ class _Execution {
       case 'admettre':
         _admettre();
       case 'avancer_temps':
-        patient?.temps++;
+        partie._etat.ticks++;
       case 'diagnostiquer':
         final m = maladie;
         if (m != null) {
-          diagnostic = partie._diagnostiqueur.diagnostiquer(m, combinaison);
+          final d = partie._diagnostiqueur.diagnostiquer(m, combinaison);
+          diagnostic = d;
+          patient!.suspecter(d.maladies.map((l) => l.id));
         }
+      case 'rechercher':
+        _rechercher();
       case 'aggraver':
         final p = patient;
         final m = maladie;
         if (p != null && m != null) {
-          final i = (p.temps - 1).clamp(0, m.aggravation.length - 1);
-          _perdrePv(p, m.aggravation[i]);
+          _perdrePv(p, perteAggravation(m, _presence(p), jeu.parametres));
         }
       case 'soigner':
-        if (patient != null) soigne = true;
+        if (patient != null) gueri = true;
       case 'gagner_pv':
         final p = patient;
         final m = maladie;
@@ -405,7 +524,7 @@ class _Execution {
       case 'payer':
         pieces += moduler(_valeur(e.valeur!), mod.pieces);
       case 'reputation':
-        reputation += moduler(_valeur(e.valeur!), mod.reputation);
+        reputation += _reputation(_valeur(e.valeur!));
       case 'si':
         if (evaluer(e.condition!)) {
           _effets(e.alors ?? const []);
@@ -429,7 +548,28 @@ class _Execution {
       statut: StatutPatient.enJeu,
       maladie: m.id,
       pv: m.pvInitial,
-      temps: 0,
+      admission: partie._etat.ticks,
+    );
+  }
+
+  /// Un passage en laboratoire sur la maladie choisie (MODELE_DE_JEU.md
+  /// §12.3) : le compteur commun avance de [avanceeRecherche] ; la recette
+  /// se révèle quand il atteint le nombre de passages de la maladie.
+  void _rechercher() {
+    final id = maladieChoisie;
+    final m = id == null ? null : partie._maladie(id);
+    if (patient == null || m == null) return;
+    final etat = partie._etat;
+    final avance = avanceeRecherche(jeu, combinaison, m.specialite);
+    final fait = math.min(m.passages, (etat.recherche[m.id] ?? 0) + avance);
+    etat.recherche[m.id] = fait;
+    final restants = m.passages - fait;
+    analyse = ResultatAnalyse(
+      maladie: partie._maladieAnalysee(m),
+      passagesRestants: restants,
+      recette: restants == 0
+          ? partie._redacteur.decrire(m.traitement.adapte)
+          : null,
     );
   }
 
@@ -437,8 +577,14 @@ class _Execution {
     p.pv = math.max(0, p.pv - moduler(base, mod.pvPerdus));
   }
 
+  int _presence(EtatPatient p) => p.presence(partie._etat.ticks);
+
+  /// Impact sur la réputation : la difficulté ne modifie que les pertes.
+  int _reputation(int valeur) =>
+      valeur < 0 ? moduler(valeur, mod.reputation) : valeur;
+
   bool _attenteDepassee(EtatPatient p, Maladie m) =>
-      p.temps > (m.attenteMax ?? jeu.parametres.attenteMaxDefaut);
+      _presence(p) > (m.attenteMax ?? jeu.parametres.attenteMaxDefaut);
 
   /// Évalue une condition (MOTEUR_EFFETS.md §6) sur l'état courant.
   ///
@@ -459,12 +605,14 @@ class _Execution {
           final p = patient;
           final m = maladie;
           return p != null && m != null && _attenteDepassee(p, m);
-        case 'soigne':
-          return soigne;
+        case 'gueri':
+          return gueri;
         case 'patient_en_jeu':
           return patient != null;
         case 'patient_hors_jeu':
           return patientId != null && patient == null;
+        case 'patient_diagnostique':
+          return patient?.suspectees.isNotEmpty ?? false;
         default:
           throw StateError('condition inconnue « ${c.constante} »');
       }
@@ -507,14 +655,46 @@ class _Execution {
   }
 }
 
-/// Applique un modificateur de difficulté à un montant entier, puis arrondit
-/// à l'entier le plus proche (demi éloigné de zéro). Une base non nulle
-/// reste au moins égale à 1 en valeur absolue (MODELE_DE_JEU.md §7).
-int moduler(int base, double facteur) {
+/// Passages que compte une analyse au laboratoire faite avec [combinaison]
+/// sur une maladie de spécialité [specialite] (MODELE_DE_JEU.md §12.6) : 1,
+/// plus la capacité `recherche` des cartes, plus `bonus_specialite` si un
+/// médecin de cette spécialité (ou muni du diplôme de cette spécialité)
+/// participe.
+int avanceeRecherche(Jeu jeu, Combinaison combinaison, String specialite) {
+  final capacite = math.max(0, combinaison.capacite(capaciteRecherche));
+  final specialiste = combinaison.satisfait(
+    Predicat(
+      compte: Filtre(type: [TypeCarte.medecin], specialite: [specialite]),
+      min: 1,
+    ),
+  );
+  final bonus = specialiste
+      ? jeu.parametres.recherche?.bonusSpecialite ?? 0
+      : 0;
+  return 1 + capacite + bonus;
+}
+
+/// Palier d'aggravation atteint après [presence] ticks de présence : nombre
+/// de seuils de [paliers] atteints (0 : patient stable).
+int palierAggravation(int presence, List<int> paliers) =>
+    paliers.where((seuil) => presence >= seuil).length;
+
+/// Perte de PV d'aggravation (avant difficulté) de la maladie [m] après
+/// [presence] ticks : 0 tant que le patient est stable, puis la valeur de
+/// `aggravation` du palier atteint (le premier élément pour le premier
+/// palier, la dernière valeur se répétant).
+int perteAggravation(Maladie m, int presence, Parametres parametres) {
+  final palier = palierAggravation(presence, parametres.paliersAggravation);
+  if (palier == 0) return 0;
+  return m.aggravation[(palier - 1).clamp(0, m.aggravation.length - 1)];
+}
+
+/// Applique le bonus de difficulté [bonus] à un montant entier [base] : il
+/// s'ajoute à sa valeur absolue. Un montant nul reste nul, et un montant non
+/// nul reste au moins égal à 1 en valeur absolue, même avec un bonus négatif
+/// (MODELE_DE_JEU.md §10).
+int moduler(int base, int bonus) {
   if (base == 0) return 0;
-  // Arrondi préalable au millionième : 1,15 × 10 doit donner 11,5 (et non
-  // 11,499…), donc 12.
-  final produit = (base * facteur * 1e6).round() / 1e6;
-  final arrondi = produit.round();
-  return arrondi == 0 ? base.sign : arrondi;
+  final valeur = base.abs() + bonus;
+  return base.sign * (valeur < 1 ? 1 : valeur);
 }

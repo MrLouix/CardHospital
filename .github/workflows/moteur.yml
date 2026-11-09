@@ -23,3 +23,5 @@ jobs:
         run: dart run tool/couverture.dart 90
       - name: Valide l'exemple contre le schéma (test du validateur)
         run: dart test test/exemple_test.dart
+      - name: Valide le paquet de base (contenu/paquet_base.json)
+        run: dart test test/paquet_base_test.dart
