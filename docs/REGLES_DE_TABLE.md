@@ -2,14 +2,16 @@
 
 Ce document décrit les **règles qui se jouent à la table, sans l'appli** : mise en place, tour de jeu, économie, victoire, formation, comportement des joueurs. Les règles calculées par l'appli (maladies, diagnostic, traitement, récompenses par action) sont dans le [modèle de jeu](MODELE_DE_JEU.md). Les termes sont définis dans le [glossaire](GLOSSAIRE.md).
 
-> **Principe** : l'appli n'est pas intrusive. Elle gère les maladies et calcule le résultat de chaque action ; elle ne suit ni les tours, ni les joueurs, ni les achats, ni les scores. Tout ce qui est décrit ici se tient à la main, sur la table.
+> **Principe** : l'appli n'est pas intrusive. Elle gère les maladies et calcule le résultat de chaque action ; elle ne suit ni les tours, ni les joueurs, ni les achats, ni la formation, ni les scores. Tout ce qui est décrit ici se tient à la main, sur la table.
 
 Les valeurs marquées « à fixer au simulateur » seront réglées avec le [simulateur](PLAN_DE_CODAGE.md#53-utiliser-le-moteur-et-le-simulateur). Les points encore ouverts sont listés au §11.
 
 ## 1. Mise en place
 
-1. **Salles** : l'hôpital démarre avec trois salles, posées face visible : la **salle de consultation**, la **pharmacie** et la **radiologie**. Les autres salles s'achètent en cours de partie (§5).
-2. **Médecins et diplômes** : chaque joueur tire au hasard **1 médecin**. À 2 ou 3 joueurs, il tire aussi au hasard **1 diplôme** ; avec un autre nombre de joueurs, il ne reçoit que son médecin. Les médecins restants ne sont pas utilisés pendant la partie. Les autres diplômes s'obtiennent par la formation (§7).
+CardHospital se joue de **2 à 6 joueurs**.
+
+1. **Salles** : l'hôpital démarre avec trois salles, posées face visible : la **salle de consultation**, la **pharmacie** et la **radiologie**. Les autres salles se construisent en cours de partie (§5).
+2. **Médecins et diplômes** : chaque joueur tire au hasard **1 médecin**. À 2 ou 3 joueurs, il tire aussi au hasard **1 diplôme** ; de 4 à 6 joueurs, il ne reçoit que son médecin. Les médecins restants ne sont pas utilisés pendant la partie. Les autres diplômes s'obtiennent par la formation (§7).
 3. **Patients** : on mélange les 12 cartes patient pour former la pioche, puis on en révèle 2, que l'on admet avec l'appli : ce sont les premiers patients en jeu.
 4. **Réputation de l'hôpital** : on place le marqueur sur la valeur de départ. La valeur de départ et le seuil de fermeture dépendent de la difficulté choisie dans l'appli ; ils sont à fixer au simulateur.
 5. **Objets** : on révèle autant d'objets permanents qu'il y a de joueurs, tous différents (§6.1). On prépare les tuiles de stock des objets consommables (§6.2, tuiles à créer).
@@ -18,10 +20,12 @@ Les valeurs marquées « à fixer au simulateur » seront réglées avec le [sim
 
 Les joueurs jouent **à tour de rôle**, même si plusieurs smartphones sont disponibles. L'appli n'impose aucun ordre et ne bloque pas deux actions simultanées : c'est aux joueurs de respecter les tours.
 
-1. **Début du tour : nouveau patient.** S'il y a moins de N patients en jeu, le joueur pioche un patient et l'admet avec l'appli. N dépend de la difficulté et est à fixer au simulateur. L'appli ne vérifie pas cette règle.
-2. **Une seule option**, au choix :
-   - **acheter un objet permanent** (§6.1) ;
-   - ou **réaliser une action** : diagnostic, traitement, recherche (au laboratoire) ou formation (§7). La formation occupe tout le tour.
+1. **Début du tour : nouveau patient.** S'il y a moins de N patients en jeu, le joueur pioche un patient et l'admet avec l'appli. N dépend de la difficulté et est à fixer au simulateur. L'appli ne vérifie pas cette règle. Si la pioche est vide à ce moment, la partie est perdue (§3.3).
+2. **Achat et action.** Pendant son tour, le joueur :
+   - **peut acheter un objet permanent**, et un seul (§6.1), **avant ou après son action**, à son choix. Cet achat n'est pas obligatoire ;
+   - **et réalise une action** : diagnostic, traitement, recherche (au laboratoire) ou formation (§7). La formation n'est pas suivie par l'appli : le joueur qui se forme ne fait pas d'autre action pendant ce tour.
+
+À son tour, tout joueur peut aussi prendre l'initiative de **lancer la construction d'une salle** (§5).
 
 Une action qui réunit les médecins de deux joueurs compte comme **le tour des deux joueurs** (§3.1).
 
@@ -35,30 +39,40 @@ Après chaque action, l'appli affiche les pièces gagnées et l'impact sur la r�
 
 **Seul le joueur qui a joué l'action** prend les jetons : il en est seul responsable. Il répartit **chaque jeton**, gain ou perte :
 
-- **pièces** : les garder (réserve personnelle), les donner au **budget de l'hôpital**, ou les verser directement à une construction de salle (§5) ou à un réapprovisionnement de consommables (§6.2) ;
-- **+1 réputation** : le garder pour son médecin (**réputation personnelle**) ou le laisser à l'hôpital (piste de réputation de l'hôpital) ;
-- **−1 réputation** : le reporter sur la piste de l'hôpital, ou **le prendre pour lui**, sur sa réputation personnelle. Il perd alors un point de victoire, mais la réputation de l'hôpital ne baisse pas : c'est ainsi qu'un joueur peut éviter la fermeture quand l'hôpital approche du seuil.
+- **pièces** : les garder **en main** (réserve personnelle), les donner au **budget de l'hôpital**, ou les verser directement à une construction de salle (§5) ou à un réapprovisionnement de consommables (§6.2) ;
+- **+1 réputation** : le garder **en main** pour son médecin (**réputation personnelle**) ou le laisser à l'hôpital (piste de réputation de l'hôpital) ;
+- **−1 réputation** : le reporter sur la piste de l'hôpital, ou **le prendre pour lui**, en main, sur sa réputation personnelle. Il perd alors un point de victoire, mais la réputation de l'hôpital ne baisse pas : c'est ainsi qu'un joueur peut éviter la fermeture quand l'hôpital approche du seuil.
 
 **Action à deux joueurs** : quand une combinaison réunit les médecins de deux joueurs (par exemple les deux orthopédistes exigés au bloc opératoire), les deux joueurs sont responsables de l'action et se répartissent ses jetons. L'action compte comme **le tour des deux** : le joueur dont c'est le tour l'utilise, et son partenaire passe son prochain tour.
 
 ### 3.2 Points de victoire et victoire
 
-- Chaque point de réputation personnelle rapporte **1 point de victoire** ; chaque −1 pris pour soi en retire un.
-- Chaque lot de **3 pièces** gagnées rapporte **1 point de victoire**.
-- Un joueur **gagne** quand son médecin atteint le **niveau cible** (à fixer au simulateur).
+Les points de victoire n'ont **pas de jeton** : on les compte, **à tout moment**, sur le **contenu de la main** de chaque joueur.
+
+- Chaque jeton **+1 réputation** en main rapporte **1 point de victoire** ; chaque jeton **−1 réputation** en main en retire un.
+- Chaque lot de **3 pièces** en main rapporte **1 point de victoire**.
+
+Seul ce qui est en main compte : les pièces données à l'hôpital, versées à une construction ou à un réapprovisionnement, ou dépensées pour un objet ne rapportent plus de point. Le score d'un joueur baisse donc quand il dépense ses pièces.
+
+Un joueur **gagne** dès que sa main atteint le **niveau cible** de points de victoire (à fixer au simulateur).
 
 ### 3.3 Défaite commune
 
-Si la réputation de l'hôpital devient **strictement inférieure au seuil de fermeture**, l'hôpital ferme : la partie s'arrête et **tous les joueurs ont perdu**, quels que soient leurs points. C'est la tension du jeu : chaque médecin joue pour lui, mais un patient négligé, mal traité ou qui meurt pénalise tout le monde.
+La partie s'arrête et **tous les joueurs ont perdu**, quels que soient leurs points, dans deux cas :
+
+- **fermeture de l'hôpital** : la réputation de l'hôpital devient **strictement inférieure au seuil de fermeture** ;
+- **trop de morts** : un joueur doit piocher un patient en début de tour (§2) et la **pioche de patients est vide**. Les patients morts sortent du jeu (§4) : quand il en meurt trop, la pioche s'épuise. Une pioche vide n'arrête pas la partie tant que personne ne doit y piocher.
+
+C'est la tension du jeu : chaque médecin joue pour lui, mais un patient négligé, mal traité ou qui meurt pénalise tout le monde.
 
 ## 4. Sortie des patients
 
 - Un patient **guéri** retourne dans la pioche. S'il est de nouveau pioché, il est réadmis avec une nouvelle maladie.
-- Un patient **mort** est **défaussé** : sa carte sort du jeu pour le reste de la partie.
+- Un patient **mort** est **défaussé** : sa carte sort du jeu pour le reste de la partie. Si un joueur doit piocher un patient alors que la pioche est vide, tous les joueurs ont perdu (§3.3).
 
 ## 5. Construire une salle
 
-1. Une salle choisie pour être construite est posée sur la table **face cachée** : son verso indique le **prix de construction**, en pièces.
+1. À son tour, **tout joueur** peut prendre l'initiative de lancer la construction d'une salle. Il choisit une salle qui n'est pas encore construite et la pose sur la table **face cachée** : son verso indique le **prix de construction**, en pièces.
 2. Elle se paie de deux façons, éventuellement combinées :
    - avec le **budget de l'hôpital**, si les joueurs sont d'accord **à la majorité** ;
    - avec les pièces qu'un joueur vient de gagner : il peut décider **seul** de les verser à la construction, au lieu de les garder ou de les donner à l'hôpital.
@@ -68,30 +82,33 @@ Si la réputation de l'hôpital devient **strictement inférieure au seuil de fe
 
 ### 6.1 Objets permanents
 
-Les objets permanents (livres, instruments…) s'achètent pendant la partie, avec l'option « acheter un objet permanent » du tour (§2).
+Les objets permanents du paquet de base sont : le **stéthoscope**, le **traité de médecine**, le **défibrillateur**, l'**électrocardiographe**, le **thermomètre**, le **tensiomètre**, le **livre de psychanalyse**, le **grimoire** et l'**amulette de protection**.
 
-- On en propose toujours **autant que de joueurs**, tous **différents**, face visible.
-- Le joueur paie sur sa **réserve personnelle**. Cet argent ne va pas à l'hôpital : il **sort du jeu**.
+À son tour, un joueur peut en acheter **un seul**, avant ou après son action (§2). Cet achat n'est pas obligatoire.
+
+- On en propose toujours **autant que de joueurs**, tous **différents**, face visible : à chaque achat, un **nouvel objet permanent** est mis en jeu à la place de l'objet acheté.
+- Le joueur paie avec les pièces de sa main (**réserve personnelle**). Cet argent ne va pas à l'hôpital : il **sort du jeu**.
 - L'objet appartient au joueur, qui le garde pour toute la partie.
 
 ### 6.2 Objets consommables
 
-Les objets consommables (médicaments, bistouri, plâtre…) appartiennent à l'**hôpital**. Des **tuiles de stock** indiquent pour chaque consommable le nombre d'unités disponibles et le **prix de réapprovisionnement**.
+Les objets consommables du paquet de base sont : l'**antibiotique**, l'**antalgique**, l'**anti-inflammatoire**, les **ampoules de glucose**, le **sirop antitussif**, le **plâtre** et l'**attelle**.
+
+Ils appartiennent à l'**hôpital**. Des **tuiles de stock** indiquent pour chaque consommable le nombre d'unités disponibles et le **prix de réapprovisionnement**.
 
 Le réapprovisionnement se paie comme une construction (§5) : avec le budget de l'hôpital, après accord à la majorité, ou avec les pièces qu'un joueur vient de gagner.
 
 ## 7. Formation et diplômes
 
-Un joueur peut **former son médecin** pour obtenir un diplôme :
+Un joueur peut **former son médecin** pour obtenir un diplôme. La formation est un **geste purement physique** : l'appli ne la suit pas, et on ne scanne aucune combinaison.
 
-- l'action **Formation** demande une combinaison **médecin + salle de formation + objet de formation** ;
-- chaque formation fait avancer le pion du joueur sur la **piste de diplôme**, une tuile indépendante ;
-- après plusieurs formations, le joueur obtient un **diplôme**. L'obtention doit être **chronophage** : un premier diplôme est envisageable dans une partie, un second demande trop de temps pour valoir la peine (par exemple 4 formations pour le premier, 8 de plus pour le second ; à régler en partie) ;
-- le joueur qui se forme ne fait **rien d'autre** pendant son tour : ni diagnostic, ni traitement, ni recherche.
+- Le joueur qui choisit la formation comme action de son tour avance son pion d'**une case** sur la **piste de diplôme**, une tuile indépendante ;
+- après plusieurs tours de formation, le joueur obtient un **diplôme**. L'obtention doit être **chronophage** : un premier diplôme est envisageable dans une partie, un second demande trop de temps pour valoir la peine (par exemple 4 cases pour le premier, 8 de plus pour le second ; à régler en partie) ;
+- pendant ce tour, il ne fait **rien d'autre** : ni diagnostic, ni traitement, ni recherche. Il peut seulement acheter un objet permanent, s'il le souhaite (§6.1).
 
 Un médecin polyvalent muni d'un diplôme remplace un spécialiste de cette spécialité : c'est voulu, pour qu'un joueur seul à détenir une spécialité ne fasse pas la loi. Les recettes qui exigent deux médecins d'une spécialité demandent toutefois deux vrais médecins : deux spécialistes, ou un spécialiste et un médecin muni du diplôme ([modèle de jeu §2.2](MODELE_DE_JEU.md#22-cartes)).
 
-À créer : la salle de formation, les objets de formation, la piste de diplôme et le nombre exact de formations par diplôme (§11).
+À créer : la piste de diplôme et le nombre exact de cases à parcourir pour un diplôme (§11).
 
 ## 8. Partager l'information
 
@@ -115,12 +132,8 @@ L'annulation de la dernière action, dans la page admin de l'hôte, est réserv�
 
 | # | Sujet | Proposition |
 |---|---|---|
-| 1 | Nombre de joueurs autorisé (la mise en place parle de « 2 ou 3 joueurs, sinon médecin seul ») | — |
-| 2 | Points de victoire des pièces : pièces gagnées au total, ou pièces encore en réserve ? Les pièces données à l'hôpital ou dépensées comptent-elles ? | — |
-| 3 | Niveau cible de victoire, valeur de départ et seuil de fermeture, N patients en jeu | À fixer au simulateur, par difficulté. Les rapports de simulation donnent, par configuration, la réputation moyenne en fin de partie, le minimum atteint et la part des parties fermées pour un écart de 5 à 30 entre départ et seuil ([rapport du paquet de base](simulations/rapport_paquet_base.md), [à 3 joueurs](simulations/rapport_paquet_base_3_joueurs.md)). Le seuil se règle sur le rapport [à cartes personnelles](simulations/rapport_paquet_base_3_joueurs_cartes_personnelles.md), où chaque joueur n'a que son médecin ([analyse de l'équilibre §4](ANALYSE_EQUILIBRE.md#4-pistes)) |
-| 4 | Fin de partie si la pioche est vide (les morts en sortent) avant que quelqu'un gagne | — |
-| 5 | Qui choisit la salle à construire, et quand | — |
-| 6 | Quels objets sont permanents, lesquels sont consommables, et quand un consommable est-il utilisé (au traitement seulement ?) | Permanents : stéthoscope, traité de médecine, défibrillateur, électrocardiographe, thermomètre, tensiomètre, livre de psychanalyse, grimoire, amulette, et les objets d'aide à la recherche (microscope, centrifugeuse, séquenceur d'ADN). Consommables : antibiotique, antalgique, anti-inflammatoire, ampoules de glucose, sirop antitussif, plâtre, attelle |
-| 7 | Marché d'objets permanents : remplacé après chaque achat ? Prix ? | — |
-| 8 | Formation : rôle de l'appli (scan de la combinaison et validation, ou geste purement physique), nombre de formations par diplôme, choix de la spécialité du diplôme | — |
-| 9 | Budget de l'hôpital au départ | — |
+| 1 | Niveau cible de victoire, valeur de départ et seuil de fermeture, N patients en jeu | À fixer au simulateur, par difficulté. Les rapports de simulation donnent, par configuration, la réputation moyenne en fin de partie, le minimum atteint et la part des parties fermées pour un écart de 5 à 30 entre départ et seuil ([rapport du paquet de base](simulations/rapport_paquet_base.md), [à 3 joueurs](simulations/rapport_paquet_base_3_joueurs.md)). Le seuil se règle sur le rapport [à cartes personnelles](simulations/rapport_paquet_base_3_joueurs_cartes_personnelles.md), où chaque joueur n'a que son médecin ([analyse de l'équilibre §4](ANALYSE_EQUILIBRE.md#4-pistes)) |
+| 2 | Quand un consommable est-il utilisé (au traitement seulement ?) | — |
+| 3 | Prix des objets permanents | — |
+| 4 | Formation : nombre exact de cases de la piste pour obtenir un diplôme, choix de la spécialité du diplôme | Environ 4 cases pour un premier diplôme, 8 de plus pour un second (§7) |
+| 5 | Budget de l'hôpital au départ | — |

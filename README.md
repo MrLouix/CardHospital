@@ -2,11 +2,11 @@
 
 Jeu de société simulant la vie d'un hôpital, assisté par une application mobile.
 
-Les joueurs incarnent des médecins. Des patients arrivent, atteints d'une maladie cachée tirée au hasard : les médecins doivent la diagnostiquer, sur la base de diagnostics probabilistes parfois trompeurs, puis la soigner avant que l'état du patient n'empire. Chaque carte du jeu (médecin, patient, salle, objet, diplôme) porte un **QR code** : l'application lit les cartes, reconnaît la combinaison et calcule le résultat de l'action selon un paquet de règles JSON.
+Les joueurs, de 2 à 6, incarnent des médecins. Des patients arrivent, atteints d'une maladie cachée tirée au hasard : les médecins doivent la diagnostiquer, sur la base de diagnostics probabilistes parfois trompeurs, puis la soigner avant que l'état du patient n'empire. Chaque carte du jeu (médecin, patient, salle, objet, diplôme) porte un **QR code** : l'application lit les cartes, reconnaît la combinaison et calcule le résultat de l'action selon un paquet de règles JSON.
 
 Les joueurs jouent **à tour de rôle**, même si plusieurs smartphones sont disponibles : l'application n'impose aucun ordre de jeu et ne bloque pas deux actions simultanées : c'est aux joueurs de jouer chacun leur tour. Chaque joueur peut partager ses résultats de diagnostic avec les autres ou les garder pour lui.
 
-Le suivi global de la partie (tours, points de victoire, cumul des pièces et de la réputation, achats et constructions) reste **manuel**, hors application : l'appli n'est pas intrusive, elle gère les maladies et calcule le résultat des actions. Si la réputation de l'hôpital devient strictement inférieure au seuil de fermeture, l'hôpital ferme et **tous les joueurs ont perdu**.
+Le suivi global de la partie (tours, points de victoire, cumul des pièces et de la réputation, achats, constructions et formation) reste **manuel**, hors application : l'appli n'est pas intrusive, elle gère les maladies et calcule le résultat des actions. Si la réputation de l'hôpital devient strictement inférieure au seuil de fermeture, ou si un joueur doit piocher un patient alors que la pioche est vide, **tous les joueurs ont perdu**.
 
 ## Fonctionnement
 

@@ -9,7 +9,7 @@ Toutes les valeurs numériques citées ici sont des **valeurs par défaut du paq
 | Géré par l'appli (hôte) | Géré par les joueurs, hors appli |
 |---|---|
 | Maladie cachée de chaque patient, PV, horloge de l'hôpital et tick d'admission de chaque patient (§5), maladies suspectées et passages restants des analyses (§12) | **Tour de jeu : les joueurs jouent à tour de rôle**, même si plusieurs smartphones sont disponibles dans la partie. L'appli n'impose aucun ordre de jeu et ne bloque pas deux actions simultanées : c'est aux joueurs de jouer chacun leur tour |
-| Diagnostic probabiliste, issue des traitements (guérison, traitement partiel, échec) | Points de victoire, conditions de victoire et de défaite (dont la **fermeture de l'hôpital**, §7.1) |
+| Diagnostic probabiliste, issue des traitements (guérison, traitement partiel, échec) | Points de victoire, conditions de victoire et de défaite (dont la **fermeture de l'hôpital**, §7.1, et la **pioche de patients vide**) |
 | Calcul des pièces gagnées et de l'impact sur la réputation, **par action** | Cumul des pièces, de la réputation de l'hôpital et de la réputation personnelle de chaque médecin |
 | | Partage des gains (pièces et réputation) entre le joueur et l'hôpital, achats, constructions, réapprovisionnements, formation |
 | | Partage ou non des résultats de diagnostic et des recettes entre joueurs (§8.6) |
@@ -19,7 +19,7 @@ L'appli **n'est pas intrusive** : elle gère les maladies et calcule le résulta
 
 ### 1.1 Mise en place
 
-Règle de table, hors appli, détaillée dans les [règles de table §1](REGLES_DE_TABLE.md#1-mise-en-place) : l'hôpital démarre avec la salle de consultation, la pharmacie et la radiologie ; chaque joueur tire au hasard **1 médecin**, et aussi **1 diplôme** à 2 ou 3 joueurs ; on mélange les 12 patients et on en révèle 2. Chaque médecin porte **une seule spécialité**, ou est polyvalent (sans spécialité).
+Règle de table, hors appli, détaillée dans les [règles de table §1](REGLES_DE_TABLE.md#1-mise-en-place) : la partie se joue de **2 à 6 joueurs** ; l'hôpital démarre avec la salle de consultation, la pharmacie et la radiologie ; chaque joueur tire au hasard **1 médecin**, et aussi **1 diplôme** à 2 ou 3 joueurs ; on mélange les 12 patients et on en révèle 2. Chaque médecin porte **une seule spécialité**, ou est polyvalent (sans spécialité).
 
 ## 2. Entités
 
@@ -132,7 +132,8 @@ Scanner seul un patient déjà en jeu ne déclenche rien (« M. Dupont est déj�
 Un patient guéri ou mort passe à l'état **sorti** : sa maladie est révélée dans le résultat (« Guérison de M. Dupont — fracture fermée », « Décès de Mme Garnier — arythmie »). Règle de table :
 
 - la carte d'un patient **guéri** retourne dans la pioche ; si elle est de nouveau piochée et scannée seule, elle est **réadmise avec une nouvelle maladie** ;
-- la carte d'un patient **mort** est **défaussée** : elle sort de la partie. Une combinaison contenant un patient hors jeu (jamais admis ou sorti) est refusée (« M. Dupont n'est pas en jeu »).
+- la carte d'un patient **mort** est **défaussée** : elle sort de la partie. Une combinaison contenant un patient hors jeu (jamais admis ou sorti) est refusée (« M. Dupont n'est pas en jeu ») ;
+- si un joueur doit piocher un patient alors que la pioche est vide, la partie s'arrête et **tous les joueurs ont perdu** ([règles de table §3.3](REGLES_DE_TABLE.md#33-défaite-commune)).
 
 Les messages évitent tout accord, qui deviendrait fautif selon la personne : style nominal (« Admission de… », « Guérison de… », « Décès de… ») et « n'est pas en jeu » plutôt que « n'est pas admis », qui deviendrait fautif pour Mme Garnier.
 
@@ -235,7 +236,9 @@ La réputation de l'hôpital est une **jauge collective** tenue à la main par l
 - chaque résultat d'action indique l'impact à reporter sur la piste ;
 - si elle devient **strictement inférieure au seuil de fermeture**, l'hôpital ferme : la partie s'arrête et **tous les joueurs ont perdu**.
 
-C'est le seul enjeu coopératif du jeu : chaque médecin joue pour ses propres points de victoire (sa réputation personnelle et ses pièces, [règles de table §3](REGLES_DE_TABLE.md#3-pièces-réputation-et-points-de-victoire)), mais un patient négligé, mal traité ou qui meurt pénalise tout le monde.
+La partie est aussi perdue pour tous si un joueur doit piocher un patient alors que la pioche est vide : les patients morts en sont sortis ([règles de table §3.3](REGLES_DE_TABLE.md#33-défaite-commune)).
+
+La défaite commune est le seul enjeu coopératif du jeu : chaque médecin joue pour ses propres points de victoire, comptés sur sa main (sa réputation personnelle et ses pièces, [règles de table §3](REGLES_DE_TABLE.md#3-pièces-réputation-et-points-de-victoire)), mais un patient négligé, mal traité ou qui meurt pénalise tout le monde.
 
 L'appli ne connaît ni la valeur de départ, ni le seuil, ni le total : elle n'annonce donc pas la fermeture. Ces deux valeurs sont des règles de table, à fixer avec le simulateur de la [feuille de route](FEUILLE_DE_ROUTE.md) (phase 1) selon les montants de réputation du paquet et le niveau de difficulté.
 

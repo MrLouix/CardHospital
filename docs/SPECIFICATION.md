@@ -21,7 +21,7 @@ L'application Android (transposable iOS) sert de **moteur d'actions**. Elle lit 
 
 - tour de jeu : les joueurs jouent **à tour de rôle**, même si plusieurs smartphones sont disponibles ; l'appli n'impose aucun ordre de jeu et ne bloque pas deux actions simultanées (§5.4) : c'est aux joueurs de jouer chacun leur tour ;
 - partage ou non des résultats de diagnostic entre joueurs (les probabilités sont réglées pour que ne rien mettre en commun rende la défaite commune quasi inévitable, [MODELE_DE_JEU.md §8.6](MODELE_DE_JEU.md#86-partage-des-diagnostics-entre-joueurs)) ;
-- points de victoire et conditions de victoire ou de défaite, dont la **fermeture de l'hôpital** quand la réputation devient strictement inférieure au seuil de fermeture (tous les joueurs perdent, [MODELE_DE_JEU.md §7.1](MODELE_DE_JEU.md#71-réputation-et-fermeture-de-lhôpital)) ;
+- points de victoire et conditions de victoire ou de défaite, dont la **fermeture de l'hôpital** quand la réputation devient strictement inférieure au seuil de fermeture (tous les joueurs perdent, [MODELE_DE_JEU.md §7.1](MODELE_DE_JEU.md#71-réputation-et-fermeture-de-lhôpital)) et la **pioche de patients vide** quand un joueur doit y piocher ([règles de table §3.3](REGLES_DE_TABLE.md#33-défaite-commune)) ;
 - cumul des pièces et de la réputation, partage des gains entre le joueur et l'hôpital, achats, constructions, réapprovisionnements, formation ([règles de table](REGLES_DE_TABLE.md)) ;
 - pioche des patients et nombre de patients en jeu ;
 - identité des joueurs : l'appli n'en connaît aucune ;
@@ -216,7 +216,7 @@ Le détail est dans [MOTEUR_EFFETS.md](MOTEUR_EFFETS.md).
 | Exigence | Cible |
 |---|---|
 | Version Android minimale | Android 8.0 (API 26) |
-| Clients simultanés | Illimité côté serveur ; testé avec 3 téléphones (2 à 3 joueurs), et un essai à 5 pour la marge |
+| Clients simultanés | Illimité côté serveur ; testé avec 3 téléphones, et un essai à 6 téléphones (un par joueur, au maximum de 6 joueurs) |
 | Latence de « Valider » à l'aperçu | < 300 ms en réseau local |
 | Latence de « Confirmer » au résultat | < 500 ms, sauvegarde automatique comprise |
 | Détection de 4 cartes | < 3 s en éclairage intérieur normal (à valider en phase 0) |
@@ -272,13 +272,17 @@ Permissions Android : `CAMERA`, `INTERNET`, `ACCESS_WIFI_STATE`, `ACCESS_NETWORK
 | D21 | La page admin sert au démarrage et à la connexion ; le reste est du debug | §7 |
 | D22 | Réputation tenue à la main ; sous un seuil, l'hôpital ferme et tous les joueurs perdent (règle de table, l'appli ne tient pas le total) | [Modèle §7.1](MODELE_DE_JEU.md#71-réputation-et-fermeture-de-lhôpital) |
 | D26 | L'appli n'est pas intrusive : elle gère les maladies et les résultats ; tours, économie, formation et victoire se jouent à la table | [Règles de table](REGLES_DE_TABLE.md) |
-| D27 | Victoire individuelle : un médecin atteint un niveau cible de points de victoire (réputation personnelle + 1 point par lot de 3 pièces). Le joueur qui agit répartit tous les jetons, pertes de réputation comprises : il peut prendre un −1 pour lui | [Règles de table §3](REGLES_DE_TABLE.md#3-pièces-réputation-et-points-de-victoire) |
+| D27 | Victoire individuelle : un joueur gagne dès que sa main atteint un niveau cible de points de victoire. Les points n'ont pas de jeton : ils se comptent à tout moment sur la main (réputation personnelle + 1 point par lot de 3 pièces en main) ; les patients encore en jeu ne rapportent rien. Le joueur qui agit répartit tous les jetons, pertes de réputation comprises : il peut prendre un −1 pour lui | [Règles de table §3](REGLES_DE_TABLE.md#3-pièces-réputation-et-points-de-victoire) |
 | D28 | Patients guéris remis dans la pioche, patients morts défaussés | [Modèle §4.2](MODELE_DE_JEU.md#42-sortie) |
 | D29 | Traitements secrets : le livret ne donne pas la correspondance maladie – traitement | [Règles de table §9](REGLES_DE_TABLE.md#9-traitements-secrets) |
 | D30 | Pas de bluff : on peut garder un résultat pour soi, pas mentir | [Règles de table §8](REGLES_DE_TABLE.md#8-partager-linformation) |
 | D23 | Salle recherche : motif `recherche` (médecin + patient + salle + accessoire facultatif) ; les actions de tous les motifs reconnus sont réunies puis filtrées par précondition, si bien que le laboratoire ne sert qu'à analyser et qu'aucune autre salle ne permet d'analyser ; action `analyser` avec choix d'une maladie suspectée, révélation de la recette complète du traitement adapté après `recherche.passages` passages (global à la partie), coût = temps + aggravation, aucune pièce. Implémentée dans `schema_version` 1 (aucun paquet n'est encore publié) ; paquet de base : 2, 3 ou 4 passages selon le palier de gravité ; une analyse compte pour 1 passage, plus la capacité `recherche` des cartes (3 objets d'aide), plus 1 avec un médecin de la spécialité de la maladie | [Modèle §12](MODELE_DE_JEU.md#12-recherche-en-laboratoire) |
 | D24 | Les joueurs jouent à tour de rôle, même avec plusieurs smartphones ; l'appli n'impose aucun ordre de jeu et ne bloque pas deux actions simultanées | §1, [Modèle §1](MODELE_DE_JEU.md#1-partage-des-responsabilités) |
 | D25 | Les joueurs peuvent partager leurs diagnostics ou les garder pour eux ; les probabilités sont réglées pour que ne rien mettre en commun rende la défaite commune (réputation sous le seuil de fermeture) quasi inévitable | [Modèle §8.6](MODELE_DE_JEU.md#86-partage-des-diagnostics-entre-joueurs) |
+| D31 | De 2 à 6 joueurs ; à la mise en place, un diplôme est tiré en plus du médecin seulement à 2 ou 3 joueurs | [Règles de table §1](REGLES_DE_TABLE.md#1-mise-en-place) |
+| D32 | Tour : une action (diagnostic, traitement, recherche ou formation) et, avant ou après, l'achat facultatif d'un seul objet permanent ; un nouvel objet permanent est mis en jeu à chaque achat ; tout joueur peut, à son tour, lancer la construction d'une salle | [Règles de table §2](REGLES_DE_TABLE.md#2-tour-de-jeu) |
+| D33 | Formation purement physique, non suivie par l'appli : le pion avance d'une case par tour sur la piste de diplôme | [Règles de table §7](REGLES_DE_TABLE.md#7-formation-et-diplômes) |
+| D34 | Défaite commune aussi quand un joueur doit piocher un patient alors que la pioche est vide (trop de morts) | [Règles de table §3.3](REGLES_DE_TABLE.md#33-défaite-commune) |
 
 ## 12. Questions ouvertes
 
@@ -291,4 +295,3 @@ Les choix ci-dessous ont été pris par défaut dans cette version et restent à
 5. **PV affichés à l'acteur** après chaque action : choix actuel, oui (les PV ne sont pas une information cachée).
 6. **Valeur de départ et seuil de fermeture** de la réputation : différents selon le niveau de difficulté, à fixer par simulation (phase 1).
 7. **Traitement partiel** (stabilisation : gain de PV sans guérison ni aggravation) : niveau intermédiaire introduit pour conserver « gagne des PV sans être guéri ». À garder ou à supprimer.
-8. **Fin de partie** : un joueur gagne en atteignant le niveau cible ; tous perdent si l'hôpital ferme. Reste à décider ce qui se passe si la pioche se vide avant (les patients morts en sortent), et comment comptent les patients encore en jeu ([règles de table §11](REGLES_DE_TABLE.md#11-points-à-préciser)).
