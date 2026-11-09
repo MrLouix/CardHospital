@@ -54,26 +54,28 @@ accent color #8D6E63 (objet) or #C9A227 (diplôme). No text.
 Seed: {{SEED}}.
 ```
 
-### Salle standard (rectangle 140 × 100 mm → 1654 × 1181 px, bandeau #455A64)
+### Salle standard (rectangle 100 × 122 mm → 1181 × 1441 px, bandeau #455A64)
 
 ```
-{{BLOC_COMMUN}} Top-down view of a hospital room interior filling a 140x100 mm
-landscape rectangle: {{SUJET}} (salle de consultation, bloc opératoire,
-radiologie, réanimation, salle expérimentale...), clean modern medical
-equipment, calm lighting, no people, centered in the middle ~60x30 mm area,
-accent #455A64, specialty color {{COULEUR_SPECIALITE}} on furniture details.
-Leave the top 22 mm band and both 40 mm side strips visually calm for
-overlays. Seed: {{SEED}}.
+{{BLOC_COMMUN}} Top-down view of a hospital room interior filling a 100x122 mm
+portrait rectangle: {{SUJET}} (salle de consultation, radiologie, réanimation,
+salle expérimentale...), clean modern medical equipment, calm lighting, no
+people, subject centered in the lower-middle ~60x50 mm area, accent #455A64,
+specialty color {{COULEUR_SPECIALITE}} on furniture details. Leave the top
+22 mm band, the 46x46 mm square above the subject and both 20 mm side strips
+visually calm for overlays. Seed: {{SEED}}.
 ```
 
-### Bloc / grande salle (rectangle 150 × 160 mm → 1772 × 1890 px)
+### Bloc / grande salle (rectangle 168 × 122 mm → 1984 × 1441 px)
 
 ```
 {{BLOC_COMMUN}} Top-down view of a large hospital room (operating block)
-filling a 150x160 mm rectangle: {{SUJET}}, clean modern surgical equipment,
-calm lighting, no people, centered around a calm central 61x86 mm zone, top
-22 mm band and 40 mm side strips visually calm for overlays, accent #455A64,
-specialty color {{COULEUR_SPECIALITE}}. Seed: {{SEED}}.
+filling a 168x122 mm landscape rectangle: {{SUJET}}, clean modern surgical
+equipment, calm lighting, no people, subject centered in the lower-right
+~60x50 mm area, accent #455A64, specialty color {{COULEUR_SPECIALITE}}. Leave
+the top 22 mm band, the 61x86 mm zone left of the subject, the 46x46 mm square
+above the subject and both 20 mm side strips visually calm for overlays.
+Seed: {{SEED}}.
 ```
 
 ## 3. Consignes de cohérence à appliquer partout
@@ -94,9 +96,9 @@ specialty color {{COULEUR_SPECIALITE}}. Seed: {{SEED}}.
 
 Script (Pillow) sur chaque image générée, avant impression :
 
-1. Recadrer aux gabarits : 709 × 1004 px (médecin/patient), 531 × 531 px
-   (objet), 1654 × 1181 px (salle standard), 1772 × 1890 px (bloc), + fond
-   perdu 3 mm.
+1. Recadrer aux [gabarits](gabarits/) : 709 × 1004 px (médecin/patient),
+   531 × 531 px (objet), 1181 × 1441 px (salle standard), 1984 × 1441 px
+   (bloc), + fond perdu 3 mm.
 2. Liséré / bandeau titre de la couleur du type (si le modèle a dévié).
 3. Pastille de spécialité (couleur + icône emoji, police Noto Color Emoji).
 4. Titre de la tuile (police fixe du projet, contraste vérifié).
@@ -105,9 +107,10 @@ Script (Pillow) sur chaque image générée, avant impression :
    haut à droite du bandeau de 22 mm.
 6. Découpe des logements des salles (sous-épaisseur 2 mm dans carton 3 mm) —
    gabarit carton + cutter :
-   - salle standard 140 × 100 : encoches latérales 60,5 × 40 mm (gauche =
-     médecin, droite = patient), encoche interne carrée 46 × 46 mm en haut
-     au centre ;
-   - bloc 150 × 160 : encoche centrale 61 × 86 mm (patient), deux encoches
-     latérales 60,5 × 40 mm (médecins), encoche interne carrée 46 × 46 mm.
+   - salle standard 100 × 122 : encoches latérales 86 × 20 mm en portrait
+     (gauche = médecin, droite = patient), encoche interne carrée 46 × 46 mm
+     en haut au centre ;
+   - bloc 168 × 122 : encoche centrale 61 × 86 mm (patient), deux encoches
+     latérales 86 × 20 mm en portrait (médecins), encoche interne carrée
+     46 × 46 mm.
 7. Export CMJN + PDF d'impression (A4/A3 standard, finition mate).
