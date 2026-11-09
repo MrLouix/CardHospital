@@ -5,6 +5,7 @@ import '../modeles/jeu.dart';
 import '../moteur/combinaison.dart';
 import '../moteur/reconnaissance.dart';
 import 'couleurs.dart';
+import 'schema.dart';
 
 /// Résultat d'une validation : erreurs bloquantes et avertissements.
 class RapportValidation {
@@ -23,47 +24,77 @@ class RapportValidation {
 /// s'ajoutent ensuite. Tous les messages sont en français, avec le chemin
 /// dans le JSON.
 class Validateur {
-  Validateur({String? cheminSchema}) {
-    final schema = File(cheminSchema ?? '../../docs/schema/jeu.schema.json');
-    _schemaJson = schema.readAsStringSync();
-  }
+  /// Validateur utilisant le schéma du fichier [cheminSchema] (par défaut,
+  /// celui du dépôt vu depuis `packages/moteur`).
+  factory Validateur({String? cheminSchema}) => Validateur.depuisSchema(
+    File(cheminSchema ?? '../../docs/schema/jeu.schema.json')
+        .readAsStringSync(),
+  );
 
-  late final String _schemaJson;
+  /// Validateur utilisant le schéma [schemaJson] (contenu du fichier), par
+  /// exemple chargé depuis les assets de l'application.
+  Validateur.depuisSchema(String schemaJson)
+    : _schemaJson = schemaJson,
+      _schema = ValidateurSchema(schemaJson);
+
+  final String _schemaJson;
+  final ValidateurSchema _schema;
 
   /// Schéma JSON de référence, chargé tel quel depuis `docs/schema`.
   String get schemaJson => _schemaJson;
 
+  /// Plage des versions du format que le moteur sait lire.
+  static const int schemaVersionMin = 1;
   static const int schemaVersionMax = 1;
 
-  /// Valide le JSON brut d'un paquet. Retourne le rapport ; en cas de succès
-  /// strict, [jeu] est renseigné.
+  /// Valide le JSON brut d'un paquet (MOTEUR_EFFETS.md §7).
   ///
-  /// [catalogue] : les cartes imprimées (catalogue embarqué). S'il est
-  /// fourni, chaque carte du paquet doit y figurer, avec les mêmes attributs
-  /// imprimés (règle 3 de MOTEUR_EFFETS.md §7).
+  /// [jeu] évite de reconstruire le modèle s'il est déjà chargé.
+  /// [catalogue] : les cartes imprimées (catalogue embarqué, voir
+  /// [catalogueDe]). S'il est fourni, chaque carte du paquet doit y figurer,
+  /// avec les mêmes attributs imprimés (règle 3). Sans catalogue, la règle 3
+  /// n'est pas vérifiée (paquet de base lui-même, outils).
   RapportValidation validerJson(
     Map<String, dynamic> brut, {
     Jeu? jeu,
     Map<String, Carte>? catalogue,
   }) {
-    final erreurs = <String>[];
-    final avertissements = <String>[];
-
-    erreurs.addAll(_validerSchema(brut));
-    if (erreurs.isNotEmpty) {
+    // Règle 2 : version du format, avant le schéma (qui ne connaît que la
+    // version courante) pour donner un message explicite.
+    final version = brut['schema_version'];
+    if (version is int && version > schemaVersionMax) {
       return RapportValidation(
-        erreurs: erreurs,
-        avertissements: avertissements,
+        erreurs: [
+          'schema_version : ce paquet nécessite une version plus récente de '
+              'l\'application (version $version, version $schemaVersionMax '
+              'au plus)',
+        ],
       );
+    }
+    if (version is int && version < schemaVersionMin) {
+      return RapportValidation(
+        erreurs: [
+          'schema_version : version $version non supportée (version '
+              '$schemaVersionMin au moins)',
+        ],
+      );
+    }
+
+    // Règle 1 : JSON Schema complet. Sans conformité, le modèle ne peut pas
+    // être construit.
+    final erreursSchema = _schema.valider(brut);
+    if (erreursSchema.isNotEmpty) {
+      return RapportValidation(erreurs: erreursSchema);
     }
 
     final j = jeu ?? Jeu.fromJson(brut);
 
-    if (j.schemaVersion > schemaVersionMax) {
-      erreurs.add(
-        'schema_version : ce paquet nécessite une version plus récente de l\'application',
-      );
-    }
+    // Contrôles de forme que le JSON Schema n'exprime pas (paliers
+    // croissants, valeurs réservées…).
+    final erreurs = _validerForme(brut);
+    if (erreurs.isNotEmpty) return RapportValidation(erreurs: erreurs);
+    final avertissements = <String>[];
+
     if (catalogue != null) erreurs.addAll(_verifierCatalogue(j, catalogue));
     erreurs.addAll(_verifierDoublons(j));
     erreurs.addAll(_verifierReferences(j));
@@ -76,6 +107,10 @@ class Validateur {
     return RapportValidation(erreurs: erreurs, avertissements: avertissements);
   }
 
+  /// Catalogue embarqué tiré du paquet de base [base] : identifiant de carte
+  /// → carte imprimée.
+  static Map<String, Carte> catalogueDe(Jeu base) => base.cartes;
+
   /// Valide le paquet de l'exemple embarqué dans le dépôt.
   RapportValidation validerExemple() {
     final fichier = File('../../docs/exemples/jeu.exemple.json');
@@ -83,7 +118,9 @@ class Validateur {
     return validerJson(brut, jeu: Jeu.fromJson(brut));
   }
 
-  List<String> _validerSchema(Map<String, dynamic> brut) {
+  static final _couleur = RegExp(r'^#[0-9A-Fa-f]{6}$');
+
+  List<String> _validerForme(Map<String, dynamic> brut) {
     final erreurs = <String>[];
     if (brut['format'] != 'cardhospital') {
       erreurs.add('format : doit être "cardhospital"');
@@ -680,8 +717,6 @@ class Validateur {
   static bool _conditionTesteAdapte(Condition c) =>
       c.constante == 'traitement_adapte' ||
       [...?c.et, ...?c.ou, ?c.non].any(_conditionTesteAdapte);
-
-  static final _couleur = RegExp(r'^#[0-9A-Fa-f]{6}$');
 
   List<String> _avertissements(Jeu j) {
     final avertissements = <String>[];

@@ -219,22 +219,26 @@ void main() {
       contains(startsWith('specialites[3].id : « recherche » est une valeur')),
     );
 
+    // Le schéma arrête la validation à la première famille d'erreurs : les
+    // deux cas sont vérifiés séparément.
     final copie2 = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
     (copie2['maladies'] as List)[0]['specialite'] = 'polyvalent';
-    (copie2['cartes'] as Map)['OBJ-001']['specialite'] = 'recherche';
-    final rapport2 = Validateur().validerJson(
-      copie2,
-      jeu: Jeu.fromJson(copie2),
-    );
     expect(
-      rapport2.erreurs,
-      containsAll([
+      Validateur().validerJson(copie2).erreurs,
+      contains(
         startsWith('maladies[0].specialite : « polyvalent » est une valeur'),
+      ),
+    );
+    final copie3 = jsonDecode(jsonEncode(brut)) as Map<String, dynamic>;
+    (copie3['cartes'] as Map)['OBJ-001']['specialite'] = 'recherche';
+    expect(
+      Validateur().validerJson(copie3).erreurs,
+      contains(
         startsWith(
           'cartes.OBJ-001.specialite : « recherche » est réservée '
           'aux salles',
         ),
-      ]),
+      ),
     );
   });
 

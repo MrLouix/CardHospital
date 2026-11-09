@@ -70,7 +70,8 @@ Dès le premier commit de code :
 - `dart format --set-exit-if-changed` et `dart analyze` (zéro warning) ;
 - `dart test` sur `packages/moteur`, avec mesure de couverture ;
 - validation de `docs/exemples/jeu.exemple.json` contre le schéma ;
-- plus tard : `flutter analyze` et construction de l'APK pour `app/`.
+- `prototypes/detection` (workflow `detection`) : `dart format`, `flutter analyze`, `flutter test`, puis construction de l'APK release, publiée dans la release GitHub `detection-latest` (lien de téléchargement direct pour les testeurs, sans compte GitHub) et en artefact `detection-apk` ;
+- plus tard : la même chose pour `app/`.
 
 ## 5. Démarrage : phases 0 et 1 en parallèle
 
@@ -81,9 +82,9 @@ Les deux phases sont indépendantes : la phase 0 lève le risque matériel (cam�
 Réparti entre le code (Claude) et les essais physiques (l'équipe).
 
 - [x] **Générateur de planche de QR** (`outils/planche_qr`) : PDF A4 avec des QR de 1,5, 2 et 2,5 cm, en correction M et Q, avec une marge de 4 modules et le contenu `MED-001`, `PAT-001`… Chaque QR est étiqueté par sa taille et son niveau de correction.
-- [ ] **Appli de test** (`prototypes/detection`) : flux caméra `mobile_scanner`, liste des QR détectés par image avec horodatage, deux modes (détection simultanée / sélection cumulative selon [SPECIFICATION.md §4.1](SPECIFICATION.md#41-sélection-cumulative)), chronomètre « 4 cartes sélectionnées en X s », export des mesures en CSV.
+- [x] **Appli de test** (`prototypes/detection`, mode d'emploi dans son [README](../prototypes/detection/README.md)) : flux caméra `mobile_scanner`, liste des QR détectés par image avec horodatage, deux modes (détection simultanée / sélection cumulative selon [SPECIFICATION.md §4.1](SPECIFICATION.md#41-sélection-cumulative)), chronomètre « 4 cartes sélectionnées en X s », export des mesures en CSV. S'y ajoutent le choix de la résolution de la caméra, la saisie des conditions de l'essai (finition, taille, correction, éclairage, support, distance, angle), le suivi en direct des critères de sortie et l'enregistrement des essais sur le téléphone. La caméra n'a pas pu être testée dans l'environnement de développement : la logique et les écrans le sont, avec une caméra factice.
 - [ ] **Essais physiques** (équipe) : impression mate et brillante, protocole de la [feuille de route](FEUILLE_DE_ROUTE.md#phase-0--prototype-de-détection), au moins 3 téléphones.
-- [ ] **Bilan** : taille de QR, niveau de correction, finition et mode de sélection arrêtés et reportés dans [SPECIFICATION.md §4](SPECIFICATION.md#4-détection-des-cartes).
+- [ ] **Bilan** : taille de QR, niveau de correction, finition, mode de sélection et résolution de la caméra arrêtés et reportés dans [SPECIFICATION.md §4](SPECIFICATION.md#4-détection-des-cartes). À trancher aussi : `mobile_scanner` ne signale pas les images sans QR, donc la règle « détecté sur 2 images consécutives » (§4.1) est approchée par « 2 détections successives à moins de 300 ms ». Le bilan dira si cette approximation filtre assez les fausses lectures, ou s'il faut une autre règle (par exemple 3 détections).
 
 La caméra ne peut pas être testée depuis l'environnement de développement de Claude : les mesures viennent obligatoirement des essais physiques.
 
@@ -104,11 +105,11 @@ Ordre de réalisation, chaque étape étant livrée avec ses tests :
 
 Critères de fin : ceux de la [feuille de route](FEUILLE_DE_ROUTE.md#phase-1--moteur-deffets-validateur-et-simulateur), soit une couverture ≥ 90 %, un test négatif par règle de validation et un rapport de simulation reproductible.
 
-État des critères (fin de l'étape 8) :
+État des critères :
 
 - **couverture** : 96 % hors code généré, vérifiée en intégration continue avec un seuil de 90 % (`dart run tool/couverture.dart`) ;
 - **rapport reproductible** : atteint ; même graine, même rapport, testé. Rapport de référence : [simulations/rapport_exemple.md](simulations/rapport_exemple.md) ;
-- **un test négatif par règle de validation** : partiel. Les règles 4 à 10 sont testées. Restent les règles 1 (conformité complète au JSON Schema : le validateur ne contrôle encore qu'une partie du schéma, sans la bibliothèque `json_schema` prévue), 2 (une seule version de schéma existe) et 3 (le catalogue embarqué n'existe pas encore).
+- **un test négatif par règle de validation** : atteint. Chacune des 9 règles de [MOTEUR_EFFETS.md §7](MOTEUR_EFFETS.md#7-validation-à-limport) a au moins un test négatif (`packages/moteur/test/validateur_test.dart`). La règle 1 contrôle désormais le JSON Schema complet (bibliothèque `json_schema`), avec plusieurs tests par type d'erreur.
 
 ### 5.3 Utiliser le moteur et le simulateur
 
@@ -119,6 +120,7 @@ dart test
 dart run bin/simuler.dart --parties 2000 --strategies hasard,seuil:70,couleur:70 --en-jeu 3
 dart run bin/simuler.dart --joueurs 3 --partage les-deux
 dart run bin/simuler.dart --joueurs 3 --cartes personnelles   # un médecin par joueur
+dart run tool/valider_paquet.dart ../../contenu/paquet_base.json   # schéma complet et contrôles sémantiques
 dart run bin/simuler.dart --aide   # ou --help, -h
 ```
 

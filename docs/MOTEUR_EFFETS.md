@@ -299,6 +299,12 @@ Un paquet est **refusé** s'il comporte au moins une erreur ; les avertissements
 11. `recherche.passages` d'une maladie qui n'est pas un entier d'au moins 1, ou `parametres.recherche.bonus_specialite` qui n'est pas un entier positif ou nul ;
 12. action avec l'effet `rechercher` dont la précondition n'exige pas `patient_diagnostique` (hors de toute alternative et de toute négation) : le joueur doit pouvoir choisir la maladie parmi les maladies suspectées.
 
+Précisions sur la mise en œuvre (`packages/moteur/lib/validation`) :
+
+- **Règle 1** : le paquet est validé contre le fichier `docs/schema/jeu.schema.json` complet (bibliothèque `json_schema`, draft 2020-12). Les messages sont traduits en français. Quand une forme à variantes est en échec (effet, prédicat, condition, valeur), le validateur repère la variante visée grâce à sa clé (`effet`, `carte`, `compte`, `et`…) et donne l'erreur précise : `actions[1].effets[2].valeur : champ obligatoire absent` plutôt que « effet non reconnu ».
+- **Règle 2** : elle est vérifiée avant le schéma, qui ne connaît que la version courante. Le message reste donc explicite pour un paquet trop récent.
+- **Règle 3** : l'appli fournit le catalogue embarqué, c'est-à-dire les cartes du paquet de base avec leur type. Sans catalogue (validation du paquet de base lui-même, outils), la règle n'est pas vérifiée.
+
 **Avertissements** : dossier `images/` non vide, maladie sans traitement partiel, spécialité portée par aucune carte, deux spécialités de même couleur ou de même icône, couleur de spécialité trop peu contrastée sur fond clair ou sombre, deux couleurs trop proches pour un daltonien (protanopie, deutéranopie, tritanopie), carte qui utilise encore `generaliste` (ancien nom de `polyvalent`), laboratoire (salle de spécialité `recherche`) alors qu'aucune action n'a l'effet `rechercher`, traitement adapté satisfait par toutes les combinaisons (prédicat sans doute toujours vrai), maladie qu'aucune combinaison ne traite en échec (traitement partiel sans doute toujours vrai).
 
 ## 8. Versionnement

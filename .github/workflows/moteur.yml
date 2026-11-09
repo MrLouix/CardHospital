@@ -25,3 +25,5 @@ jobs:
         run: dart test test/exemple_test.dart
       - name: Valide le paquet de base (contenu/paquet_base.json)
         run: dart test test/paquet_base_test.dart
+      - name: Valide le paquet de base contre le schéma complet (outil en ligne de commande)
+        run: dart run tool/valider_paquet.dart ../../contenu/paquet_base.json
