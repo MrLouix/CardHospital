@@ -11,8 +11,8 @@ En résumé : la spec suffit pour démarrer selon la feuille de route, pas pour 
 | **0 – Prototype de détection** | **Oui** | Il n'a presque pas besoin de la spec : une caméra, une liste des QR lus, des mesures. Les critères de fin sont chiffrés. |
 | **1 – Moteur, validateur, simulateur** | **Oui, à ~90 %** | Le [schéma JSON](schema/jeu.schema.json), les [effets](MOTEUR_EFFETS.md), les algorithmes du [modèle de jeu](MODELE_DE_JEU.md) (diagnostic, arrondi, ordre de résolution) et les règles de validation sont précis. Un [exemple valide](exemples/jeu.exemple.json) permet d'écrire les premiers tests. |
 | **2 – Appli solo** | **Partiellement** | Les écrans et le parcours sont listés ([SPECIFICATION.md §6](SPECIFICATION.md#6-écrans-et-cas-derreur)), mais il n'y a ni maquettes ni images de cartes. C'est suffisant pour un prototype fonctionnel avec des images provisoires, pas pour une appli finie. |
-| **3 – Hôte et clients** | **Partiellement** | Les messages sont définis ([SPECIFICATION.md §3.3](SPECIFICATION.md#33-protocole)) et le contenu du message `resultat` est fixé ([MODELE_DE_JEU.md §11.1](MODELE_DE_JEU.md#111-format-du-résultat)), mais pas encore le détail des champs des autres messages. Le type de service de premier plan exigé par Android 14 reste à choisir. À préciser au début de la phase 3. |
-| **4 et 5** | Pas encore | Elles dépendent des retours des phases précédentes. Le contenu du paquet de base existe ([`contenu/paquet_base.json`](../contenu/paquet_base.json)) ; reste à l'équilibrer. |
+| **5 – Plusieurs téléphones** (facultatif) | **Partiellement** | Les messages sont définis ([SPECIFICATION.md §3.3](SPECIFICATION.md#33-protocole)) et le contenu du message `resultat` est fixé ([MODELE_DE_JEU.md §11.1](MODELE_DE_JEU.md#111-format-du-résultat)), mais pas encore le détail des champs des autres messages. Le type de service de premier plan exigé par Android 14 reste à choisir. À préciser au début de la phase 3. |
+| **1 bis, 3, 4 et 6** | Pas encore | Les règles et l'équilibre (jalon 1 bis) attendent les décisions D1 à D7 de la [feuille de route](FEUILLE_DE_ROUTE.md#41-décisions-à-prendre) ; les autres dépendent des retours des phases précédentes. Le contenu du paquet de base existe ([`contenu/paquet_base.json`](../contenu/paquet_base.json)) ; reste à l'équilibrer. |
 
 ## 2. Points à trancher pendant la phase 1
 
@@ -29,7 +29,7 @@ Aucun ne bloque le démarrage. Chacun est tranché au moment du codage, puis rep
 
 | Prérequis | Nécessaire pour | Statut |
 |---|---|---|
-| **Contenu du jeu** : spécialité et capacités de chaque carte, environ 20 maladies pour la phase 1 et 100 pour la phase 5 | Simulateur (phase 1), contenu complet (phase 5) | Fait : paquet de base de 103 maladies ([`contenu/paquet_base.json`](../contenu/paquet_base.json)) ; l'exemple en est un sous-ensemble de 6 maladies. |
+| **Contenu du jeu** : spécialité et capacités de chaque carte, environ 20 maladies pour la phase 1 et 100 pour le contenu final | Simulateur (phase 1), contenu final (phase 3) | Fait : paquet de base de 103 maladies ([`contenu/paquet_base.json`](../contenu/paquet_base.json)) ; l'exemple en est un sous-ensemble de 6 maladies. |
 | **Images des cartes** | Phase 2 et suivantes | Des images provisoires suffisent jusqu'à la phase 4 |
 | **Téléphones de test**, dont un d'entrée de gamme sous API 26–28 | Phase 0 | À réunir |
 | **Impression de la planche de QR** de test, en finition mate et brillante | Phase 0 | Après génération de la planche |
@@ -58,7 +58,7 @@ CardHospital/
 
 Principes :
 
-- **Le moteur ne dépend ni de Flutter ni du réseau.** L'appli solo (phase 2) l'appelle directement ; l'hôte (phase 3) l'appelle derrière le serveur. Le même code sert aux tests, au simulateur et à l'appli.
+- **Le moteur ne dépend ni de Flutter ni du réseau.** L'appli sur un téléphone (phase 2) l'appelle directement ; l'hôte du mode à plusieurs téléphones (phase 5, facultative) l'appelle derrière le serveur. Le même code sert aux tests, au simulateur et à l'appli.
 - **Le hasard est injecté** (générateur à graine) : tests et simulations sont reproductibles.
 - **Le schéma reste unique** : `docs/schema/jeu.schema.json` est la référence ; le validateur Dart le charge tel quel.
 - **Versions figées** : la version stable de Flutter et de Dart en vigueur au démarrage, inscrite dans le dépôt (`pubspec.yaml`, contraintes `environment`), et mise à jour volontairement.
@@ -107,9 +107,10 @@ Critères de fin : ceux de la [feuille de route](FEUILLE_DE_ROUTE.md#phase-1--mo
 
 État des critères :
 
-- **couverture** : 96 % hors code généré, vérifiée en intégration continue avec un seuil de 90 % (`dart run tool/couverture.dart`) ;
+- **couverture** : 97 % hors code généré, vérifiée en intégration continue avec un seuil de 90 % (`dart run tool/couverture.dart`) ;
 - **rapport reproductible** : atteint ; même graine, même rapport, testé. Rapport de référence : [simulations/rapport_exemple.md](simulations/rapport_exemple.md) ;
-- **un test négatif par règle de validation** : atteint. Chacune des 9 règles de [MOTEUR_EFFETS.md §7](MOTEUR_EFFETS.md#7-validation-à-limport) a au moins un test négatif (`packages/moteur/test/validateur_test.dart`). La règle 1 contrôle désormais le JSON Schema complet (bibliothèque `json_schema`), avec plusieurs tests par type d'erreur.
+- **un test négatif par règle de validation** : atteint. Chacune des 12 règles de [MOTEUR_EFFETS.md §7](MOTEUR_EFFETS.md#7-validation-à-limport) a au moins un test négatif (`test/validateur_test.dart` pour les règles 1 à 9, `test/exemple_test.dart` pour les règles 10 à 12). La règle 1 contrôle le JSON Schema complet (bibliothèque `json_schema`) ;
+- **robustesse** : `test/robustesse_test.dart` joue des parties aléatoires (sélections valides ou non, annulations, sauvegardes et reprises) sur l'exemple et le paquet de base, aux trois niveaux, et vérifie les invariants du moteur à chaque action.
 
 ### 5.3 Utiliser le moteur et le simulateur
 
@@ -189,7 +190,7 @@ Le simulateur suppose toutes les cartes disponibles : le spécialiste et le meil
 | Fin de phase 0 | Mettre à jour [SPECIFICATION.md §4](SPECIFICATION.md#4-détection-des-cartes) (QR, sélection) ; si l'échec est confirmé, revoir le principe de lecture avant la phase 2 |
 | Fin de phase 1 | Reporter les points P1 à P4 dans la spec ; fixer par simulation les paramètres du diagnostic, les récompenses, la réputation de départ et le seuil de fermeture |
 | Début de phase 2 | Maquettes basse fidélité des écrans ([SPECIFICATION.md §6.1](SPECIFICATION.md#61-écrans)) |
-| Début de phase 3 | Détail des champs de chaque message du protocole ; type de service de premier plan pour Android 14 |
+| Début de phase 5 | Détail des champs de chaque message du protocole ; type de service de premier plan pour Android 14 |
 
 ### 6.1 Travaux issus des règles de table
 

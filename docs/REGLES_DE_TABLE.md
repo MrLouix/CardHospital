@@ -82,7 +82,7 @@ C'est la tension du jeu : chaque médecin joue pour lui, mais un patient néglig
 
 ### 6.1 Objets permanents
 
-Les objets permanents du paquet de base sont : le **stéthoscope**, le **traité de médecine**, le **défibrillateur**, l'**électrocardiographe**, le **thermomètre**, le **tensiomètre**, le **livre de psychanalyse**, le **grimoire** et l'**amulette de protection**.
+Les objets permanents du paquet de base sont : le **stéthoscope**, le **traité de médecine**, le **défibrillateur**, l'**électrocardiographe**, le **thermomètre**, le **tensiomètre**, le **livre de psychanalyse**, le **grimoire**, l'**amulette de protection**, et les trois objets d'aide à la recherche : le **microscope**, la **centrifugeuse** et le **séquenceur d'ADN**.
 
 À son tour, un joueur peut en acheter **un seul**, avant ou après son action (§2). Cet achat n'est pas obligatoire.
 

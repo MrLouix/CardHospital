@@ -21,6 +21,18 @@ Le suivi global de la partie (tours, points de victoire, cumul des pièces et de
 - `mobile_scanner` pour la détection multi-QR
 - `shelf` + WebSocket pour le serveur embarqué et la synchronisation en temps réel
 
+## État du projet
+
+Le moteur de jeu, le validateur de paquets et le simulateur sont faits et testés (`packages/moteur`). Le paquet de base est rédigé et reste à équilibrer. L'appli de mesure de la détection des QR est prête pour les essais (`prototypes/detection`). L'appli de jeu n'est pas commencée. Les priorités et les décisions à prendre sont dans la [feuille de route](docs/FEUILLE_DE_ROUTE.md).
+
+```bash
+cd packages/moteur
+dart pub get
+dart test                                                   # tests du moteur
+dart run tool/valider_paquet.dart ../../contenu/paquet_base.json
+dart run bin/simuler.dart --aide                            # simulateur
+```
+
 ## Documentation
 
 - [Spécification de l'application](docs/SPECIFICATION.md)
@@ -31,6 +43,8 @@ Le suivi global de la partie (tours, points de victoire, cumul des pièces et de
 - [Paquet de base](contenu/paquet_base.json) et [rapports de simulation](docs/simulations/README.md)
 - [Revue de cohérence des règles](docs/REVUE_COHERENCE.md), avec le suivi des corrections
 - [Analyse de l'équilibre et du partage d'information](docs/ANALYSE_EQUILIBRE.md)
+- [Prototype de détection multi-QR](prototypes/detection/README.md) et [planche de QR de test](outils/planche_qr/README.md)
+- [Style des visuels](outils/visuels/STYLE.md), [prompt master](outils/visuels/PROMPT_MASTER.md) et gabarits des tuiles (`outils/visuels/gabarits`)
 
 ## Licence
 

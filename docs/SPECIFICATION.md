@@ -221,7 +221,7 @@ Le détail est dans [MOTEUR_EFFETS.md](MOTEUR_EFFETS.md).
 | Latence de « Confirmer » au résultat | < 500 ms, sauvegarde automatique comprise |
 | Détection de 4 cartes | < 3 s en éclairage intérieur normal (à valider en phase 0) |
 | Validation du paquet de base (103 maladies, 2 650 combinaisons) | < 2 s |
-| Autonomie de l'hôte | Mesurée en phase 3 sur une partie de 2 h |
+| Autonomie de l'hôte | Mesurée en phase 5 (plusieurs téléphones) sur une partie de 2 h |
 | Langue | Français en v1 ; les textes d'interface sont externalisés (fichiers ARB) pour une traduction future |
 | Accessibilité | Respect de la taille de police système ; contrastes suffisants ; la couleur d'une spécialité est toujours doublée de son icône et de son nom |
 | Conformité daltonisme | Chaque couleur de spécialité a un contraste d'au moins 3:1 sur fond clair (`#FFFFFF`) et sur fond sombre (`#121212`). Deux couleurs de spécialité restent distinctes (écart ΔE CIE76 d'au moins 20) en vision normale, en **protanopie**, en **deutéranopie** et en **tritanopie** (simulation de Machado et al., 2009). Le validateur de paquet le vérifie ; la palette du paquet de base le respecte |
