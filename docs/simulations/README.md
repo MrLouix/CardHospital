@@ -14,3 +14,18 @@ Par défaut, 3 patients sont en jeu à la fois sur une horloge commune (option `
 Avec `--cartes personnelles`, chaque joueur n'a que son médecin (plus un diplôme à 2 ou 3 joueurs), comme à la table ; sinon, chaque joueur dispose de toutes les cartes.
 
 Les constats tirés de ces rapports sont résumés dans le [plan de codage §5.4](../PLAN_DE_CODAGE.md#54-premiers-constats-du-simulateur) et analysés dans l'[analyse de l'équilibre](../ANALYSE_EQUILIBRE.md).
+
+## Variantes de partage
+
+Rapports du simulateur de variantes (`packages/moteur/bin/simuler_variantes.dart`), analysés dans [VARIANTES_PARTAGE.md](../VARIANTES_PARTAGE.md). Tous portent sur `contenu/paquet_base.json` 2.2.0, graine 1, 1000 parties.
+
+| Rapport | Commande (depuis `packages/moteur`) |
+|---|---|
+| [rapport_variantes_3_joueurs.md](rapport_variantes_3_joueurs.md) | `dart run bin/simuler_variantes.dart --parties 1000 -o ../../docs/simulations/rapport_variantes_3_joueurs.md` |
+| [rapport_variantes_3_joueurs_novices.md](rapport_variantes_3_joueurs_novices.md) | même commande avec `--novices` |
+| [rapport_variantes_3_joueurs_reanimation.md](rapport_variantes_3_joueurs_reanimation.md) | même commande avec `-d reanimation` |
+| [rapport_variantes_3_joueurs_paliers_courts.md](rapport_variantes_3_joueurs_paliers_courts.md) | même commande avec `--paliers 2,5,8,11` |
+| [rapport_variantes_2_joueurs.md](rapport_variantes_2_joueurs.md) | même commande avec `--joueurs 2` |
+| [rapport_variantes_4_joueurs.md](rapport_variantes_4_joueurs.md) | même commande avec `--joueurs 4` |
+| [rapport_variantes_4_joueurs_novices.md](rapport_variantes_4_joueurs_novices.md) | même commande avec `--joueurs 4 --novices` |
+| [rapport_variantes_5_joueurs.md](rapport_variantes_5_joueurs.md) | même commande avec `--joueurs 5` |

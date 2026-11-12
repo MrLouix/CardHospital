@@ -42,7 +42,7 @@ dart run bin/simuler.dart --aide                            # simulateur
 - [Glossaire](docs/GLOSSAIRE.md)
 - [Paquet de base](contenu/paquet_base.json) et [rapports de simulation](docs/simulations/README.md)
 - [Revue de cohérence des règles](docs/REVUE_COHERENCE.md), avec le suivi des corrections
-- [Analyse de l'équilibre et du partage d'information](docs/ANALYSE_EQUILIBRE.md)
+- [Analyse de l'équilibre et du partage d'information](docs/ANALYSE_EQUILIBRE.md) et [variantes simulées pour faire du partage un vrai dilemme](docs/VARIANTES_PARTAGE.md)
 - [Prototype de détection multi-QR](prototypes/detection/README.md) et [planche de QR de test](outils/planche_qr/README.md)
 - [Style des visuels](outils/visuels/STYLE.md), [prompt master](outils/visuels/PROMPT_MASTER.md) et gabarits des tuiles (`outils/visuels/gabarits`)
 
