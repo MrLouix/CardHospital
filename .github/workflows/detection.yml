@@ -43,11 +43,6 @@ jobs:
       - run: flutter test
       - name: APK release (signé avec la clé de debug, pour les essais)
         run: flutter build apk --release
-      - uses: actions/upload-artifact@v4
-        with:
-          name: detection-apk
-          path: prototypes/detection/build/app/outputs/flutter-apk/app-release.apk
-          retention-days: 30
       # Une release « detection-latest » donne un lien de téléchargement direct
       # de l'APK, sans connexion à GitHub ni archive zip : c'est ce dont les
       # testeurs ont besoin sur leur téléphone. Elle est recréée à chaque
