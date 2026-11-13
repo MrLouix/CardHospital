@@ -3,3 +3,4 @@ library;
 
 export 'simulation/simulateur.dart';
 export 'simulation/strategies.dart';
+export 'simulation/variantes.dart';

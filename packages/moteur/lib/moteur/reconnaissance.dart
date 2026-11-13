@@ -5,11 +5,14 @@ sealed class Reconnaissance {
   const Reconnaissance();
 }
 
-/// La sélection correspond à un motif : liste des actions proposées.
+/// La sélection correspond à au moins un motif : actions de tous les motifs
+/// reconnus, dans l'ordre de déclaration des actions. Les préconditions ne
+/// sont pas encore évaluées.
 class Apercu extends Reconnaissance {
-  const Apercu({required this.motif, required this.actions});
+  const Apercu({required this.motifs, required this.actions});
 
-  final String motif;
+  /// Motifs reconnus, dans l'ordre de déclaration.
+  final List<String> motifs;
   final List<ActionJeu> actions;
 }
 
@@ -29,14 +32,17 @@ const _nomsGroupes = {
   'medecin': 'médecin',
   'salle': 'salle',
   'objet|diplome': 'accessoire (objet ou diplôme)',
-  'total': 'total',
 };
 
 /// Reconnaissance des combinaisons : à partir d'une sélection d'identifiants
-/// de cartes, détermine le motif reconnu et les actions proposées, ou le
+/// de cartes, détermine les motifs reconnus et les actions proposées, ou le
 /// message du premier écart par rapport au motif le plus proche (P3 :
 /// moins d'écarts de cardinalité, puis premier écart dans l'ordre
 /// patient, médecin, salle, accessoire, total).
+///
+/// Quand plusieurs motifs correspondent, leurs actions sont réunies : ce
+/// sont les préconditions qui départagent (par exemple le laboratoire ne
+/// permet que d'analyser, MOTEUR_EFFETS.md §3).
 class ReconnaissanceCombinaisons {
   ReconnaissanceCombinaisons(this.jeu);
 
@@ -53,13 +59,18 @@ class ReconnaissanceCombinaisons {
       return const Refus('Aucune carte reconnue.');
     }
 
-    for (final entry in jeu.motifs.entries) {
-      if (_correspond(entry.value, cartes)) {
-        final actions = jeu.actions.where((a) => a.motif == entry.key).toList();
-        return Apercu(motif: entry.key, actions: actions);
-      }
-    }
-    return Refus(_premierEcart(cartes));
+    final motifs = [
+      for (final entry in jeu.motifs.entries)
+        if (_correspond(entry.value, cartes)) entry.key,
+    ];
+    if (motifs.isEmpty) return Refus(_premierEcart(cartes));
+    return Apercu(
+      motifs: motifs,
+      actions: [
+        for (final a in jeu.actions)
+          if (motifs.contains(a.motif)) a,
+      ],
+    );
   }
 
   bool _correspond(Motif motif, List<String> cartes) {
@@ -108,6 +119,17 @@ class ReconnaissanceCombinaisons {
       final intervalle = motif.intervalles[groupe];
       if (intervalle == null) continue;
       final compte = comptes[groupe] ?? 0;
+      if (groupe == 'total') {
+        if (compte < intervalle.min) {
+          return intervalle.min == 1
+              ? 'Il faut au moins une carte.'
+              : 'Il faut au moins ${intervalle.min} cartes.';
+        }
+        if (compte > intervalle.max) {
+          return '${intervalle.max} cartes au maximum.';
+        }
+        continue;
+      }
       final nom = _nomsGroupes[groupe]!;
       if (compte < intervalle.min) {
         if (intervalle.min == 1) return 'Il faut une carte $nom.';
@@ -115,7 +137,7 @@ class ReconnaissanceCombinaisons {
       }
       if (compte > intervalle.max) {
         if (intervalle.max == 1) return 'Une seule carte $nom par action.';
-        return '${intervalle.max} cartes $nom maximum.';
+        return '${intervalle.max} cartes $nom au maximum.';
       }
     }
     for (final groupe in comptes.keys) {

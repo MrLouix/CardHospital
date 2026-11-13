@@ -56,28 +56,46 @@ Map<String, dynamic> _$JeuToJson(Jeu instance) => <String, dynamic>{
 
 Parametres _$ParametresFromJson(Map<String, dynamic> json) => Parametres(
   attenteMaxDefaut: (json['attente_max_defaut'] as num).toInt(),
+  paliersAggravation: (json['paliers_aggravation'] as List<dynamic>)
+      .map((e) => (e as num).toInt())
+      .toList(),
   diagnostic: Diagnostic.fromJson(json['diagnostic'] as Map<String, dynamic>),
   recompenses: Recompenses.fromJson(
     json['recompenses'] as Map<String, dynamic>,
   ),
+  recherche: json['recherche'] == null
+      ? null
+      : ParametresRecherche.fromJson(json['recherche'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$ParametresToJson(Parametres instance) =>
     <String, dynamic>{
       'attente_max_defaut': instance.attenteMaxDefaut,
+      'paliers_aggravation': instance.paliersAggravation,
       'diagnostic': instance.diagnostic,
       'recompenses': instance.recompenses,
+      'recherche': instance.recherche,
     };
+
+ParametresRecherche _$ParametresRechercheFromJson(Map<String, dynamic> json) =>
+    ParametresRecherche(
+      bonusSpecialite: (json['bonus_specialite'] as num?)?.toInt() ?? 0,
+    );
+
+Map<String, dynamic> _$ParametresRechercheToJson(
+  ParametresRecherche instance,
+) => <String, dynamic>{'bonus_specialite': instance.bonusSpecialite};
 
 Diagnostic _$DiagnosticFromJson(Map<String, dynamic> json) => Diagnostic(
   precisionMax: (json['precision_max'] as num).toInt(),
   verite: (json['verite'] as num).toDouble(),
   parNiveau: (json['par_niveau'] as num).toDouble(),
-  affiniteType: (json['affinite_type'] as num).toDouble(),
+  affiniteSpecialite: (json['affinite_specialite'] as num).toDouble(),
   bonusSpecialite: (json['bonus_specialite'] as num).toDouble(),
   exclusion: (json['exclusion'] as num).toDouble(),
   tailleListe: (json['taille_liste'] as num).toInt(),
   scoreBruit: (json['score_bruit'] as num).toInt(),
+  ponderationPoids: (json['ponderation_poids'] as num).toDouble(),
 );
 
 Map<String, dynamic> _$DiagnosticToJson(Diagnostic instance) =>
@@ -85,22 +103,23 @@ Map<String, dynamic> _$DiagnosticToJson(Diagnostic instance) =>
       'precision_max': instance.precisionMax,
       'verite': instance.verite,
       'par_niveau': instance.parNiveau,
-      'affinite_type': instance.affiniteType,
+      'affinite_specialite': instance.affiniteSpecialite,
       'bonus_specialite': instance.bonusSpecialite,
       'exclusion': instance.exclusion,
       'taille_liste': instance.tailleListe,
       'score_bruit': instance.scoreBruit,
+      'ponderation_poids': instance.ponderationPoids,
     };
 
 Recompenses _$RecompensesFromJson(Map<String, dynamic> json) => Recompenses(
   piecesDiagnostic: (json['pieces_diagnostic'] as num?)?.toInt(),
   piecesTraitement: (json['pieces_traitement'] as num?)?.toInt(),
   piecesPartiel: (json['pieces_partiel'] as num?)?.toInt(),
-  reputationSoin: (json['reputation_soin'] as num?)?.toInt(),
+  reputationGuerison: (json['reputation_guerison'] as num?)?.toInt(),
   reputationEchec: (json['reputation_echec'] as num?)?.toInt(),
   reputationAttente: (json['reputation_attente'] as num?)?.toInt(),
   reputationMort: (json['reputation_mort'] as num?)?.toInt(),
-  soinPartiel: (json['soin_partiel'] as num?)?.toInt(),
+  pvPartiel: (json['pv_partiel'] as num?)?.toInt(),
   pvEchec: (json['pv_echec'] as num?)?.toInt(),
 );
 
@@ -109,11 +128,11 @@ Map<String, dynamic> _$RecompensesToJson(Recompenses instance) =>
       'pieces_diagnostic': instance.piecesDiagnostic,
       'pieces_traitement': instance.piecesTraitement,
       'pieces_partiel': instance.piecesPartiel,
-      'reputation_soin': instance.reputationSoin,
+      'reputation_guerison': instance.reputationGuerison,
       'reputation_echec': instance.reputationEchec,
       'reputation_attente': instance.reputationAttente,
       'reputation_mort': instance.reputationMort,
-      'soin_partiel': instance.soinPartiel,
+      'pv_partiel': instance.pvPartiel,
       'pv_echec': instance.pvEchec,
     };
 
@@ -134,9 +153,9 @@ Map<String, dynamic> _$DifficulteToJson(Difficulte instance) =>
 
 Modificateurs _$ModificateursFromJson(Map<String, dynamic> json) =>
     Modificateurs(
-      pvPerdus: (json['pv_perdus'] as num).toDouble(),
-      pieces: (json['pieces'] as num).toDouble(),
-      reputation: (json['reputation'] as num).toDouble(),
+      pvPerdus: (json['pv_perdus'] as num).toInt(),
+      pieces: (json['pieces'] as num).toInt(),
+      reputation: (json['reputation'] as num).toInt(),
     );
 
 Map<String, dynamic> _$ModificateursToJson(Modificateurs instance) =>
@@ -177,6 +196,7 @@ Carte _$CarteFromJson(Map<String, dynamic> json) => Carte(
   type: $enumDecode(_$TypeCarteEnumMap, json['type']),
   nom: json['nom'] as String,
   nomPhrase: json['nom_phrase'] as String?,
+  lieuPhrase: json['lieu_phrase'] as String?,
   specialite: json['specialite'] as String?,
   capacites: (json['capacites'] as Map<String, dynamic>?)?.map(
     (k, e) => MapEntry(k, (e as num).toInt()),
@@ -187,6 +207,7 @@ Map<String, dynamic> _$CarteToJson(Carte instance) => <String, dynamic>{
   'type': _$TypeCarteEnumMap[instance.type]!,
   'nom': instance.nom,
   'nom_phrase': instance.nomPhrase,
+  'lieu_phrase': instance.lieuPhrase,
   'specialite': instance.specialite,
   'capacites': instance.capacites,
 };
@@ -212,7 +233,7 @@ Map<String, dynamic> _$TraitementToJson(Traitement instance) =>
 Maladie _$MaladieFromJson(Map<String, dynamic> json) => Maladie(
   id: json['id'] as String,
   nom: json['nom'] as String,
-  type: json['type'] as String,
+  specialite: json['specialite'] as String,
   pvInitial: (json['pv_initial'] as num).toInt(),
   aggravation: (json['aggravation'] as List<dynamic>)
       .map((e) => (e as num).toInt())
@@ -223,18 +244,29 @@ Maladie _$MaladieFromJson(Map<String, dynamic> json) => Maladie(
   recompenses: json['recompenses'] == null
       ? null
       : Recompenses.fromJson(json['recompenses'] as Map<String, dynamic>),
+  recherche: json['recherche'] == null
+      ? null
+      : Recherche.fromJson(json['recherche'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$MaladieToJson(Maladie instance) => <String, dynamic>{
   'id': instance.id,
   'nom': instance.nom,
-  'type': instance.type,
+  'specialite': instance.specialite,
   'pv_initial': instance.pvInitial,
   'aggravation': instance.aggravation,
   'attente_max': instance.attenteMax,
   'poids': instance.poids,
   'traitement': instance.traitement,
   'recompenses': instance.recompenses,
+  'recherche': instance.recherche,
+};
+
+Recherche _$RechercheFromJson(Map<String, dynamic> json) =>
+    Recherche(passages: (json['passages'] as num?)?.toInt() ?? 1);
+
+Map<String, dynamic> _$RechercheToJson(Recherche instance) => <String, dynamic>{
+  'passages': instance.passages,
 };
 
 Intervalle _$IntervalleFromJson(Map<String, dynamic> json) =>

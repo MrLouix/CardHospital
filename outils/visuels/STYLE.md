@@ -15,14 +15,17 @@ Aucun texte de règles n'est imprimé (les règles vivent dans le paquet JSON).
 | Médecin | rectangle | **60 × 85 mm** | 709 × 1004 px | 9 |
 | Patient | rectangle | **60 × 85 mm** (même gabarit) | 709 × 1004 px | 9 |
 | Objet / Diplôme | carré | **45 × 45 mm** | 531 × 531 px | 24 |
-| Salle standard | rectangle paysage | **140 × 100 mm** | 1654 × 1181 px | 2 (8 en A3) |
-| Bloc (grande salle, ex. chirurgie) | rectangle | **150 × 160 mm** | 1772 × 1890 px | 1 (2 en A3) |
+| Salle standard | rectangle portrait | **100 × 122 mm** | 1181 × 1441 px | 4 (8 en A3) |
+| Bloc (grande salle, ex. chirurgie) | rectangle paysage | **168 × 122 mm** | 1984 × 1441 px | 2 (4 en A3) |
 
+- **Quantités par feuille** : calculées à la cote de coupe. Avec 3 mm de fond
+  perdu autour de chaque tuile : salle 2 (6 en A3), bloc 2 (4 en A3).
 - **Résolution** : 300 dpi minimum. Prévoir 3 mm de fond perdu sur les
   rectangles/carrés (canvas + ~35 px de chaque côté).
 - **Coins** : rectangles et carrés à coins arrondis, rayon 3 mm (≈ 35 px).
 - **Fond perdu** : 3 mm ; aucun élément essentiel (QR, titre) dans les 5 mm
-  extérieurs.
+  extérieurs du canvas, comptés depuis le bord du fond perdu (soit 2 mm après
+  la coupe).
 - **Couleur d'impression** : CMJN ; valeurs hexadécimales en sRGB de travail.
 
 ## 2. Codes couleur
@@ -65,31 +68,50 @@ spécialité) ; la spécialité n'apparaît que dans la pastille.
 1. **Bandeau titre** (haut, ~8 mm) : titre court, ~10–12 caractères max.
 2. **Illustration** (centre, ~25 × 17 mm) : icône simple, lisible en flat.
 3. **QR** (20 × 20 mm, coin inférieur droit). Si l'espace manque, le QR peut
-   descendre à **15 mm** (taille testée en phase 0), jamais en dessous.
+   descendre à **15 mm** (taille testée en phase 0), jamais en dessous. Les
+   gabarits utilisent 15 mm : à 20 mm, le QR chevaucherait l'illustration.
 
-### 3.3 Salle standard (rectangle 140 × 100 mm, paysage)
+### 3.3 Salle standard (rectangle 100 × 122 mm, portrait)
 
-Géométrie des logements (sous-épaisseur, voir §4) :
+Géométrie des logements (sous-épaisseur, voir §4) ; médecin et patient sont
+toujours en portrait, 7 mm séparent les logements :
 
 - **Bandeau haut, 22 mm** : nom de la salle à gauche, **QR 20 × 20 mm à
   droite**.
-- **Encoche latérale gauche partielle** : médecin, ouverture **60,5 mm**,
-  profondeur **40 mm** — la tuile dépasse de moitié.
-- **Encoche latérale droite partielle** : patient, idem (60,5 × 40 mm).
+- **Encoche latérale gauche partielle** : médecin, ouverture **86 mm**,
+  profondeur **20 mm** — la tuile de 60 mm dépasse de 40 mm (deux tiers).
+- **Encoche latérale droite partielle** : patient, idem (86 × 20 mm).
 - **Encoche interne carrée** : objet/diplôme, **46 × 46 mm**, en haut au centre
   entre les deux encoches latérales.
-- **Illustration** : au centre, ~60 × 30 mm sous l'encoche carrée.
+- **Illustration** : au centre, ~60 × 50 mm sous l'encoche carrée.
 
-### 3.4 Bloc / grande salle (rectangle 150 × 160 mm, ex. bloc de chirurgie)
+Encombrement sur la table, tuiles en place : 180 mm de large.
+
+### 3.4 Bloc / grande salle (rectangle 168 × 122 mm, ex. bloc de chirurgie)
+
+Même hauteur et mêmes encoches que la salle standard, avec le logement du
+patient en plus (20 + 7 + 61 + 7 + 46 + 7 + 20 = 168 mm) :
 
 - **Bandeau haut, 22 mm** : nom à gauche, **QR 20 × 20 mm à droite**.
-- **Encoche centrale** : patient en portrait, logement **61 × 86 mm** au centre.
-- **Deux encoches latérales partielles** : médecins, 60,5 × 40 mm chacune
-  (40 + 61 + 40 = 141 mm ≤ 150 mm de large).
+- **Encoche centrale** : patient en portrait, logement **61 × 86 mm**, entre
+  l'encoche gauche et l'encoche carrée.
+- **Deux encoches latérales partielles** : médecins en portrait, 86 × 20 mm
+  chacune.
 - **Encoche interne carrée** : objet/diplôme, **46 × 46 mm**, en haut à droite
-  sous le bandeau.
-- **Illustration** : dans l'espace restant (~52 mm de hauteur en bas et
-  bandes latérales).
+  du logement patient, sous le bandeau.
+- **Illustration** : ~60 × 50 mm sous l'encoche carrée.
+
+Encombrement sur la table, tuiles en place : 248 mm de large.
+
+### 3.5 Gabarits VectorCraft
+
+Les gabarits de chaque format sont dans [`gabarits/`](gabarits/) (`.vctemplate`,
+un par type de tuile). Leurs calques séparent le fond, l'illustration, le
+liseré, le bandeau, le titre, le QR, les logements et la pastille ; le calque
+« Repères » (coupe, zone sûre, cotes) n'est ni imprimé ni exporté.
+[`generer_gabarits.ps1`](generer_gabarits.ps1) les regénère (PowerShell 7,
+VectorCraft, polices Inter et Segoe UI Emoji) : toute cote modifiée ici doit
+l'être aussi dans ce script.
 
 ## 4. Matériau et sous-épaisseurs
 
@@ -118,8 +140,8 @@ Géométrie des logements (sous-épaisseur, voir §4) :
 ## 6. Autres éléments du matériel
 
 - **Plateau** : dalles rectangulaires aux mêmes cotes que les salles
-  (140 × 100 mm), fond `#ECEFF1`, chaque salle reprend la couleur de sa
-  spécialité.
+  (100 × 122 mm), en laissant 40 mm de chaque côté pour les tuiles qui
+  dépassent, fond `#ECEFF1`, chaque salle reprend la couleur de sa spécialité.
 - **Pions** (pièces `#C9A227`, réputation `#C62828`, PV `#2E7D32`) : ronds.
 - **Boîte** : fond `#0D47A1`, croix médicale blanche, illustration d'équipe
   dans le style des tuiles.
